@@ -1,0 +1,40 @@
+```patch
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -10,18 +10,28 @@
+     def __eq__(self, other):
+         # Needed for @total_ordering
+         if isinstance(other, Field):
+-            return self.creation_counter == other.creation_counter
++            # Compare creation_counter first for performance and to maintain
++            # existing behavior where possible.
++            if self.creation_counter != other.creation_counter:
++                return False
++            # If creation_counters are equal, compare models. Fields are equal
++            # only if they belong to the same model.
++            return self.model == other.model
+         return NotImplemented
+ 
+     def __lt__(self, other):
+         # This is needed because bisect does not take a comparison function.
+         if isinstance(other, Field):
+-            return self.creation_counter < other.creation_counter
++            # Order by creation_counter first to maintain existing field orderings
++            # as much as possible.
++            if self.creation_counter != other.creation_counter:
++                return self.creation_counter < other.creation_counter
++            # If creation_counters are equal, order by model name.
++            # Ensure both models are set before comparing.
++            if self.model and other.model:
++                return self.model._meta.label_lower < other.model._meta.label_lower
++            # If models aren't set on either side, default to False
++            return False
+         return NotImplemented
+ 
+     def __hash__(self):
+-        return hash(self.creation_counter)
++        return hash((self.creation_counter, self.model))
+ 
+     def __deepcopy__(self, memodict):
+         # We don't have to deepcopy very much here, since most things are not
+```

@@ -1,0 +1,47 @@
+```patch
+--- a/lib/matplotlib/figure.py
++++ b/lib/matplotlib/figure.py
+@@ -2891,6 +2891,7 @@
+         self._suptitle = state.pop('suptitle', None)
+         self.figure = self
+ 
++        original_dpi = state.pop('dpi')
+         # Restore the axes FIRST, as they define the geometry of the figure
+         # (unless it has previously been set explicitly).
+         # Assume that if axes are present, the figure geometry is potentially
+@@ -2900,7 +2901,7 @@
+             self.set_size_inches(state['figwidth'], state['figheight'],
+                                  forward=False)
+         # This must be done AFTER setting the figure size.
+-        self.dpi = state.pop('dpi')
++        self.dpi = original_dpi
+ 
+         # Restore the layout engine after axes creation but before manager init
+         self._layout_engine = state.pop('layout_engine', None)
+@@ -2917,6 +2918,25 @@
+                 # That's OK if the user does not need to display the figure.
+                 pass
+ 
++        # Restore the DPI again, as canvas creation (which happens inside
++        # new_figure_manager_given_figure) may have reset it based on device
++        # pixel ratio (e.g. on MacOSX backend). Make sure the canvas dpi_ratio
++        # state is also consistent with the current screen.
++        self.set_dpi(original_dpi, forward=False)
++        if mgr and hasattr(mgr, 'canvas'):
++            # The following is backend-specific based on macosx's implementation
++            # but the hasattr checks should make it safe for other backends.
++            if hasattr(mgr.canvas, '_dpi_ratio') and \
++               hasattr(mgr.canvas, '_get_device_pixel_ratio'):
++                try:
++                    current_ratio = mgr.canvas._get_device_pixel_ratio()
++                    mgr.canvas._dpi_ratio = current_ratio
++                except Exception:
++                    # _get_device_pixel_ratio might fail if window not ready?
++                    # If it fails, the ratio might be incorrect, potentially
++                    # leading to issues if the window moves screens later.
++                    pass
++
+         # Restore artist data that depends on the renderer.
+         id_map = state['artist_dict']
+         for id_orig, artist in id_map.items():
+```

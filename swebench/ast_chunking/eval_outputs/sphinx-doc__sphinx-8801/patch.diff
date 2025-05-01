@@ -1,0 +1,50 @@
+```diff
+--- a/sphinx/ext/autodoc/__init__.py
++++ b/sphinx/ext/autodoc/__init__.py
+@@ -683,30 +683,32 @@
+             else:
+                 isprivate = membername.startswith('_')
+
++            # Determine the defining class name for attribute docstring lookup
++            defining_class_name = None
++            if isinstance(obj, ObjectMember) and obj.cls:
++                # Use the class name where the member was originally defined
++                defining_class_name = obj.cls.__name__
++
+             keep = False
+             if ismock(member):
+                 # mocked module or object
+                 pass
+             elif self.options.exclude_members and membername in self.options.exclude_members:
+                 # remove members given by exclude-members
+                 keep = False
+             elif want_all and special_member_re.match(membername):
+                 # special __methods__
+                 if self.options.special_members and membername in self.options.special_members:
+                     if membername == '__doc__':
+                         keep = False
+                     elif is_filtered_inherited_member(membername, obj):
+                         keep = False
+                     else:
+                         keep = has_doc or self.options.undoc_members
+                 else:
+                     keep = False
+-            elif (namespace, membername) in attr_docs:
+-                if want_all and isprivate:
+-                    if self.options.private_members is None:
+-                        keep = False
+-                    else:
+-                        keep = membername in self.options.private_members
++            doc_key_current = (namespace, membername)
++            doc_key_defined = (defining_class_name, membername) if defining_class_name and defining_class_name != namespace else None
++            elif doc_key_current in attr_docs or (doc_key_defined and doc_key_defined in attr_docs):
++                if want_all and isprivate:
++                    if self.options.private_members is None:
++                        keep = False
++                    else:
++                        keep = membername in self.options.private_members
+                 else:
+                     # keep documented attributes
+                     keep = True
+
+```

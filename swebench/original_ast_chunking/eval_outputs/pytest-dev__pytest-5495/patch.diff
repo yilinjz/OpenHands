@@ -1,0 +1,95 @@
+```patch
+--- a/src/_pytest/assertion/util.py
++++ b/src/_pytest/assertion/util.py
+@@ -18,7 +18,6 @@
+     Tuple,
+     Union,
+ )
+-import warnings
+ 
+ from _pytest._io.saferepr import saferepr as _saferepr
+ from _pytest.compat import ATTRS_EQ_FIELD
+@@ -201,35 +200,62 @@
+     Return a list of strings explaining the comparison.
+     """
+     explanation: List[str] = []
++    len_left = len(left)
++    len_right = len(right)
++    is_bytes = isinstance(left, bytes) and isinstance(right, bytes)
++    diff_found_at = -1
++
+     for i in range(min(len(left), len(right))):
+         if left[i] != right[i]:
+-            explanation.extend(
+-                _diff_items(left[i], right[i], i, verbose=verbose)
+-            )
+-            # XXX: this call needs to be adapted for bytes
++            diff_found_at = i
++            if is_bytes:
++                # Format byte items specially: show their repr()
++                # Example: b'\\x00' != b'\\x01'
++                # Avoids confusing output like "0 != 1"
++                left_repr = repr(bytes([left[i]]))
++                right_repr = repr(bytes([right[i]]))
++                explanation.extend(
++                    [
++                        f"\nFirst differing item {i}:",
++                        f"{left_repr} != {right_repr}",
++                    ]
++                )
++                # No need for deeper diff on single bytes
++            else:
++                # Use existing _diff_items for other types
++                explanation.extend(_diff_items(left[i], right[i], i, verbose=verbose))
+             break
++
+     if len(left) != len(right):
++        # If a difference was already found, the verbose diff starts from the next item.
++        # Otherwise (sequences identical up to min length), it starts from the first extra item.
++        start_index = (
++            diff_found_at + 1 if diff_found_at != -1 else min(len_left, len_right)
++        )
++
+         if verbose > 0:
+-            # XXX: this is not right
+-            left_rest = [_saferepr(i) for i in left[i + 1 :]]
+-            right_rest = [_saferepr(i) for i in right[i + 1 :]]
++            # Select the correct formatting function based on type
++            format_item = (lambda item: repr(bytes([item]))) if is_bytes else _saferepr
++
++            left_rest = [format_item(i) for i in left[start_index:]]
++            right_rest = [format_item(i) for i in right[start_index:]]
++
+             diff = _diff_text(
+                 _format_lines(left_rest), _format_lines(right_rest), verbose
+             )
++            # Prepend header indicating where the diff starts, if not already explained by differing items
++            if diff_found_at == -1:
++                explanation.append(f"\nSequences differ starting at index {start_index}:")
+             explanation.extend(diff)
+-        elif len(left) > len(right):
++        elif diff_found_at == -1:  # Only report extra items if no difference was found before
++            if len_left > len_right:
++                extra_item = left[len_right]
++                extra_item_repr = repr(bytes([extra_item])) if is_bytes else _saferepr(extra_item)
++                explanation.append(
++                    f"\nLeft contains more items, first extra item: {extra_item_repr}"
++                )
++            else:  # len_right > len_left
++                extra_item = right[len_left]
++                extra_item_repr = repr(bytes([extra_item])) if is_bytes else _saferepr(extra_item)
++                explanation.append(
++                    f"\nRight contains more items, first extra item: {extra_item_repr}"
++                )
+             if verbose == 0:
+                 explanation.append(f"Use -v to get the full diff")
+-        else:
+-            explanation.append(
+-                f"\nRight contains more items, first extra item: {_saferepr(right[len(left)])!s}"
+-            )
+-            if verbose == 0:
+-                explanation.append(f"Use -v to get the full diff")
++
+     return explanation
+ 
+```

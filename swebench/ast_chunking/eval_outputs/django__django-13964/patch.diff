@@ -1,0 +1,18 @@
+```diff
+--- a/django/db/models/base.py
++++ b/django/db/models/base.py
+@@ -29,8 +29,10 @@
+                 # If the relationship's pk/to_field was changed, clear the
+                 # cached relationship.
+                 if getattr(obj, field.target_field.attname) != getattr(self, field.attname):
+-                    field.delete_cached_value(self)
+-
++                    field.delete_cached_value(self)
++                    # Update the foreign key attribute value, otherwise it may
++                    # be stale (e.g. assigned before the related object's pk was set).
++                    setattr(self, field.attname, obj.pk)
+
+     def delete(self, using=None, keep_parents=False):
+         using = using or router.db_for_write(self.__class__, instance=self)
+
+```

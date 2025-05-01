@@ -1,0 +1,30 @@
+```patch
+--- a/astropy/io/ascii/qdp.py
++++ b/astropy/io/ascii/qdp.py
+@@ -219,8 +219,19 @@
+             current_table_comments = []
+             in_initial_comments = False
+         else:
+-            # If it's not a comment, data, new table, raise error
+-            raise ValueError(f'Unrecognized QDP line: {line}')
++            # Potentially a command line
++            line_lower = line.lower()
++            if line_lower.startswith("read terr"):
++                in_initial_comments = False
++                try:
++                    terr_cols = [int(i) for i in line.split()[2:]]
++                except Exception:
++                    raise ValueError(f"Could not parse TERR command: {line}")
++            elif line_lower.startswith("read serr"):
++                in_initial_comments = False
++                try:
++                    serr_cols = [int(i) for i in line.split()[2:]]
++                except Exception:
++                    raise ValueError(f"Could not parse SERR command: {line}")
++            else:
++                # If it's not a comment, data, new table, or known command, raise error
++                raise ValueError(f"Unrecognized QDP line: {line}")
+ 
+     # Process the last table if file doesn't end with NO NO NO
+     if current_table_lines != []:
+```

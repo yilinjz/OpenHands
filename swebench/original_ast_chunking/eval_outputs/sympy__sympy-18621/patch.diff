@@ -1,0 +1,79 @@
+```patch
+--- a/sympy/matrices/expressions/blockmatrix.py
++++ b/sympy/matrices/expressions/blockmatrix.py
+@@ -1,5 +1,8 @@
+ from sympy.core.basic import Basic
+ from sympy.core import S
++from sympy.matrices.common import NonSquareMatrixError, ShapeError
++from sympy.matrices.expressions.matexpr import MatrixExpr
++from sympy.matrices.matrices import MatrixBase
+ from sympy.matrices.expressions.transpose import transpose
+ from sympy.matrices.expressions.inverse import Inverse
+ from sympy.matrices.expressions.matexpr import MatrixExpr
+@@ -51,7 +54,10 @@
+ 
+     def _eval_inverse(self, expand='ignored'):
+         # Make sure blocks are square
+-        return BlockDiagMatrix(*[mat.inverse() for mat in self.args])
++        for mat in self.args:
++            if not mat.is_square:
++                raise NonSquareMatrixError("Matrix must be square to inverse.")
++        return BlockDiagMatrix(*[mat.inverse() for mat in self.args])
+ 
+     def _eval_transpose(self):
+         return BlockDiagMatrix(*[mat.transpose() for mat in self.args])
+@@ -70,6 +76,50 @@
+             return BlockDiagMatrix(*[a + b for a, b in zip(self.args, other.args)])
+         else:
+             return BlockMatrix._blockadd(self, other)
++
++    def as_explicit(self):
++        """
++        Returns a DenseMatrix with elements represented explicitly.
++        Overrides the base MatrixExpr.as_explicit for efficiency.
++        """
++        from sympy import zeros
++        from sympy.matrices.immutable import ImmutableDenseMatrix
++
++        # Handle empty BlockDiagMatrix() case
++        if not self.args:
++            return ImmutableDenseMatrix([])
++
++        # Check for symbolic shapes - as_explicit typically requires concrete shapes
++        if not self.shape[0].is_Integer or not self.shape[1].is_Integer:
++             # The generic MatrixExpr.as_explicit also fails implicitly here.
++             raise ShapeError(f"Cannot make explicit matrix with symbolic shape {self.shape}")
++
++        rows, cols = int(self.shape[0]), int(self.shape[1])
++        mat = zeros(rows, cols) # Creates MutableDenseMatrix
++        row_offset = 0
++        col_offset = 0
++
++        for block in self.args:
++            # Check block shape
++            if not block.shape[0].is_Integer or not block.shape[1].is_Integer:
++                 raise ShapeError(f"Cannot make explicit matrix with symbolic block shape {block.shape}")
++
++            r, c = int(block.shape[0]), int(block.shape[1])
++
++            # Ensure block is explicit
++            # Check if it's already explicit (avoids infinite recursion if block is BlockDiagMatrix)
++            # Use MatrixExpr but exclude MatrixBase subclasses which are already explicit
++            if isinstance(block, MatrixExpr) and not isinstance(block, MatrixBase):
++                explicit_block = block.as_explicit()
++            else: # Assume it's already an explicit matrix (e.g., DenseMatrix)
++                explicit_block = block
++
++            # Assign block elements to the result matrix
++            for i in range(r):
++                for j in range(c):
++                    mat[row_offset + i, col_offset + j] = explicit_block[i, j]
++
++            row_offset += r
++            col_offset += c
++
++        return ImmutableDenseMatrix(mat) # Convert mutable result to immutable
+
+
+ class BlockMatrix(MatrixExpr):
+```

@@ -1,0 +1,37 @@
+```patch
+--- a/lib/matplotlib/legend.py
++++ b/lib/matplotlib/legend.py
+@@ -10,6 +10,32 @@
+     def get_draggable(self):
+         """Return ``True`` if the legend is draggable, ``False`` otherwise."""
+         return self._draggable is not None
++
++    def __getstate__(self):
++        state = self.__dict__.copy()
++        # The DraggableLegend object is not picklable, partly because it holds
++        # a reference to the canvas. We need to store its state and remove it.
++        if self._draggable is not None:
++            draggable_info = {
++                'use_blit': self._draggable.use_blit,
++                'update': self._draggable._update_loc,
++            }
++            state['_draggable_info'] = draggable_info
++            # Remove the DraggableLegend instance itself from the state.
++            state.pop('_draggable', None)
++        return state
++
++    def __setstate__(self, state):
++        draggable_info = state.pop('_draggable_info', None)
++        self.__dict__.update(state)
++        # Ensure _draggable is initialized to None before potentially recreating.
++        self._draggable = None
++        # Recreate the DraggableLegend object if it was originally present.
++        # This relies on the Figure/Axes being fully reconstructed first so
++        # that the canvas is available for event connections. Figure.__setstate__
++        # handles canvas setup before restoring artists like Legend.
++        if draggable_info is not None:
++            self.set_draggable(True, **draggable_info)
+ 
+ 
+ # Helper functions to parse legend arguments for both `figure.legend` and
+```

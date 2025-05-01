@@ -1,0 +1,18 @@
+```diff
+--- a/django/core/management/templates.py
++++ b/django/core/management/templates.py
+@@ -16,7 +16,10 @@
+                  raise CommandError(e)
+          else:
+              if app_or_project == 'app':
+-                 self.validate_name(os.path.basename(target), 'directory')
++                 # Force removal of trailing path separator, if present
++                 target = target.rstrip(os.sep)
++                 if not os.path.basename(target):
++                     raise CommandError("'%s' is not a valid directory name. Please make sure the directory name is a valid identifier." % target)
++                 self.validate_name(os.path.basename(target), 'directory')
+              top_dir = os.path.abspath(os.path.expanduser(target))
+              if not os.path.exists(top_dir):
+                  raise CommandError("Destination directory '%s' does not "
+
+```

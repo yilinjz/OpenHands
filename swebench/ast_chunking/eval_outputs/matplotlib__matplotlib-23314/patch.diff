@@ -1,0 +1,14 @@
+```patch
+--- a/lib/mpl_toolkits/mplot3d/axes3d.py
++++ b/lib/mpl_toolkits/mplot3d/axes3d.py
+@@ -1905,6 +1905,9 @@
+     @_api.delete_parameter("3.5", "inframe")
+     def draw(self, renderer):
+         # Draw the background patch
++        if not self.get_visible():
++            return
++
+         self.patch.draw(renderer)
+
+         # Determine facing polygons
+```

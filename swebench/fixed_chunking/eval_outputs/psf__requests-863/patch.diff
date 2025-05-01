@@ -1,0 +1,29 @@
+```patch
+--- a/requests/models.py
++++ b/requests/models.py
+@@ -1,5 +1,6 @@
+ # -*- coding: utf-8 -*-
+ 
++from collections import defaultdict
+ import socket
+ 
+ from .packages.urllib3.response import HTTPResponse
+@@ -77,7 +78,16 @@
+         self.proxies = proxies or {}
+ 
+         #: Dictionary of callback hooks, for internal usage.
+-        self.hooks = hooks
++        self.hooks = defaultdict(list)
++        hooks = dict(hooks or {}) # Ensure hooks is a dict
++
++        for event, hook in hooks.items():
++            if hasattr(hook, '__call__'):
++                # Single hook
++                self.hooks[event].append(hook)
++            else:
++                # Iterable of hooks
++                self.hooks[event].extend(hook)
+ 
+         #: Configuration dictionary, for internal usage.
+         self.config = dict(config or [])
+```

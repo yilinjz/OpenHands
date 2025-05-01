@@ -1,0 +1,26 @@
+```patch
+--- a/lib/matplotlib/widgets.py
++++ b/lib/matplotlib/widgets.py
+@@ -2508,9 +2508,18 @@
+ class RangeSlider(SliderBase):
+     def _release(self, event):
+         """Release event handler."""
++        # Check if a handle was active before potentially destructive callbacks.
+         if self.active_handle is not None:
++            # Store the fact that a handle was active.
++            was_active = True
++
+             self.active_handle = None
+-            self._update(event)
+-            self._observers.process('released', event)
++            self._update(event)  # Potentially triggers 'changed' callback (e.g., clf()).
++
++            # Check if the widget is still valid (attached to a figure)
++            # before calling the 'released' observer.
++            still_valid = self.ax is not None and self.ax.figure is not None
++            if still_valid and self.eventson:
++                self._observers.process('released', event)
+             return True
+-        return False
++        return False # No active handle was involved.
+```

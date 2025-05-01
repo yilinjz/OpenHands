@@ -1,0 +1,64 @@
+```patch
+--- a/django/db/models/constraints.py
++++ b/django/db/models/constraints.py
+@@ -1,5 +1,7 @@
+ from django.db.models.expressions import F
+ from django.db.models.query_utils import Q
++from django.core import checks
++from django.db.models.fields import FieldDoesNotExist
+ 
+ __all__ = ['CheckConstraint', 'UniqueConstraint']
+ 
+@@ -100,6 +102,22 @@
+         )
+         return sql
+ 
++    def check(self, model, **kwargs):
++        errors = []
++        fields = set(self.fields)
++        opts = model._meta
++        # Check that all fields are valid.
++        for field_name in self.fields:
++            try:
++                opts.get_field(field_name)
++            except FieldDoesNotExist:
++                errors.append(checks.Error(
++                    "UniqueConstraint 'fields' refers to the nonexistent field '%s'." % field_name,
++                    obj=self,
++                    id='models.E019',
++                ))
++        return errors
++
+     def validate(self, model, instance, exclude=None, using=None):
+         from django.core.exceptions import ValidationError, NON_FIELD_ERRORS
+         if exclude is None: exclude = []
+--- a/django/db/models/options.py
++++ b/django/db/models/options.py
+@@ -702,6 +702,8 @@
+             if not isinstance(constraint, BaseConstraint):
+                 errors.append(checks.Error(
+                     "'constraints' must be a sequence of CheckConstraint or UniqueConstraint instances.",
++                    # Removed obj=constraint because it might not be a
++                    # constraint instance.
+                     obj=self.model,
+                     id='models.E018',
+                 ))
+@@ -709,6 +711,8 @@
+                     errors.extend(constraint.check(model=self.model))
+         return errors
+ 
++    # TODO: Remove in Django 4.1.
++    @property
+     def _forward_fields_map(self):
+         res = {}
+         fields = self._get_fields(forward=True, reverse=False, include_parents=True, include_hidden=False)
+@@ -717,6 +721,8 @@
+             res[field.name] = field
+         return res
+ 
++    # TODO: Remove in Django 4.1.
++    @property
+     def fields_map(self):
+         """
+         Return a dictionary mapping field name to field instance.
+```

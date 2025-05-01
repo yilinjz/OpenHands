@@ -1,0 +1,105 @@
+```patch
+--- a/sympy/physics/vector/vector.py
++++ b/sympy/physics/vector/vector.py
+@@ -1,5 +1,6 @@
+ from sympy.core.basic import Basic
+ from sympy.core.sympify import sympify
++from sympy.core.add import Add
+ from sympy.core.operations import SympifyError
+ from sympy.core.symbol import Symbol
+ from sympy.functions import sqrt
+@@ -12,40 +13,58 @@
+     def _pretty(self, printer):
+         """Pretty Printing method. """
+         from sympy.printing.pretty.stringpict import prettyForm
++
+         e = self
+ 
+         class Fake:
+-
+             def render(self, *args, **kwargs):
+                 ar = e.args  # just to shorten things
+                 if len(ar) == 0:
+                     return str(0)
+                 pforms = []  # output list, to be concatenated to a string
+                 for i, v in enumerate(ar):
+-                    for j in 0, 1, 2:
+-                        # if the coef of the basis vector is 1, we skip the 1
+-                        if ar[i][0][j] == 1:
+-                            pform = printer._print(ar[i][1].pretty_vecs[j])
+-                        # if the coef of the basis vector is -1, we skip the 1
+-                        elif ar[i][0][j] == -1:
+-                            pform = printer._print(ar[i][1].pretty_vecs[j])
+-                            pform = prettyForm(*pform.left(" - "))
++                    for j in range(3):
++                        coeff = ar[i][0][j]
++                        if coeff == 0:
++                            continue
++
++                        # Get pretty form of vector component
++                        pform_vec = printer._print(ar[i][1].pretty_vecs[j])
++
++                        if coeff == 1:
++                            # Coefficient is 1, just use the vector form
++                            pform = pform_vec
++                        elif coeff == -1:
++                            # Coefficient is -1, prepend a minus sign, aligned vertically
++                            pform_minus = prettyForm("-")
++                            h_m = pform_minus.height()
++                            h_v = pform_vec.height()
++
++                            # Pad the minus sign vertically if the vector form is taller
++                            if h_v > h_m:
++                                delta_h = h_v - h_m
++                                pad_above = delta_h // 2
++                                pad_below = delta_h - pad_above
++                                pform_minus = prettyForm(*pform_minus.above('\n'*pad_above))
++                                pform_minus = prettyForm(*pform_minus.below('\n'*pad_below))
++
++                            pform = prettyForm(*pform_minus.right(pform_vec))
+                             bin = prettyForm.NEG
+-                            pform = prettyForm(binding=bin, *pform)
+-                        elif ar[i][0][j] != 0:
+-                            # If the basis vector coeff is not 1 or -1,
+-                            # we might wrap it in parentheses, for readability.
+-                            pform = printer._print(ar[i][0][j])
++                            pform = prettyForm(binding=bin, *pform) # Mark as negative term for addition
++                        else:
++                            # General coefficient, print it next to the vector form
++                            pform_coeff = printer._print(coeff)
++                            # Handle Add parentheses for coefficients
++                            if isinstance(coeff, Add):
++                                tmp = pform_coeff.parens()
++                                pform_coeff = prettyForm(tmp[0], tmp[1])
+ 
+-                            if isinstance(ar[i][0][j], Add):
+-                                tmp = pform.parens()
+-                                pform = prettyForm(tmp[0], tmp[1])
++                            # Pad the shorter form (coeff or vec) vertically to match the taller one's height, centered.
++                            h_c = pform_coeff.height()
++                            h_v = pform_vec.height()
+ 
+-                            pform = prettyForm(*pform.right(
+-                                " ", ar[i][1].pretty_vecs[j]))
+-                        else:
+-                            continue
++                            if h_c > h_v:
++                                delta_h = h_c - h_v
++                                pad_above = delta_h // 2
++                                pad_below = delta_h - pad_above
++                                pform_vec = prettyForm(*pform_vec.above('\n'*pad_above))
++                                pform_vec = prettyForm(*pform_vec.below('\n'*pad_below))
++                            elif h_v > h_c:
++                                delta_h = h_v - h_c
++                                pad_above = delta_h // 2
++                                pad_below = delta_h - pad_above
++                                pform_coeff = prettyForm(*pform_coeff.above('\n'*pad_above))
++                                pform_coeff = prettyForm(*pform_coeff.below('\n'*pad_below))
++
++                            # Combine the (potentially padded) coefficient and vector forms
++                            pform = prettyForm(*pform_coeff.right(" ", pform_vec))
++
+                         pforms.append(pform)
+ 
+                 pform = prettyForm.__add__(*pforms)
+```

@@ -1,0 +1,72 @@
+2025-05-01 19:51:28,186 - INFO - Creating container for astropy__astropy-14182...
+2025-05-01 19:51:28,385 - INFO - Container for astropy__astropy-14182 created: 1d1a6a95d5ee7fb10931eeb13b5e885662a893ae8709299b15d9a249e28c6d87
+2025-05-01 19:51:29,462 - INFO - Container for astropy__astropy-14182 started: 1d1a6a95d5ee7fb10931eeb13b5e885662a893ae8709299b15d9a249e28c6d87
+2025-05-01 19:51:29,463 - INFO - Intermediate patch for astropy__astropy-14182 written to logs/run_evaluation/20250501_195119/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/astropy__astropy-14182/patch.diff, now applying to container...
+2025-05-01 19:51:29,615 - INFO - >>>>> Applied Patch:
+Checking patch astropy/io/ascii/rst.py...
+Hunk #1 succeeded at 57 (offset 1 line).
+Applied patch astropy/io/ascii/rst.py cleanly.
+
+2025-05-01 19:51:30,571 - INFO - Git diff before:
+diff --git a/astropy/io/ascii/rst.py b/astropy/io/ascii/rst.py
+index abdeba8efb..e5a4a24fd2 100644
+--- a/astropy/io/ascii/rst.py
++++ b/astropy/io/ascii/rst.py
+@@ -57,8 +57,8 @@ class RST(FixedWidth):
+     data_class = SimpleRSTData
+     header_class = SimpleRSTHeader
+ 
+-    def __init__(self):
+-        super().__init__(delimiter_pad=None, bookend=False)
++    def __init__(self, **kwargs):
++        super().__init__(delimiter_pad=None, bookend=False, **kwargs)
+ 
+     def write(self, lines):
+         lines = super().write(lines)
+diff --git a/pyproject.toml b/pyproject.toml
+index 0d1ee66ab9..ec234472e2 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -1,5 +1,5 @@
+ [build-system]
+-requires = ["setuptools",
++requires = ["setuptools==68.0.0",
+             "setuptools_scm>=6.2",
+             "wheel",
+             "cython==0.29.30",
+2025-05-01 19:51:30,574 - INFO - Eval script for astropy__astropy-14182 written to logs/run_evaluation/20250501_195119/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/astropy__astropy-14182/eval.sh; copying to container...
+2025-05-01 19:53:36,124 - INFO - Test runtime: 125.42 seconds
+2025-05-01 19:53:36,126 - INFO - Test output for astropy__astropy-14182 written to logs/run_evaluation/20250501_195119/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/astropy__astropy-14182/test_output.txt
+2025-05-01 19:53:36,236 - INFO - Git diff after:
+diff --git a/astropy/io/ascii/rst.py b/astropy/io/ascii/rst.py
+index abdeba8efb..e5a4a24fd2 100644
+--- a/astropy/io/ascii/rst.py
++++ b/astropy/io/ascii/rst.py
+@@ -57,8 +57,8 @@ class RST(FixedWidth):
+     data_class = SimpleRSTData
+     header_class = SimpleRSTHeader
+ 
+-    def __init__(self):
+-        super().__init__(delimiter_pad=None, bookend=False)
++    def __init__(self, **kwargs):
++        super().__init__(delimiter_pad=None, bookend=False, **kwargs)
+ 
+     def write(self, lines):
+         lines = super().write(lines)
+diff --git a/pyproject.toml b/pyproject.toml
+index 0d1ee66ab9..ec234472e2 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -1,5 +1,5 @@
+ [build-system]
+-requires = ["setuptools",
++requires = ["setuptools==68.0.0",
+             "setuptools_scm>=6.2",
+             "wheel",
+             "cython==0.29.30",
+2025-05-01 19:53:36,236 - INFO - Grading answer for astropy__astropy-14182...
+2025-05-01 19:53:36,240 - INFO - report: {'astropy__astropy-14182': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['astropy/io/ascii/tests/test_rst.py::test_rst_with_header_rows']}, 'PASS_TO_PASS': {'success': ['astropy/io/ascii/tests/test_rst.py::test_read_normal', 'astropy/io/ascii/tests/test_rst.py::test_read_normal_names', 'astropy/io/ascii/tests/test_rst.py::test_read_normal_names_include', 'astropy/io/ascii/tests/test_rst.py::test_read_normal_exclude', 'astropy/io/ascii/tests/test_rst.py::test_read_unbounded_right_column', 'astropy/io/ascii/tests/test_rst.py::test_read_unbounded_right_column_header', 'astropy/io/ascii/tests/test_rst.py::test_read_right_indented_table', 'astropy/io/ascii/tests/test_rst.py::test_trailing_spaces_in_row_definition', 'astropy/io/ascii/tests/test_rst.py::test_write_normal'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for astropy__astropy-14182: resolved: False
+2025-05-01 19:53:36,240 - INFO - Attempting to stop container sweb.eval.astropy__astropy-14182.20250501_195119...
+2025-05-01 19:53:51,561 - INFO - Attempting to remove container sweb.eval.astropy__astropy-14182.20250501_195119...
+2025-05-01 19:53:51,597 - INFO - Container sweb.eval.astropy__astropy-14182.20250501_195119 removed.

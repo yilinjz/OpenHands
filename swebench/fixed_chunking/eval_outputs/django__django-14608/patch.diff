@@ -1,0 +1,32 @@
+```patch
+--- a/django/forms/formsets.py
++++ b/django/forms/formsets.py
+@@ -10,14 +10,15 @@
+ 
+     def non_form_errors(self):
+         """
+-        Return an ErrorList of errors that aren't associated with a particular
+-        form -- i.e., from formset.clean(). Return an empty ErrorList if there
+-        are none.
++        Return an ErrorList of errors that aren't associated with a
++        particular form -- i.e., from formset.clean(). Return an empty
++        ErrorList if there are none. The list has a CSS class of "nonform".
+         """
+         if self._non_form_errors is None:
+             self.full_clean()
+         return self._non_form_errors
+ 
++    _non_form_errors = None
+     @property
+     def errors(self):
+         """Return a list of form.errors for every form in self.forms."""
+@@ -219,7 +220,7 @@
+             # Give self.clean() a chance to do cross-form validation.
+             self.clean()
+         except ValidationError as e:
+-            self._non_form_errors = self.error_class(e.error_list)
++            self._non_form_errors = self.error_class(e.error_list, css_class='nonform')
+ 
+     def clean(self):
+         """
+```

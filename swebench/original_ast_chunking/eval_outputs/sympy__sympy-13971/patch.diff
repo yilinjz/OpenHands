@@ -1,0 +1,22 @@
+```patch
+--- a/sympy/printing/latex.py
++++ b/sympy/printing/latex.py
+@@ -1501,7 +1501,7 @@
+         elif expr.length > 5:
+             terms.append(r"\ldots")
+ 
+-        return r"\left[%s\right]" % ", ".join(self._print(term) for term in terms)
++        return r"[%s]" % ", ".join(self._print(term) for term in terms)
+ 
+     def _print_SeqPer(self, expr):
+         terms = expr[:5]
+@@ -1510,7 +1510,7 @@
+         elif expr.length > 5:
+             terms.append(r"\ldots")
+ 
+-        return r"\left[%s\right]" % ", ".join(self._print(term) for term in terms)
++        return r"[%s]" % ", ".join(self._print(term) for term in terms)
+ 
+     def _print_PolyRing(self, ring):
+         return r"%s[%s]" % (self._print(ring.domain), ", ".join(map(self._print, ring.symbols)))
+```

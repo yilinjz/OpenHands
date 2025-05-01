@@ -1,0 +1,16 @@
+```diff
+--- a/sphinx/domains/std.py
++++ b/sphinx/domains/std.py
+@@ -19,6 +19,10 @@
+             logger.warning(__('numfig is disabled. :numref: is ignored.'), location=node)
+             return contnode
+
++        # Check if the target node itself or its ID exists before attempting to get its number
++        if target_node is None or not target_node.get('ids'):
++            return None
++
+         try:
+             fignumber = self.get_fignumber(env, builder, figtype, docname, target_node)
+             if fignumber is None:
+
+```

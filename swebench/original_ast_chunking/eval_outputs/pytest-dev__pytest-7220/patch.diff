@@ -1,0 +1,17 @@
+```patch
+--- a/src/_pytest/terminal.py
++++ b/src/_pytest/terminal.py
+@@ -743,7 +743,11 @@
+ 
+     def _makepath(self, path):
+         if self.config.option.tbstyle == "short":
+-            relpath = py.path.local().bestrelpath(path)
++            # Issue #6476: use the invocation directory instead of the current
++            # working directory when calculating the relative path, in case a
++            # test changed the CWD.
++            # Use bestrelpath to favour relative paths when possible.
++            relpath = self.startdir.bestrelpath(path)
+             if len(relpath) < len(str(path)):
+                 path = relpath
+         else:
+```

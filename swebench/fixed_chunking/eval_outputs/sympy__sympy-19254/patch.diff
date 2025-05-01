@@ -1,0 +1,78 @@
+```patch
+--- a/sympy/polys/factortools.py
++++ b/sympy/polys/factortools.py
+@@ -1,6 +1,7 @@
+ """Polynomial factorization tools"""
+ 
+ from sympy.polys.densebasic import (
++    dup_l2_norm,
+     dup_LC, dmp_LC, dmp_ground_LC,
+     dup_TC, dmp_TC, dmp_ground_TC,
+     dup_degree, dmp_degree, dmp_degree_in, dmp_degree_list,
+@@ -13,6 +14,7 @@
+ )
+ 
+ from sympy.polys.densetools import (
++    dmp_l2_norm,
+     dmp_eval_in, dmp_diff_eval_in,
+     dmp_ground_primitive, dmp_ground_content,
+     dmp_ground_trunc,
+@@ -40,26 +42,30 @@
+     return _sort_factors(result)
+ 
+ 
+-def dup_zz_mignotte_bound(f, K):
+-    """Mignotte bound for univariate polynomials in `K[x]`. """
+-    a = dup_max_norm(f, K)
+-    b = abs(dup_LC(f, K))
++def dup_zz_factor_bound(f, K):
++    """Knuth-Cohen bound for coefficients of factors of `f`.
++
++    For a univariate polynomial `f` in `Z[x]`, returns a bound `B`
++    such that for any factor `g` of `f`, `||g||_inf <= B`.
++
++    The bound is computed as `2**n * ||f||_2`, where `n = deg(f)`
++    and `||f||_2` is the Euclidean norm of `f`.
++    """
+     n = dup_degree(f)
+-
+-    return K.sqrt(K(n + 1))*2**n*a*b
++    return K(2)**n * dup_l2_norm(f, K)
+ 
+ 
+-def dmp_zz_mignotte_bound(f, u, K):
+-    """Mignotte bound for multivariate polynomials in `K[X]`. """
+-    a = dmp_max_norm(f, u, K)
+-    b = abs(dmp_ground_LC(f, u, K))
++def dmp_zz_factor_bound(f, u, K):
++    """Knuth-Cohen bound for coefficients of factors of `f`.
++
++    For a multivariate polynomial `f` in `Z[X]`, returns a bound `B`
++    such that for any factor `g` of `f`, `||g||_inf <= B`.
++
++    The bound is computed as `2**n * ||f||_2`, where `n` is the
++    total degree of `f` and `||f||_2` is the Euclidean norm of `f`.
++    """
+     n = sum(dmp_degree_list(f, u))
+-
+-    return K.sqrt(K(n + 1))*2**n*a*b
+-
+-
+-def dup_zz_hensel_step(m, f, g, h, s, t, K):
++    return K(2)**n * dmp_l2_norm(f, u, K)
++
++
++def dup_zz_hensel_step(m, f, g, h, s, t, K):
+     """
+     One step in Hensel lifting in `Z[x]`.
+ 
+@@ -127,7 +133,7 @@
+     fc = f[-1]
+     A = dup_max_norm(f, K)
+     b = dup_LC(f, K)
+-    B = int(abs(K.sqrt(K(n + 1))*2**n*A*b))
++    B = int(dup_zz_factor_bound(f, K))
+     C = int((n + 1)**(2*n)*A**(2*n - 1))
+     gamma = int(_ceil(2*_log(C, 2)))
+     bound = int(2*gamma*_log(gamma))
+```

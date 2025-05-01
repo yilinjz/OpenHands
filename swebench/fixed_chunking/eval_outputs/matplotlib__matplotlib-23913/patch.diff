@@ -1,0 +1,74 @@
+```patch
+--- a/lib/matplotlib/legend.py
++++ b/lib/matplotlib/legend.py
+@@ -49,6 +49,7 @@
+ from matplotlib.container import ErrorbarContainer, BarContainer, StemContainer
+ from . import legend_handler
+ 
++
+ # Maps legend locations to the corresponding anchor point of the legend box.
+ # The values are normalized coordinates in the legend box, where
+ # (0, 0) is the lower-left corner and (1, 1) is the upper-right corner.
+@@ -275,7 +276,7 @@
+                  handler_map=None, title_fontproperties=None, alignment="center",
+                  *,
+                  ncols=1,  # TODO: Deprecate? (present in kwargs below too)
+-                 **kwargs):
++                 draggable=False, **kwargs):
+ 
+         """
+         Parameters
+@@ -404,6 +405,10 @@
+             The alignment of the legend title and the box of entries.
+             The entries are aligned as a single block, so that *alignment*
+             value ``'left'`` means that the left edges of the title and the
++            block of entries are aligned.
++        draggable : bool, default: False
++            Whether the legend can be dragged with the mouse. The legend
++            position (``loc``) is updated upon release.
+         **kwargs
+             Keyword arguments forwarded to `.FancyBboxPatch`.
+         """
+@@ -411,6 +416,7 @@
+         # `Axes.legend` and `Figure.legend`.
+         super().__init__()
+         self.set_figure(parent.figure)
++        self._draggable = None  # Initialized by self.set_draggable.
+ 
+         _api.check_in_list(self.codes.keys(), loc=loc)
+         self._loc_used_default = loc == 'best'  # Allow detection later.
+@@ -563,6 +569,9 @@
+         # Draggable legends are created by the set_draggable method, but we need
+         # to keep track of the original location and parent.
+         self._original_loc = loc
++
++        if draggable:
++            self.set_draggable(True)
+ 
+     def _parse_legend_args(self, parent, handles, labels, **kwargs):
+         """Parse the legend arguments for the `Legend` class."""
+@@ -703,6 +712,7 @@
+         self.set_picker(True)
+         self._update_prop = _api.deprecated("3.7")(self._update_prop)
+ 
++
+     def _set_artist_props(self, a):
+         """Set figure, transform, and clip box for artist *a*."""
+         a.set_figure(self.figure)
+@@ -716,6 +726,7 @@
+         # clip path, but it is going to be updated in the draw method.
+         a.set_clip_path(self.get_window_extent())
+ 
++
+     @_api.deprecated("3.7", alternative="set_alignment")
+     def _set_align(self, align):
+         """Set the alignment of the legend title and the handles+text."""
+@@ -898,6 +909,7 @@
+         self.stale = True
+         return self._draggable
+ 
++
+     def get_draggable(self):
+         """Return ``True`` if the legend is draggable, ``False`` otherwise."""
+         return self._draggable is not None
+```

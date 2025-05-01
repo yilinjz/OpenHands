@@ -1,0 +1,16 @@
+```patch
+--- a/sympy/functions/combinatorial/numbers.py
++++ b/sympy/functions/combinatorial/numbers.py
+@@ -266,6 +267,10 @@
+         if n.is_negative:
+             return S.Zero
+ 
++    def _eval_limit(self, x, z, dir='+'):
++        if x == self.args[0] and z is S.Infinity:
++            return S.Infinity
++
+     def _eval_rewrite_as_Sum(self, n):
+         if not n.is_nonnegative or not n.is_integer:
+             return self
+
+```

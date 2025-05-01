@@ -1,0 +1,18 @@
+```diff
+--- a/django/utils/autoreload.py
++++ b/django/utils/autoreload.py
+@@ -106,6 +106,11 @@
+ class BaseReloader:
+     def __init__(self):
+         self.extra_files = set()
++        # Watch the script that started the reloader process.
++        main_script = Path(sys.argv[0]).resolve()
++        # sys.argv[0] is initially '../manage.py' or similar, so resolve()
++        # is necessary to ensure stability on start-up.
++        if main_script.is_file():
++            self.extra_files.add(main_script)
+         self.directory_globs = defaultdict(set)
+         self._stop_condition = threading.Event()
+ 
+
+```

@@ -1,0 +1,40 @@
+```diff
+--- a/django/db/models/expressions.py
++++ b/django/db/models/expressions.py
+@@ -1,7 +1,8 @@
+ from django.db.models.constants import LOOKUP_SEP
+-from django.db.models.fields import Field
++from django.db.models.fields import BooleanField, Field
+ from django.db.models.functions import Cast
+ from django.db.models.lookups import Lookup
++from django.db.models.sql.datastructures import EmptyResultSet
+ from django.db.models.sql.where import WhereNode
+
+
+@@ -23,7 +24,21 @@
+         return super().get_group_by_cols()
+
+     def as_sql(self, compiler, connection):
+-        return compiler.compile(self.expression)
++        try:
++            sql, params = compiler.compile(self.expression)
++        except EmptyResultSet:
++            # If the inner expression cannot produce results, return NULL.
++            # If the output_field is boolean, return False instead.
++            if isinstance(self.output_field, BooleanField):
++                expression = Value(False, output_field=BooleanField())
++                return expression.as_sql(compiler, connection)
++            return compiler.connection.ops.quote_name('NULL'), []
++        if sql == '':
++            # If the inner expression is EverythingNode, it results in ('', []).
++            # If the output_field is boolean, return True instead. Otherwise, NULL.
++            if isinstance(self.output_field, BooleanField):
++                expression = Value(True, output_field=BooleanField())
++                return expression.as_sql(compiler, connection)
++            return compiler.connection.ops.quote_name('NULL'), []
++        return sql, params
+
+     def __repr__(self):
+         return "{}({})".format(self.__class__.__name__, self.expression)
+
+```

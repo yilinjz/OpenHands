@@ -1,0 +1,115 @@
+```patch
+--- a/sympy/physics/vector/point.py
++++ b/sympy/physics/vector/point.py
+@@ -1,6 +1,7 @@
+ from sympy.core.basic import Basic
+ from sympy.core.compatibility import u
+ from sympy.physics.vector.vector import Vector, _check_vector
++from sympy.physics.vector.frame import ReferenceFrame, _check_frame
+ 
+ __all__ = ['Point']
+ 
+@@ -26,6 +27,8 @@
+         self._acc_dict = {}
+         # Used for computation checking; see functions like v1pt_theory
+         self._pdlist = [self]
++        # Stack to detect cycles during velocity calculation
++        self._vel_calculation_stack = set()
+ 
+     def __str__(self):
+         return self.name
+@@ -155,27 +158,71 @@
+         return self.vel(outframe)
+ 
+     def vel(self, frame):
+-        """The velocity Vector of this Point in the ReferenceFrame.
++        """The velocity Vector of this Point in the specified ReferenceFrame.
++
++        If the velocity has been defined previously using set_vel(), or
++        calculated using one of the kinematic theorems (v1pt_theory,
++        v2pt_theory), that vector is returned.
++
++        If the velocity has not been defined or calculated, the method
++        attempts to calculate it based on the point's position relative to
++        other points. If the position of this point (`self`) relative to
++        another point `P` is known (`r = self.pos_from(P)`), and the velocity
++        of `P` in the frame `F` (`P.vel(F)`) can be determined, then the
++        velocity of `self` in `F` is calculated as:
++
++        `^F v^self = ^F v^P + ^F d/dt (r)`
++
++        This calculation is performed recursively up the chain of position
++        dependencies until a point with a known velocity in the frame is
++        reached, or until the velocity cannot be determined.
+ 
+         Parameters
+         ==========
+-
+         frame : ReferenceFrame
+             The frame in which the returned velocity vector will be defined in
+ 
+         Examples
+         ========
+-
+         >>> from sympy.physics.vector import Point, ReferenceFrame
++        >>> from sympy.physics.vector import dynamicsymbols
++        >>> from sympy.physics.vector import init_vprinting
++        >>> init_vprinting(pretty_print=False)
+         >>> N = ReferenceFrame('N')
+         >>> p1 = Point('p1')
+         >>> p1.set_vel(N, 10 * N.x)
+         >>> p1.vel(N)
+         10*N.x
++        >>> p2 = Point('p2')
++        >>> q = dynamicsymbols('q')
++        >>> p2.set_pos(p1, q * N.y) # Position of p2 relative to p1
++        >>> p2.vel(N) # Automatically calculates p2's velocity in N
++        10*N.x + q'*N.y
++        >>> p3 = Point('p3')
++        >>> p3.set_pos(p2, 5 * N.z) # Position of p3 relative to p2
++        >>> p3.vel(N) # Calculates p3's velocity based on p2's velocity
++        10*N.x + q'*N.y
+ 
+         """
+-
+         _check_frame(frame)
++        # Check if velocity is already known
+         if frame in self._vel_dict:
+             return self._vel_dict[frame]
++
++        # Guard against recursion: Initialize stack if needed, check for cycles.
++        if not hasattr(self, '_vel_calculation_stack'):
++            self._vel_calculation_stack = set()
++        if frame in self._vel_calculation_stack:
++            raise ValueError(f"Cyclic dependency detected: Calculation of {self.name}.vel({frame.name}) "
++                             f"depends on itself through position relationships.")
++
++        self._vel_calculation_stack.add(frame)
++
++        try:
++            # Try to calculate velocity using position relationships
++            for otherpoint, pos_vec in self._pos_dict.items():
++                try:
++                    other_vel = otherpoint.vel(frame) # Recursive call
++                    dpos_dt = pos_vec.dt(frame) # d/dt(pos_from(other)) in frame
++                    calculated_vel = other_vel + dpos_dt
++                    self.set_vel(frame, calculated_vel) # Store the calculated velocity
++                    return self._vel_dict[frame]
++                except ValueError:
++                    # Cannot determine velocity via this path (e.g., otherpoint.vel failed), try next point
++                    continue
++
++            # If velocity cannot be calculated from any known position relation
++            raise ValueError('Velocity of point ' + self.name + ' has not been'
++                             ' defined or calculated in ReferenceFrame ' + frame.name)
++        finally:
++            # Ensure the frame is removed from the stack
++            self._vel_calculation_stack.discard(frame)
++
++    def acc(self, frame):
++        """The acceleration Vector of this Point in the ReferenceFrame."""
++        _check_frame(frame)
+         if not (frame in self._vel_dict):
+             raise ValueError('Velocity of point ' + self.name + ' has not been'
+                               ' defined in ReferenceFrame ' + frame.name)
+```

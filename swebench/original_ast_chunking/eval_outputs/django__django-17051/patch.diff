@@ -1,0 +1,17 @@
+```patch
+--- a/django/db/models/query.py
++++ b/django/db/models/query.py
+@@ -606,9 +606,10 @@
+             opts = self.model._meta
+             pk_fields = [opts.pk] if not opts.pk.composite_key else opts.pk.fields
+             returning_fields = None
+-            if connection.features.can_return_rows_from_bulk_insert and not on_conflict:
++            # Set returning_fields for default insert and update_conflicts cases
++            # if the database backend supports it.
++            if connection.features.can_return_rows_from_bulk_insert and (
++                on_conflict != OnConflict.IGNORE
++            ):
+                 returning_fields = pk_fields
+             fields = [
+                 f
+```

@@ -1,0 +1,56 @@
+```patch
+--- a/django/core/management/commands/inspectdb.py
++++ b/django/core/management/commands/inspectdb.py
+@@ -131,6 +131,7 @@
+             unique_together = []
+             index_together = []
+             fields = {}
++            relations_encountered = {}  # Tracks relations {related_model_name: [field_names]} for clash detection.
+             constraints = {}
+ 
+             try:
+@@ -221,18 +222,18 @@
+                     # If the column is a foreign key, point to the referenced table.
+                     elif column_name in relations:
+                         rel_to = relations[column_name][1]
+-                        to_model = table_name_converter(rel_to)
+                         if rel_to == table_name:
++                            to_model = 'self'
+                             to_model_field_type = "'self'"
+-                        elif to_model in known_models:
++                        else:
++                            to_model = table_name_converter(rel_to)
++                            if to_model in known_models:
++                                to_model_field_type = to_model
++                            else:
++                                to_model_field_type = f"'{to_model}'"
++                        # Add related_name if necessary to avoid clashes.
++                        if to_model in relations_encountered:
++                            extra_params['related_name'] = att_name
++                        relations_encountered.setdefault(to_model, []).append(att_name)
++
++                        if column_name in unique_columns:
+                             field_type = "OneToOneField(%s" % to_model_field_type
+                         else:
+-                            field_type = "ForeignKey('%s'" % to_model
+-                        if column_name in unique_columns:
+-                            field_type = "OneToOneField('%s'" % to_model
++                            field_type = f"ForeignKey({to_model_field_type}"
+                         # TODO: Add models.DO_NOTHING to all relations if
+                         #       possible.
+                         # If the constraints are supported by the backend, use
+@@ -297,6 +298,13 @@
+                     m2m_fields[field_name] = (field_opts, auto_created_through)
+ 
+             for field_name, (field_opts, auto_created_through) in m2m_fields.items():
++                # Add related_name if necessary to avoid clashes.
++                rel_to = field_opts['rel_to']
++                # Extract the actual model name ('Model' or 'self')
++                rel_to_model_name = rel_to.strip("'")
++                if rel_to_model_name in relations_encountered:
++                    field_opts['related_name'] = field_name
++                relations_encountered.setdefault(rel_to_model_name, []).append(field_name)
+                 # Add 'through' related_name heuristic depends on field name.
+                 if not auto_created_through:
+                     field_opts['through'] = table_name_converter(m2m_table_name)
+```

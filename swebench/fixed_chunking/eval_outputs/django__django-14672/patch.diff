@@ -1,0 +1,22 @@
+```patch
+--- a/django/db/models/fields/reverse_related.py
++++ b/django/db/models/fields/reverse_related.py
+@@ -16,7 +16,7 @@
+ from django.db.models.query_utils import FilteredRelation, Q
+ from django.db.models.utils import make_model_tuple
+ from django.utils.deprecation import RemovedInDjango41Warning
+-from django.utils.functional import cached_property
++from django.utils.functional import cached_property, partition
+ from django.utils.hashable import make_hashable
+ from django.utils.translation import gettext_lazy as _
+ 
+@@ -210,7 +210,7 @@
+             self.field.model._meta.label_lower,
+             self.field.name,
+             self.through._meta.label_lower,
+-            self.through_fields,
++            make_hashable(self.through_fields),
+             self.related_name,
+             self.related_query_name,
+             make_hashable(self.limit_choices_to),
+```

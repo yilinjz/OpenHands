@@ -1,0 +1,107 @@
+```patch
+--- a/django/contrib/admin/views/autocomplete.py
++++ b/django/contrib/admin/views/autocomplete.py
+@@ -1,4 +1,6 @@
+ from django.core.exceptions import FieldDoesNotExist, PermissionDenied
++from django.http import Http404, JsonResponse
++from django.views.generic.list import BaseListView
+ 
+ from ..admin_site import NotRegistered
+ from ..checks import E038
+@@ -19,13 +21,7 @@
+ 
+         self.object_list = self.get_queryset()
+         context = self.get_context_data()
+-        return JsonResponse({
+-            'results': [
+-                {'id': str(getattr(obj, to_field_name)), 'text': str(obj)}
+-                for obj in context['object_list']
+-            ],
+-            'pagination': {'more': context['page_obj'].has_next()},
+-        })
++        return self.render_to_response(context, to_field_name)
+ 
+     def get_paginator(self, *args, **kwargs):
+         """Use the ModelAdmin's paginator."""
+@@ -40,3 +36,20 @@
+         if search_use_distinct:
+             qs = qs.distinct()
+         return qs
++
++    def serialize_result(self, obj, to_field_name):
++        """Serialize a single result."""
++        return {'id': str(getattr(obj, to_field_name)), 'text': str(obj)}
++
++    def render_to_response(self, context, to_field_name):
++        """Return a JSON response."""
++        return JsonResponse({
++            'results': [
++                self.serialize_result(obj, to_field_name)
++                for obj in context['object_list']
++            ],
++            'pagination': {'more': context['page_obj'].has_next()},
++        })
++
++    def process_request(self, request):
++        """
++        Validate request parameters and return ('term', 'model_admin',
++        'source_field', 'to_field_name').
++        """
++        term = request.GET.get('term', '')
++        try:
++            app_label = request.GET['app_label']
++            model_name = request.GET['model_name']
++            field_name = request.GET['field_name']
++        except KeyError as e:
++            raise Http404 from e
++
++        # Retrieve objects from parameters.
++        try:
++            source_model = apps.get_model(app_label, model_name)
++        except LookupError as e:
++            raise Http404 from e
++        try:
++            model_admin = self.admin_site._registry[source_model]
++        except KeyError as e:
++            raise NotRegistered(
++                f"The model {source_model._meta.label} is not registered "
++                f"with the admin site {self.admin_site.name}."
++            ) from e
++        try:
++            source_field = source_model._meta.get_field(field_name)
++        except FieldDoesNotExist as e:
++            raise Http404 from e
++        try:
++            remote_model = source_field.remote_field.model
++        except AttributeError as e:
++            raise Http404 from e
++        try:
++            to_field_name = source_field.remote_field.field_name
++        except AttributeError:
++            to_field_name = remote_model._meta.pk.attname
++
++        # Validate suitability of objects.
++        if not model_admin.get_autocomplete_fields(request):
++            raise Http404(
++                f"{model_admin.__class__.__name__} must have "
++                f"'autocomplete_fields' for {source_model._meta.label}."
++            )
++        if field_name not in model_admin.get_autocomplete_fields(request):
++            raise Http404(
++                f"{model_admin.__class__.__name__} must include '{field_name}' "
++                f"in its 'autocomplete_fields'."
++            )
++        if to_field_name == remote_model._meta.pk.attname and E038.any_key_check(
++            field=source_field.remote_field.model._meta.pk, obj=source_field
++        ):
++            raise Http404(
++                f"Can't use {source_field.name} for autocomplete, because its "
++                f"related model {remote_model._meta.label} has a non-integer "
++                f"primary key."
++            )
++        return term, model_admin, source_field, to_field_name
++
++    def has_perm(self, request, obj=None):
++        """Check if user has permission to access the related model."""
++        return self.model_admin.has_view_permission(request, obj=obj)
+```

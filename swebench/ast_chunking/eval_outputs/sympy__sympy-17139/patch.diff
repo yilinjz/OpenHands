@@ -1,0 +1,14 @@
+```diff
+--- a/sympy/simplify/fu.py
++++ b/sympy/simplify/fu.py
+@@ -501,7 +501,7 @@ def _TR56(rv, func, func_, rule, max=False, pow=False):
+         if not isinstance(rv, Pow) or rv.base.func != func:
+             return rv
+         n, x = rv.exp, rv.base.args[0]
+-        if (rv.exp < 0) == True:
++        if rv.exp.is_real and rv.exp.is_negative:
+             if not pow:
+                 return rv
+             n = -n
+
+```

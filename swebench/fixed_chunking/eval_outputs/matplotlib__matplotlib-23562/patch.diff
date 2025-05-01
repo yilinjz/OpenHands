@@ -1,0 +1,24 @@
+```patch
+--- a/lib/mpl_toolkits/mplot3d/art3d.py
++++ b/lib/mpl_toolkits/mplot3d/art3d.py
+@@ -26,13 +26,15 @@
+         self.stale = True
+ 
+     def get_facecolor(self):
+-        return self._facecolors2d
+-
++        # Return the facecolors defined by the collection.
++        # This returns the same thing as PolyCollection.get_facecolor
++        return self._facecolors
+     get_facecolors = get_facecolor
+ 
+     def get_edgecolor(self):
+-        return self._edgecolors2d
+-
++        # Return the edgecolors defined by the collection.
++        # This returns the same thing as PolyCollection.get_edgecolor
++        return self._edgecolors
+     get_edgecolors = get_edgecolor
+ 
+ 
+```

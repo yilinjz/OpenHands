@@ -1,0 +1,87 @@
+```patch
+--- a/sympy/polys/polyoptions.py
++++ b/sympy/polys/polyoptions.py
+@@ -1,5 +1,6 @@
+ """Options manager for polynomial manipulation functions. """
+ 
++import re
+ from collections import defaultdict
+ 
+ from sympy.core import S, Basic, Symbol, sympify
+@@ -13,9 +14,9 @@
+ _re_realfield = re.compile(r"^(R|RR)(_(\d+))?$")
+ _re_complexfield = re.compile(r"^(C|CC)(_(\d+))?$")
+ _re_finitefield = re.compile(r"^(FF|GF)\((\d+)\)$")
+-_re_polynomial = re.compile(r"^(Z|ZZ|Q|QQ)\[(.+)\]$")
+-_re_fraction = re.compile(r"^(Z|ZZ|Q|QQ)\((.+)\)$")
+-_re_algebraic = re.compile(r"^(Q|QQ)\<(.+)\>$")
++_re_polynomial = re.compile(r"^(Z|ZZ|Q|QQ|R|RR|C|CC)\[(.+)\]$")
++_re_fraction = re.compile(r"^(Z|ZZ|Q|QQ|R|RR|C|CC)\((.+)\)$")
++_re_algebraic = re.compile(r"^(Q|QQ)\<(.+)\>$")
+ 
+ @classmethod
+ def preprocess(cls, domain):
+@@ -58,34 +59,40 @@
+         if r is not None:
+             return sympy.polys.domains.FF(int(r.groups()[1]))
+ 
++        ground_domains = {
++            'Z': sympy.polys.domains.ZZ, 'ZZ': sympy.polys.domains.ZZ,
++            'Q': sympy.polys.domains.QQ, 'QQ': sympy.polys.domains.QQ,
++            'R': sympy.polys.domains.RR, 'RR': sympy.polys.domains.RR,
++            'C': sympy.polys.domains.CC, 'CC': sympy.polys.domains.CC,
++        }
++
+         r = cls._re_polynomial.match(domain)
+ 
+         if r is not None:
+             ground, gens = r.groups()
+-
+             gens = list(map(sympify, gens.split(',')))
+ 
+-            if ground in ['Z', 'ZZ']:
+-                return sympy.polys.domains.ZZ.poly_ring(*gens)
+-            else:
+-                return sympy.polys.domains.QQ.poly_ring(*gens)
++            try:
++                ground_domain = ground_domains[ground]
++                return ground_domain.poly_ring(*gens)
++            except KeyError:
++                pass # Should not happen with the regex match
+ 
+         r = cls._re_fraction.match(domain)
+ 
+         if r is not None:
+             ground, gens = r.groups()
+-
+             gens = list(map(sympify, gens.split(',')))
+ 
+-            if ground in ['Z', 'ZZ']:
+-                return sympy.polys.domains.ZZ.frac_field(*gens)
+-            else:
+-                return sympy.polys.domains.QQ.frac_field(*gens)
++            try:
++                ground_domain = ground_domains[ground]
++                return ground_domain.frac_field(*gens)
++            except KeyError:
++                pass # Should not happen with the regex match
+ 
+         r = cls._re_algebraic.match(domain)
+ 
+-            if r is not None:
++        if r is not None:
+                 gens = list(map(sympify, r.groups()[1].split(',')))
+                 return sympy.polys.domains.QQ.algebraic_field(*gens)
+ 
+@@ -93,7 +100,9 @@
+             return sympy.polys.domains.QQ.algebraic_field(*gens)
+ 
+     raise OptionError('expected a valid domain specification, got %s' % domain)
+-
++    # Example valid specifications: ZZ, QQ, RR, CC, ZZ[x], QQ(y), RR[x,y], EX
++    # Or a Domain object, or an object with a 'to_domain()' method.
++    raise OptionError("Invalid domain specification: '%s'. See Domain.preprocess documentation." % domain)
+ 
+ @classmethod
+ def postprocess(cls, options):
+```

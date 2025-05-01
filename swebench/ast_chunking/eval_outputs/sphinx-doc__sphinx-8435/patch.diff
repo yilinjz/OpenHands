@@ -1,0 +1,26 @@
+```diff
+--- a/sphinx/ext/autodoc/__init__.py
++++ b/sphinx/ext/autodoc/__init__.py
+@@ -949,7 +949,17 @@
+                         # stringify type annotation
+                         anno = stringify_typehint(annotation)
+ 
+-                    return ': ' + anno
++                    # Apply autodoc_type_aliases to the annotation string
++                    aliases = self.config.autodoc_type_aliases
++                    if aliases:
++                        # Sort by length descending to handle nested aliases correctly
++                        sorted_aliases = sorted(aliases.items(),
++                                                key=lambda item: len(item[0]),
++                                                reverse=True)
++                        for alias, target in sorted_aliases:
++                            # Replace whole words only using regex word boundaries
++                            pattern = r'\b' + re.escape(alias) + r'\b'
++                            anno = re.sub(pattern, target, anno)
++
++                    return ': ' + anno
+                 else:
+                     return default
+             else:
+
+```

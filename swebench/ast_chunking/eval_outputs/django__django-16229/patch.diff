@@ -1,0 +1,16 @@
+```patch
+--- a/django/contrib/postgres/fields/array.py
++++ b/django/contrib/postgres/fields/array.py
+@@ -23,6 +23,10 @@
+     # This prevents Django's Field._check_default() from raising a
+     # validation error.
+     _default_hint = ("list", "[]")
++    # If the widget doesn't render the initial value correctly, don't render
++    # a hidden initial input. This prevents issues where the default value
++    # (e.g., []) is formatted incorrectly, leading to has_changed returning
++    # incorrect results (Trac-34987).
++    show_hidden_initial = False
+ 
+     def __init__(self, base_field, size=None, **kwargs):
+         self.base_field = base_field
+```

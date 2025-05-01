@@ -1,0 +1,18 @@
+```patch
+--- a/django/db/models/fields/related.py
++++ b/django/db/models/fields/related.py
+@@ -21,6 +21,12 @@
+ 20             symmetrical = (to == RECURSIVE_RELATIONSHIP_CONSTANT)
+ 21 
+ 22         if through is not None and db_table is not None:
++23             raise ValueError(
++24                 'Cannot specify a db_table if an intermediary model is used.'
++25             )
++26 
++27         if symmetrical and related_name:
++28             raise ValueError('Cannot specify a related_name argument for a symmetrical ManyToManyField.')
+ 23             raise ValueError(
+ 24                 'Cannot specify a db_table if an intermediary model is used.'
+ 25             )
+
+```

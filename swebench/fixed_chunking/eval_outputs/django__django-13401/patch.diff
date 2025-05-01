@@ -1,0 +1,42 @@
+```patch
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -186,20 +186,34 @@
+     def __eq__(self, other):
+         # Needed for @total_ordering
+         if isinstance(other, Field):
+-            return self.creation_counter == other.creation_counter
++            # Fields are equal if they share the same creation counter and
++            # belong to the same model.
++            return (self.creation_counter == other.creation_counter and
++                    self.model == other.model)
+         return NotImplemented
+ 
+     def __lt__(self, other):
+         # This is needed because bisect does not take a comparison function.
+         if isinstance(other, Field):
++            # Sort by creation counter first, then by model.
++            if self.creation_counter == other.creation_counter:
++                # In case of duplicate creation counters (abstract models),
++                # sort by model meta. This is necessary to ensure that
++                # comparison is stable across different models (e.g. abstract
++                # models).
++                if self.model == other.model:
++                    # If models are equal, the fields are equal.
++                    return False
++                # Use label_lower for stable ordering across different runs.
++                return self.model._meta.label_lower < other.model._meta.label_lower
+             return self.creation_counter < other.creation_counter
+         return NotImplemented
+ 
+     def __hash__(self):
+-        return hash(self.creation_counter)
++        return hash((self.creation_counter, self.model))
+ 
+     def __deepcopy__(self, memodict):
+-        # We don't have to deepcopy very much here, since most things are not
++        # We don't have to deepcopy very much here since most things are not
+         # intended to be altered after initial creation.
+         obj = copy.copy(self)
+         if self.remote_field:
+```

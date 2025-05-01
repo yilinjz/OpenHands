@@ -1,0 +1,42 @@
+```diff
+--- a/sympy/printing/pretty/pretty.py
++++ b/sympy/printing/pretty/pretty.py
+@@ -17,18 +17,19 @@
+         return self._print(B.blocks)
+
+     def _print_MatAdd(self, expr):
+-        s = None
+-        for item in expr.args:
+-            pform = self._print(item)
+-            if s is None:
+-                s = pform     # First element
++        # Note: _coeff_isneg is imported globally in this file
++        term_pforms = [self._print(term) for term in expr.args]
++
++        if not term_pforms:
++            # MatAdd([]) or MatAdd([M]) should be simplified by constructor.
++            # If somehow MatAdd has 0 args, print 0.
++            return prettyForm('0')
++
++        final_form = term_pforms[0]
++
++        for pform, item in zip(term_pforms[1:], expr.args[1:]):
++            if _coeff_isneg(item):
++                final_form = prettyForm(*stringPict.next(final_form, ' '))
+             else:
+-                if S(item.args[0]).is_negative:
+-                    s = prettyForm(*stringPict.next(s, ' '))
+-                    pform = self._print(item)
+-                else:
+-                    s = prettyForm(*stringPict.next(s, ' + '))
+-                s = prettyForm(*stringPict.next(s, pform))
++                final_form = prettyForm(*stringPict.next(final_form, ' + '))
++            final_form = prettyForm(*stringPict.next(final_form, pform))
+
+-        return s
++        return final_form
+
+     def _print_MatMul(self, expr):
+         args = list(expr.args)
+
+```

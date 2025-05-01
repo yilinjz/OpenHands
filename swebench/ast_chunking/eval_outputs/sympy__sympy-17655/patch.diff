@@ -1,0 +1,17 @@
+```diff
+--- a/sympy/geometry/point.py
++++ b/sympy/geometry/point.py
+@@ -92,6 +92,11 @@
+         factor = sympify(factor)
+         coords = [simplify(x*factor) for x in self.args]
+         return Point(coords, evaluate=False)
++
++    def __rmul__(self, factor):
++        """Multiply point's coordinates by a factor."""
++        # This is the same as __mul__(factor)
++        return self.__mul__(factor)
+ 
+     def __neg__(self):
+         """Negate the point."""
+
+```

@@ -1,0 +1,145 @@
+```patch
+--- a/lib/matplotlib/style/core.py
++++ b/lib/matplotlib/style/core.py
+@@ -15,6 +15,7 @@
+ import logging
+ import os
+ from pathlib import Path
++import difflib
+ import re
+ import warnings
+ 
+@@ -60,6 +61,24 @@
+     mpl.rcParams.update(_remove_blacklisted_style_params(d, warn=warn))
+ 
+ 
++def _fetch_style_path(style):
++    """Return the path to the style file for *style*."""
++    if isinstance(style, (str, Path)):
++        path = Path(style)
++        if path.exists():
++            return path
++        else:
++            for stylelib_path in USER_LIBRARY_PATHS + [BASE_LIBRARY_PATH]:
++                path = Path(stylelib_path, f"{style}.{STYLE_EXTENSION}")
++                if path.exists():
++                    return path
++    elif isinstance(style, dict):
++        # Cannot resolve a path from a dict.
++        return None
++    # Fallback path lookup for when style is a URL or Path-like.
++    return style
++
++
+ class _StyleLibrary(dict):
+     """
+     A dictionary of available styles.
+@@ -92,14 +111,14 @@
+             try:
+                 rc = rc_params_from_file(path, use_default_template=False)
+                 self[name] = rc
+-            except Exception as err:
++            except Exception:
+                 _log.warning('Importing style %r failed.', name, exc_info=True)
+ 
+     def __getitem__(self, key):
+         try:
+             return super().__getitem__(key)
+         except KeyError:
+-            import difflib  # Lazily imported.
++            # Suggest similar styles.
+             suggestion = difflib.get_close_matches(key, self.keys())
+             if suggestion:
+                 msg = (f"{key!r} not found in current stylesheet library; "
+@@ -110,6 +129,35 @@
+             raise KeyError(msg) from None
+ 
+ 
++# List of seaborn style names (v0.8) and their aliases (matplotlib < 3.5)
++# The aliases were removed in 3.6, this dict helps restore them.
++_seaborn_v0_8_aliases = {
++    # Alias name: Actual v0_8 style name
++    'seaborn': 'seaborn-v0_8-darkgrid',
++    'seaborn-bright': 'seaborn-v0_8-bright',
++    'seaborn-colorblind': 'seaborn-v0_8-colorblind',
++    'seaborn-dark': 'seaborn-v0_8-dark',
++    'seaborn-darkgrid': 'seaborn-v0_8-darkgrid',
++    # 'seaborn-dark-palette': No direct v0_8 equivalent file name
++    'seaborn-deep': 'seaborn-v0_8-deep',
++    'seaborn-muted': 'seaborn-v0_8-muted',
++    'seaborn-notebook': 'seaborn-v0_8-notebook',
++    'seaborn-paper': 'seaborn-v0_8-paper',
++    'seaborn-pastel': 'seaborn-v0_8-pastel',
++    'seaborn-poster': 'seaborn-v0_8-poster',
++    'seaborn-talk': 'seaborn-v0_8-talk',
++    'seaborn-ticks': 'seaborn-v0_8-ticks',
++    'seaborn-white': 'seaborn-v0_8-white',
++    'seaborn-whitegrid': 'seaborn-v0_8-whitegrid',
++}
++
++
+ library = _StyleLibrary()
+ available = sorted(library.keys())
++
++# Add aliases for seaborn styles removed in v3.6 for backward compatibility
++for alias, new_name in _seaborn_v0_8_aliases.items():
++    if new_name in library and alias not in library:
++        library[alias] = library[new_name]
++
+ _docstring.interpd.update(available_styles=', '.join(available))
+ 
+ 
+@@ -148,12 +196,21 @@
+     """
+     if isinstance(style, (str, Path)):
+         styles = [style]
+-    elif isinstance(style, dict):
++    elif isinstance(style, dict): # Directly apply dict style
+         styles = [style]
+     else:
+         styles = style  # Assume list or iterable of styles.
+ 
+     paths = []
++    style_aliases_used = {}
++    # Resolve aliases before attempting to load styles
++    resolved_styles = []
++    for style_name_or_dict in styles:
++        if isinstance(style_name_or_dict, str) and style_name_or_dict in _seaborn_v0_8_aliases:
++            new_name = _seaborn_v0_8_aliases[style_name_or_dict]
++            style_aliases_used[style_name_or_dict] = new_name
++            resolved_styles.append(new_name)
++        else:
++            resolved_styles.append(style_name_or_dict)
+ 
+     style_rc_params = {}
+     # Update rcParams -- place this early to avoid triggering rcParam validation
+@@ -161,14 +218,22 @@
+     # `use` call.
+     try:
+         initial_settings = mpl.rcParams.copy()
+-        for style in styles:
++        for style_name_or_dict, alias_info in zip(resolved_styles, style_aliases_used.items()):
++            # Check if an alias was used and issue a warning
++            alias, new_name = alias_info if alias_info else (None, None)
++            if alias:
++                _api.warn_deprecated(
++                    "3.6", name=f"Style name '{alias}'", alternative=f"'{new_name}'",
++                    obj_type="style", addendum="Support for this alias was restored "
++                    "for compatibility but will be removed again in a future release. "
++                    "Please update your code.")
++
+             if not isinstance(style, dict):
+-                path = _fetch_style_path(style)
+-                if path is None:
+-                    raise OSError(f"Style {style!r} not found")
+-                paths.append(path)
+-                _apply_style(library[style], warn=False)
++                # Style is a name/path, use the resolved name
++                _apply_style(library[style_name_or_dict], warn=False)
+             else:
++                # Style is a dict
++                style_rc_params.update(style)
+                 _apply_style(style, warn=False)
+         yield
+     finally:
+```

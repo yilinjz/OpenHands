@@ -1,0 +1,49 @@
+```patch
+--- a/src/_pytest/_code/code.py
++++ b/src/_pytest/_code/code.py
+@@ -263,18 +263,33 @@
+         return "<ExceptionInfo %s for %r>" % (hex(id(self)), exprinfo)
+
+     def __str__(self):
+-        """ return a short string describing the exception info """
++        """Return a string representation.
++
++        If the exception value is available, returns ``str(value)``. Otherwise
++        (e.g. if ``ExceptionInfo.for_later()`` was used) returns a short
++        representation giving the exception type and location.
++        """
++        if self.value is not None:
++            try:
++                # Mimic behavior of 'except Exception as e: str(e)'
++                return str(self.value)
++            except Exception:
++                # Fallback if str(self.value) fails
++                try:
++                    # Use the internal helper for crash reporting
++                    return self._getreprcrash(sys.exc_info()[1])
++                except Exception:
++                    # Final fallback if even crash reporting fails
++                    return "<{} instance at {}: str(value) failed>".format(
++                        self.typename, hex(id(self))
++                    )
++
++        # Fallback if self.value is None (e.g., ExceptionInfo.for_later())
+         try:
++            # Attempt the old behavior (short representation)
++            # This might be useful if str(e) is called inside the 'with' block
++            # before the exception is caught and 'value' is populated.
+             return self.getrepr(style="short", abspath=False, tbfilter=False)
+         except Exception:
+             try:
+                 return self._getreprcrash(sys.exc_info()[1])
+             except Exception:
+-                # XXX __str__ should not fail
++                # Final fallback if everything fails
+                 return "<{} instance at {}: short repr failed>".format(
+-                    self.typename, hex(id(self))
++                    self.typename if getattr(self, "type", None) else "ExceptionInfo",
++                    hex(id(self)),
+                 )
+
+     def _getreprcrash(self, exc):
+```

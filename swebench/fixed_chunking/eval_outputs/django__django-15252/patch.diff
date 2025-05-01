@@ -1,0 +1,108 @@
+```patch
+--- a/django/db/migrations/recorder.py
++++ b/django/db/migrations/recorder.py
+@@ -1,11 +1,29 @@
+-from django.db import DatabaseError
++from django.db import DatabaseError, router
+ from django.db.migrations.exceptions import MigrationSchemaMissing
++from .models import Migration as MigrationModel
++
++
++class MigrationRecorder:
++    """
++    Deal with storing migration records in the database.
++
++    Because this table is actually itself used for dealing with model
++    creation, it's tricky. We need to worry about the following scenarios:
++
++     - The table doesn't exist, and has to be created.
++     - The table does exist, but has incorrect columns.
++     - The table exists and is correct.
++
++    We map it to a Django model, but we can't rely on the ORM's normal behaviour
++    as it might be outdated.
++    """
++    _migration_class = None
+ 
+     @classmethod
+     def Migration(cls):
+         """
+         Lazy load Migration model, as it may not be ready when this module is
+         imported.
+         """
+-        # Dynamic import to prevent circular dependency
+         if not hasattr(cls, "_migration_class") or cls._migration_class is None:
+-            from .models import Migration
+-            cls._migration_class = Migration
++            cls._migration_class = MigrationModel
+         return cls._migration_class
+ 
+     def __init__(self, connection):
+@@ -16,6 +34,10 @@
+     def migration_qs(self):
+         return self.Migration.objects.using(self.connection.alias)
+ 
++    def _allowed(self):
++        """Check if the router allows migrations for the Migration model."""
++        return router.allow_migrate_model(self.connection.alias, self.Migration)
++
+     def has_table(self):
+         """Return True if the django_migrations table exists."""
+         with self.connection.cursor() as cursor:
+@@ -23,16 +45,18 @@
+         return self.Migration._meta.db_table in tables
+ 
+     def ensure_schema(self):
+-        """Ensure the table exists and has the correct schema."""
++        """Ensure the table exists and has the correct schema, if allowed."""
++        # Check router rules first. If not allowed, exit immediately.
++        if not self._allowed():
++            return
+         # If the table's there, that's fine - we've never changed its schema
+         # in the codebase.
+         if self.has_table():
+             return
+         # Make the table
+         try:
++            # We only get here if migrations are allowed and the table doesn't exist.
+             with self.connection.schema_editor() as editor:
+-                # Check if the router allows creating the table
+-                if not self._allowed():
+-                    return
+                 editor.create_model(self.Migration)
+         except DatabaseError as exc:
+             raise MigrationSchemaMissing("Unable to create the django_migrations table (%s)" % exc)
+@@ -43,8 +67,13 @@
+         Return a dict mapping (app_name, migration_name) to Migration instances
+         for all applied migrations.
+         """
+-        if self.has_table():
+-            return {(migration.app, migration.name): migration for migration in self.migration_qs}
++        # Check router rules first. If not allowed, return empty dict.
++        if not self._allowed():
++            return {}
++        # If allowed, proceed, checking for table existence.
++        if self.has_table():
++            # Ensure we use .all() to execute the query.
++            return {(migration.app, migration.name): migration for migration in self.migration_qs.all()}
+         else:
+             # If the django_migrations table doesn't exist, then no migrations
+             # are applied.
+@@ -54,10 +83,14 @@
+     def record_applied(self, app, name):
+         """Record that a migration was applied."""
+         self.ensure_schema()
+-        self.migration_qs.create(app=app, name=name)
++        # Only record if allowed. ensure_schema checks router rules.
++        if self._allowed():
++            self.migration_qs.create(app=app, name=name)
+ 
+     def record_unapplied(self, app, name):
+         """Record that a migration was unapplied."""
++        # Only record if allowed.
++        if self._allowed():
++            self.migration_qs.filter(app=app, name=name).delete()
+ 
+     def flush(self):
+         """Delete all migration records. Useful for testing migrations."""
+```

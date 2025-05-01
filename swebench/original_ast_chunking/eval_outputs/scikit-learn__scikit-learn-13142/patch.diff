@@ -1,0 +1,15 @@
+```patch
+--- a/sklearn/mixture/gaussian_mixture.py
++++ b/sklearn/mixture/gaussian_mixture.py
+@@ -465,8 +465,8 @@
+         check_is_fitted(self, ['weights_', 'means_', 'precisions_cholesky_'])
+
+     def _get_parameters(self):
+-        return (self.weights_, self.means_, self.covariances_,
+-                self.precisions_cholesky_)
++        return (self.weights_.copy(), self.means_.copy(),
++                self.covariances_.copy(), self.precisions_cholesky_.copy())
+
+     def _set_parameters(self, params):
+         (self.weights_, self.means_, self.covariances_,
+```

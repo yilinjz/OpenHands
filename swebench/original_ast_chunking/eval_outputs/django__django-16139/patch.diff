@@ -1,0 +1,18 @@
+```patch
+--- a/django/contrib/auth/forms.py
++++ b/django/contrib/auth/forms.py
+@@ -16,7 +16,10 @@
+         super().__init__(*args, **kwargs)
+         password = self.fields.get("password")
+         if password:
+-            password.help_text = password.help_text.format("../password/")
++            # The password should be validated using UserAttributeSimilarityValidator
++            # when changing the password only (AdminPasswordChangeForm), not here.
++            password.help_text = password.help_text.format(
++                f"../../{self.instance.pk}/password/"
++            )
+         user_permissions = self.fields.get("user_permissions")
+         if user_permissions:
+             user_permissions.queryset = user_permissions.queryset.select_related(
+
+```

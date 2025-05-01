@@ -1,0 +1,16 @@
+```diff
+--- a/src/_pytest/assertion/rewrite.py
++++ b/src/_pytest/assertion/rewrite.py
+@@ -757,6 +757,8 @@ class AssertionRewriter(ast.NodeVisitor):
+     def is_rewrite_disabled(self, docstring: Optional[str]) -> bool:
+         """Check if the module has disabled assertion rewriting."""
+         # Check if the docstring exists and is actually a string.
+-        if not docstring:
++        # The check handles None, empty string, and potentially other types (like int
++        # as reported in #11135).
++        if not isinstance(docstring, str):
+             return False
++        # Now we know docstring is a non-empty string.
+         return "PYTEST_DONT_REWRITE" in docstring
+
+```

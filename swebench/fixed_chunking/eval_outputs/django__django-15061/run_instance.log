@@ -1,0 +1,55 @@
+2025-05-01 01:45:59,003 - INFO - Creating container for django__django-15061...
+2025-05-01 01:45:59,045 - INFO - Container for django__django-15061 created: 917ee0c5bf24282bdd814d0214287076af4901b7c9bcfe8e67d689a46992abef
+2025-05-01 01:45:59,349 - INFO - Container for django__django-15061 started: 917ee0c5bf24282bdd814d0214287076af4901b7c9bcfe8e67d689a46992abef
+2025-05-01 01:45:59,349 - INFO - Intermediate patch for django__django-15061 written to logs/run_evaluation/20250501_013755/swebench-lite_fixed-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/django__django-15061/patch.diff, now applying to container...
+2025-05-01 01:45:59,464 - INFO - Failed to apply patch to container: git apply --verbose
+2025-05-01 01:45:59,522 - INFO - Failed to apply patch to container: git apply --verbose --reject
+2025-05-01 01:45:59,581 - INFO - >>>>> Applied Patch:
+patching file django/forms/widgets.py
+Hunk #1 succeeded at 364 with fuzz 1 (offset 71 lines).
+
+2025-05-01 01:46:00,987 - INFO - Git diff before:
+diff --git a/django/forms/widgets.py b/django/forms/widgets.py
+index 00c19e2c55..a95a3a1669 100644
+--- a/django/forms/widgets.py
++++ b/django/forms/widgets.py
+@@ -365,6 +365,12 @@ class MultipleHiddenInput(HiddenInput):
+         context['widget']['subwidgets'] = subwidgets
+         return context
+ 
++    def id_for_label(self, id_):
++        """
++        MultiWidget has no single input element, so don't add the 'for' attribute.
++        """
++        return ''
++
+     def value_from_datadict(self, data, files, name):
+         try:
+             getter = data.getlist
+2025-05-01 01:46:00,987 - INFO - Eval script for django__django-15061 written to logs/run_evaluation/20250501_013755/swebench-lite_fixed-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/django__django-15061/eval.sh; copying to container...
+2025-05-01 01:46:11,321 - INFO - Test runtime: 10.27 seconds
+2025-05-01 01:46:11,321 - INFO - Test output for django__django-15061 written to logs/run_evaluation/20250501_013755/swebench-lite_fixed-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/django__django-15061/test_output.txt
+2025-05-01 01:46:11,394 - INFO - Git diff after:
+diff --git a/django/forms/widgets.py b/django/forms/widgets.py
+index 00c19e2c55..a95a3a1669 100644
+--- a/django/forms/widgets.py
++++ b/django/forms/widgets.py
+@@ -365,6 +365,12 @@ class MultipleHiddenInput(HiddenInput):
+         context['widget']['subwidgets'] = subwidgets
+         return context
+ 
++    def id_for_label(self, id_):
++        """
++        MultiWidget has no single input element, so don't add the 'for' attribute.
++        """
++        return ''
++
+     def value_from_datadict(self, data, files, name):
+         try:
+             getter = data.getlist
+2025-05-01 01:46:11,394 - INFO - Grading answer for django__django-15061...
+2025-05-01 01:46:11,399 - INFO - report: {'django__django-15061': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_form_as_table (forms_tests.field_tests.test_multivaluefield.MultiValueFieldTest)', 'test_form_as_table_data (forms_tests.field_tests.test_multivaluefield.MultiValueFieldTest)', 'test_form_as_table (forms_tests.field_tests.test_splitdatetimefield.SplitDateTimeFieldTest)']}, 'PASS_TO_PASS': {'success': ['test_bad_choice (forms_tests.field_tests.test_multivaluefield.MultiValueFieldTest)', 'test_clean (forms_tests.field_tests.test_multivaluefield.MultiValueFieldTest)', 'test_clean_disabled_multivalue (forms_tests.field_tests.test_multivaluefield.MultiValueFieldTest)', 'test_disabled_has_changed (forms_tests.field_tests.test_multivaluefield.MultiValueFieldTest)', 'test_form_cleaned_data (forms_tests.field_tests.test_multivaluefield.MultiValueFieldTest)', "Test when the first widget's data has changed.", "Test when the last widget's data has changed. This ensures that it is", 'test_has_changed_no_initial (forms_tests.field_tests.test_multivaluefield.MultiValueFieldTest)', 'test_has_changed_same (forms_tests.field_tests.test_multivaluefield.MultiValueFieldTest)', 'If insufficient data is provided, None is substituted.', 'test_render_required_attributes (forms_tests.field_tests.test_multivaluefield.MultiValueFieldTest)', 'test_splitdatetimefield_1 (forms_tests.field_tests.test_splitdatetimefield.SplitDateTimeFieldTest)', 'test_splitdatetimefield_2 (forms_tests.field_tests.test_splitdatetimefield.SplitDateTimeFieldTest)', 'test_splitdatetimefield_changed (forms_tests.field_tests.test_splitdatetimefield.SplitDateTimeFieldTest)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-15061: resolved: False
+2025-05-01 01:46:11,399 - INFO - Attempting to stop container sweb.eval.django__django-15061.20250501_013755...
+2025-05-01 01:46:26,690 - INFO - Attempting to remove container sweb.eval.django__django-15061.20250501_013755...
+2025-05-01 01:46:26,727 - INFO - Container sweb.eval.django__django-15061.20250501_013755 removed.

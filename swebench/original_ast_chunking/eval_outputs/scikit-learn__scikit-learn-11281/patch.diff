@@ -1,0 +1,245 @@
+```patch
+--- a/sklearn/mixture/base.py
++++ b/sklearn/mixture/base.py
+@@ -15,7 +15,7 @@
+ 
+ from .. import cluster
+ from ..base import BaseEstimator
+-from ..base import DensityMixin
++from ..base import DensityMixin, ClusterMixin
+ from ..externals import six
+ from ..exceptions import ConvergenceWarning
+ from ..utils import check_array, check_random_state
+@@ -64,7 +64,7 @@
+     return X
+ 
+ 
+-class BaseMixture(six.with_metaclass(ABCMeta, BaseEstimator)):
++class BaseMixture(six.with_metaclass(ABCMeta, DensityMixin, BaseEstimator)):
+     """Base class for mixture models.
+ 
+     This abstract class specifies an interface for all mixture classes and
+@@ -101,3 +101,32 @@
+         """
+         pass
+ 
++    def fit_predict(self, X, y=None):
++        """Estimate model parameters using X and predict the labels for X.
++
++        The method fits the model n_init times and sets the parameters with
++        the model that has the largest likelihood or lower bound. Within each
++        trial, the method iterates between E-step and M-step for max_iter times
++        until the change of likelihood or lower bound is less than tol,
++        otherwise, a ConvergenceWarning is raised. After fitting, it predicts
++        the most probable label for the input data points.
++
++        .. versionadded:: 0.20
++
++        Parameters
++        ----------
++        X : array-like, shape (n_samples, n_features)
++            List of n_features-dimensional data points. Each row
++            corresponds to a single data point.
++
++        y : Ignored
++            Not used, present here for API consistency by convention.
++
++        Returns
++        -------
++        labels : array, shape (n_samples,)
++            Component labels.
++        """
++        self.fit(X, y)
++        return self.labels_
++
+--- a/sklearn/mixture/bayesian_mixture.py
++++ b/sklearn/mixture/bayesian_mixture.py
+@@ -1,4 +1,5 @@
+ """Bayesian Gaussian Mixture Models."""
++
+ 
+ # Author: Wei Xue <xuewei4d@gmail.com>
+ #         Thierry Guillemot <thierry.guillemot.work@gmail.com>
+@@ -10,6 +11,7 @@
+ import numpy as np
+ from scipy.special import digamma, gammaln
+ 
++from ..utils import deprecated
+ from ..utils.validation import check_is_fitted
+ from .. import cluster
+ from .base import BaseMixture, _check_shape
+@@ -100,7 +102,7 @@
+                  degrees_of_freedom_prior=None, covariance_prior=None,
+                  random_state=None, warm_start=False,
+                  verbose=0, verbose_interval=10,
+-                 ):
++                 n_clusters='deprecated'):
+ 
+         self.covariance_type = covariance_type
+         self.tol = tol
+@@ -116,6 +118,18 @@
+         self.verbose = verbose
+         self.verbose_interval = verbose_interval
+ 
++        # Alias for n_components, for clusterer API compatibility.
++        # Will be removed in 0.22.
++        _n_components = n_components
++        if n_clusters != 'deprecated':
++            warnings.warn("Parameter 'n_clusters' was deprecated in version 0.20"
++                          " and will be removed in 0.22. Use 'n_components' instead.",
++                          DeprecationWarning, stacklevel=2)
++            if _n_components != 1 and _n_components != n_clusters:
++                 raise ValueError("Cannot set both n_components and n_clusters "
++                                  "to different values. Use 'n_components'.")
++            _n_components = n_clusters
++        self.n_components = _n_components
+         self._initialization_method = init_params
+         self.init_params = init_params
+ 
+@@ -123,7 +137,7 @@
+         """Variational Bayesian estimation of a Gaussian mixture.
+ 
+         This class allows to infer an approximate posterior distribution over the
+-        parameters of a Gaussian mixture distribution. The effective number of
++        parameters of a Gaussian mixture distribution. The effective number of
+         components can be inferred from the data.
+ 
+         This class implements two types of prior for the weights distribution:
+@@ -141,8 +155,10 @@
+         Parameters
+         ----------
+         n_components : int, defaults to 1.
+-            The number of mixture components. Depending on the estimation
+-            method, this parameter has different meanings.
++            The number of mixture components. Depending on the estimation method,
++            this parameter has different meanings. For the Variational Bayesian
++            estimation method, it specifies the maximum number of components
++            allowed in the mixture.
+ 
+             For the Dirichlet process, ``n_components`` is the maximum number of
+             components that can be used, but the actual number of components
+@@ -229,6 +245,13 @@
+             Controls the verbosity of the fitting process. Defaults to 0.
+         verbose_interval : int, defaults to 10.
+             Number of iteration done before the next print.
++
++        n_clusters : int, defaults to None.
++            Alias for the `n_components` parameter. If provided, it overrides
++            `n_components` unless `n_components` is specified to a different
++            value.
++            .. deprecated:: 0.20
++               Parameter `n_clusters` is deprecated in version 0.20 and will be removed in 0.22. Use `n_components` instead.
+ 
+         Attributes
+         ----------
+@@ -269,6 +292,10 @@
+         covariance_prior_ : tuple or float
+             Covariance prior used for the computation.
+ 
++        labels_ : array, shape (n_samples,)
++            The labels for each data point in the data used for fitting.
++            Available after fitting. Similar to `predict(X)`.
++
+         See Also
+         --------
+         GaussianMixture : Finite Gaussian mixture model fitted with EM
+@@ -480,6 +507,9 @@
+         self.degrees_of_freedom_ = best_params['degrees_of_freedom']
+         self.covariance_prior_ = best_params['covariance_prior']
+ 
++        # Add labels_ attribute for compatibility with clusterer API
++        self.labels_ = self.predict(X)
++
+         return self
+ 
+     def _estimate_gaussian_parameters(self, X, resp):
+--- a/sklearn/mixture/gaussian_mixture.py
++++ b/sklearn/mixture/gaussian_mixture.py
+@@ -1,4 +1,5 @@
+ """Gaussian Mixture Models."""
++
+ 
+ # Author: Wei Xue <xuewei4d@gmail.com>
+ #         Thierry Guillemot <thierry.guillemot.work@gmail.com>
+@@ -10,6 +11,7 @@
+ import numpy as np
+ from scipy import linalg
+ 
++from ..utils import deprecated
+ from ..utils.validation import check_is_fitted
+ from .. import cluster
+ from .base import BaseMixture, _check_shape
+@@ -100,7 +102,7 @@
+                  weights_init=None, means_init=None, precisions_init=None,
+                  random_state=None, warm_start=False,
+                  verbose=0, verbose_interval=10,
+-                 ):
++                 n_clusters='deprecated'):
+ 
+         self.covariance_type = covariance_type
+         self.tol = tol
+@@ -114,6 +116,18 @@
+         self.verbose = verbose
+         self.verbose_interval = verbose_interval
+ 
++        # Alias for n_components, for clusterer API compatibility.
++        # Will be removed in 0.22.
++        _n_components = n_components
++        if n_clusters != 'deprecated':
++            warnings.warn("Parameter 'n_clusters' was deprecated in version 0.20"
++                          " and will be removed in 0.22. Use 'n_components' instead.",
++                          DeprecationWarning, stacklevel=2)
++            if _n_components != 1 and _n_components != n_clusters:
++                 raise ValueError("Cannot set both n_components and n_clusters "
++                                  "to different values. Use 'n_components'.")
++            _n_components = n_clusters
++        self.n_components = _n_components
+         self._initialization_method = init_params
+         self.init_params = init_params
+ 
+@@ -130,7 +144,8 @@
+         Parameters
+         ----------
+         n_components : int, defaults to 1.
+-            The number of mixture components.
++            The number of mixture components. Alternatively, the parameter
++            `n_clusters` can be used.
+ 
+         covariance_type : {'full', 'tied', 'diag', 'spherical'}, \
+             defaults to 'full'.
+@@ -190,6 +205,13 @@
+             Controls the verbosity of the fitting process. Defaults to 0.
+         verbose_interval : int, defaults to 10.
+             Number of iteration done before the next print.
++
++        n_clusters : int, defaults to None.
++            Alias for the `n_components` parameter. If provided, it overrides
++            `n_components` unless `n_components` is specified to a different
++            value.
++            .. deprecated:: 0.20
++               Parameter `n_clusters` is deprecated in version 0.20 and will be removed in 0.22. Use `n_components` instead.
+ 
+         Attributes
+         ----------
+@@ -220,6 +242,10 @@
+         lower_bound_ : float
+             Log-likelihood of the best fit of EM.
+ 
++        labels_ : array, shape (n_samples,)
++            The labels for each data point in the data used for fitting.
++            Available after fitting. Similar to `predict(X)`.
++
+         See Also
+         --------
+         BayesianGaussianMixture : Gaussian mixture model fit with a variational
+@@ -411,6 +437,9 @@
+         self.precisions_cholesky_ = best_params['precisions_cholesky']
+         self.converged_ = best_params['converged']
+         self.n_iter_ = best_params['n_iter']
++
++        # Add labels_ attribute for compatibility with clusterer API
++        self.labels_ = self.predict(X)
+         self.lower_bound_ = best_lower_bound
+ 
+         # Always do a final e-step to guarantee that the labels returned by
+```

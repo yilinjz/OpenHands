@@ -1,0 +1,234 @@
+```patch
+--- a/src/_pytest/assertion/rewrite.py
++++ b/src/_pytest/assertion/rewrite.py
+@@ -25,6 +25,7 @@
+ from _pytest.assertion.util import (  # noqa: F401
+     format_explanation as _format_explanation,
+ )
++from _pytest.assertion import util as assertutil  # noqa: F401
+ from _pytest.compat import spec_from_file_location
+ from _pytest.pathlib import fnmatch_ex
+ from _pytest.pathlib import PurePath
+@@ -55,6 +56,14 @@
+ 
+     def ast_Call(a, b, c):
+         return ast.Call(a, b, c, None, None)
++
++
++# Helper for True/False constants
++def _make_bool_node(value):
++    if sys.version_info >= (3, 4):
++        return ast.NameConstant(value=value)
++    else:
++        return ast.Name(id=str(value), ctx=ast.Load())
+ 
+ 
+ if sys.version_info[0] < 3:
+@@ -153,6 +162,12 @@
+     def __init__(self, module_path, config=None):
+         super(AssertionRewriter, self).__init__()
+         self.module_path = module_path
++        # Optional attributes, needed for static analysis.
++        self.statements = []
++        self.variables = []
++        self.variable_counter = itertools.count()
++        self.stack = []
++        self.on_failure = []
+         self.config = config
+         self.enable_assert_rewrite_hook = bool(
+             config and config.getoption("enable_assertion_rewrite_hook")
+@@ -217,6 +232,14 @@
+         else:
+             # Python 2 and 3.3
+             return ast.Name(id="None", ctx=ast.Load())
++
++    def _create_bool_constant(self, value):
++        """Create an AST node for boolean constants True or False."""
++        if sys.version_info >= (3, 4):
++            return ast.NameConstant(value=value)
++        else:
++            # Python 2 and 3.3
++            return ast.Name(id=str(value), ctx=ast.Load())
+ 
+     def run(self, mod):
+         """Rewrite the module."""
+@@ -310,6 +333,160 @@
+         self.statements.append(assign)
+         return ast.Name(res_var, ast.Load())
+ 
++    def _rewrite_all_any_comprehension(self, call, comp, is_all):
++        """Rewrite `assert all(gen)` or `assert any(gen)`."""
++        # Only handle simple cases: 1 generator, no ifs.
++        if len(comp.generators) != 1 or comp.generators[0].ifs:
++            return self.visit_Call_default(call)
++        generator = comp.generators[0]
++        if not isinstance(generator.target, ast.Name):
++            # Don't handle tuple unpacking etc.
++            return self.visit_Call_default(call)
++
++        # Register all temp variables we will create
++        iter_var = self.variable()
++        item_var_name = self.variable()
++        result_var = self.variable()
++        failure_expl_var = self.variable()
++        failing_item_val_var = self.variable()
++        pred_res_var = self.variable()  # Used inside loop
++
++        # Store source of the original call expression for the explanation
++        original_call_src = self.expr_to_src(call)
++
++        # 1. Visit the iterable part of the comprehension
++        _stash_expr = self._current_expr
++        self._current_expr = generator.iter
++        iter_expr, _ = self.visit(generator.iter)
++        self._current_expr = _stash_expr
++        self.statements.append(
++            ast.Assign(targets=[ast.Name(iter_var, ast.Store())], value=iter_expr)
++        )
++
++        # 2. Initialize result var before loop
++        #    all([]) is True, any([]) is False
++        initial_result = self._create_bool_constant(is_all)
++        self.statements.append(
++            ast.Assign(targets=[ast.Name(result_var, ast.Store())], value=initial_result)
++        )
++        # Initialize variables to store failure details (used by 'all')
++        none_node = self._NameConstant(None)
++        self.statements.append(
++            ast.Assign(
++                targets=[ast.Name(failure_expl_var, ast.Store())], value=none_node
++            )
++        )
++        self.statements.append(
++            ast.Assign(
++                targets=[ast.Name(failing_item_val_var, ast.Store())], value=none_node
++            )
++        )
++
++        # 3. Create the loop structure
++        comp_target = generator.target
++        item_var_store = ast.Name(item_var_name, ast.Store())
++        item_var_load = ast.Name(item_var_name, ast.Load())
++        loop_body = []
++        loop_orelse = []  # Not used due to pre-initialization of result_var
++
++        # 4. Inside the loop body: Evaluate the predicate P(item)
++        #    Temporarily map the comprehension variable name to the loop item variable AST node.
++        comp_target_name = comp_target.id
++        original_comp_target_mapping = self.syms.get(comp_target_name)
++        self.syms[comp_target_name] = item_var_load
++
++        # Visit the predicate expression (comp.elt)
++        # Statements generated during this visit should go into the loop body.
++        predicate_expr_statements = []
++        _stash_statements = self.statements
++        self.statements = predicate_expr_statements
++        _stash_expr = self._current_expr
++        self._current_expr = comp.elt  # Set context for expr_to_src
++        self.push_format_context()  # Manage explanation formatting stack
++        pred_res_expr, pred_expl_str = self.visit(comp.elt)
++        # The explanation string needs to be formatted using the context
++        pred_expl_formatted = self.pop_format_context(ast.Str(pred_expl_str))
++        self._current_expr = _stash_expr
++        self.statements = _stash_statements  # Restore main statement list
++
++        # Restore the symbol table mapping
++        if original_comp_target_mapping is None:
++            # If the name wasn't mapped before, remove it if visit added it.
++            # It might be a local variable inside the comprehension's expression.
++            if comp_target_name in self.syms and self.syms[comp_target_name] is item_var_load:
++                 del self.syms[comp_target_name]
++        else:
++            self.syms[comp_target_name] = original_comp_target_mapping
++
++        # Add predicate calculation statements and result assignment to loop body
++        loop_body.extend(predicate_expr_statements)
++        loop_body.append(
++            ast.Assign(
++                targets=[ast.Name(pred_res_var, ast.Store())], value=pred_res_expr
++            )
++        )
++
++        # 5. Add conditional logic and break
++        if is_all:
++            # if not pred_res_var:
++            #   result_var = False
++            #   failure_expl_var = formatted explanation of P(item)
++            #   failing_item_val_var = item_var_load
++            #   break
++            if_body = [
++                ast.Assign(
++                    targets=[ast.Name(result_var, ast.Store())],
++                    value=self._create_bool_constant(False),
++                ),
++                ast.Assign(
++                    targets=[ast.Name(failure_expl_var, ast.Store())],
++                    value=pred_expl_formatted,
++                ),
++                ast.Assign(
++                    targets=[ast.Name(failing_item_val_var, ast.Store())],
++                    value=item_var_load,
++                ),
++                ast.Break(),
++            ]
++            loop_body.append(
++                ast.If(
++                    test=ast.UnaryOp(ast.Not(), ast.Name(pred_res_var, ast.Load())),
++                    body=if_body,
++                    orelse=[],
++                )
++            )
++        else:  # is_any
++            # if pred_res_var:
++            #   result_var = True
++            #   break
++            if_body = [
++                ast.Assign(
++                    targets=[ast.Name(result_var, ast.Store())],
++                    value=self._create_bool_constant(True),
++                ),
++                ast.Break(),
++            ]
++            loop_body.append(
++                ast.If(test=ast.Name(pred_res_var, ast.Load()), body=if_body, orelse=[])
++            )
++
++        # Add the For loop to the main statements list
++        self.statements.append(
++            ast.For(
++                target=item_var_store,
++                iter=ast.Name(iter_var, ast.Load()),
++                body=loop_body,
++                orelse=loop_orelse,
++            )
++        )
++
++        # 6. Construct the explanation tuple, passed to visit_Assert for formatting
++        if is_all:
++            explanation = ("all", original_call_src, ast.Name(failure_expl_var, ast.Load()), ast.Name(failing_item_val_var, ast.Load()), comp_target_name)
++        else:  # is_any
++            explanation = ("any", original_call_src)
++
++        # Return the variable holding the overall result and the explanation tuple
++        return ast.Name(result_var, ast.Load()), explanation
++
+     def visit_Call(self, call):
+         """Visit a Call node.
+ 
+@@ -318,6 +495,14 @@
+         assertion message.
+ 
+         """
++        # Check for `all(genexpr)` or `any(genexpr)`
++        if isinstance(call.func, ast.Name) and call.func.id in ('all', 'any') and len(call.args) == 1:
++            arg = call.args[0]
++            if isinstance(arg, (ast.GeneratorExp, ast.ListComp)):
++                # Attempt to rewrite; fallback to default if it fails
++                return self._rewrite_all_any_comprehension(call, arg, call.func.id == 'all')
++
++        # Default handling for other calls
+         res_var = self.variable()
+         # First check if it's a call to a helper.
+         if isinstance(call.func, ast.Attribute):
+@@ -343,6 +528,33 @@
+         expl = "%s(%s)" % (func_

@@ -1,0 +1,25 @@
+```patch
+--- a/django/contrib/admin/utils.py
++++ b/django/contrib/admin/utils.py
+@@ -108,7 +108,18 @@
+                 accessor = attrgetter(field.remote_field.name)
+             else:
+                 accessor = attrgetter(field.attname)
+-            contents_func = lambda obj: display_func(accessor(obj))
++            # For choice fields, check for overridden get_..._display() method on the instance.
++            if field.choices:
++                display_method_name = 'get_%s_display' % name
++                empty_value_display = model_admin.get_empty_value_display() if model_admin else _('None')
++
++                def contents_func(obj):
++                    # Check if the override method exists directly on the class (avoids Django's default).
++                    if hasattr(obj, display_method_name) and display_method_name in obj.__class__.__dict__:
++                        return getattr(obj, display_method_name)()
++                    # Fallback to default display logic for choices (using flatchoices).
++                    return dict(field.flatchoices).get(accessor(obj), empty_value_display)
++            else:
++                contents_func = lambda obj: display_func(accessor(obj))
+         else:  # field is None, name is attribute or method on model or admin
+             attr = None
+             if callable(name):
+```

@@ -1,0 +1,307 @@
+```patch
+--- a/sklearn/utils/multiclass.py
++++ b/sklearn/utils/multiclass.py
+@@ -1,5 +1,6 @@
+ """
+ Utilities for multiclass and multilabel classification
+ """
++import warnings
+ from collections.abc import Sequence
+ from itertools import chain
+ 
+@@ -7,6 +8,12 @@
+ import scipy.sparse as sp
+ 
+ from . import check_array, column_or_1d
++
++# Import pandas safely for checking nullable dtypes
++try:
++    import pandas as pd
++    from pandas.api.types import is_integer_dtype, is_float_dtype, is_bool_dtype
++except ImportError:
++    pd = None
+ 
+ from ..exceptions import NotFittedError
+ from ._array_api import (
+@@ -76,6 +83,47 @@
+ 
+ 
+ def type_of_target(y):
++    """Determine the type of data indicated by the target variable `y`.
++
++    Parameters
++    ----------
++    y : array-like
++        Target values. Make sure to handle string labels, possibly heterogeneous.
++
++    Returns
++    -------
++    target_type : str
++        One of:
++        * 'continuous': `y` is an array-like of floats that are not all
++          integers, and is 1d or a column vector.
++        * 'continuous-multioutput': `y` is a 2d array-like of floats that
++          are not all integers, and both dimensions are of size > 1.
++        * 'binary': `y` contains <= 2 discrete values and is 1d or a column
++          vector.
++        * 'multiclass': `y` contains more than two discrete values, is not a
++          sequence of sequences, and is 1d or a column vector.
++        * 'multiclass-multioutput': `y` is a 2d array-like that contains
++          discrete values, is not a sequence of sequences, and both
++          dimensions are of size > 1.
++        * 'multilabel-indicator': `y` is a label indicator matrix, an array
++          of two dimensions with at least two columns, and at most 2 unique
++          values per sample.
++        * 'unknown': `y` is array-like but none of the above, such as
++          a 3d array, sequence of sequences, or an array of non-sequence
++          objects.
++
++    Examples
++    --------
++    >>> import numpy as np
++    >>> from sklearn.utils.multiclass import type_of_target
++    >>> type_of_target([0.1, 0.6])
++    'continuous'
++    >>> type_of_target([1, -1, -1, 1])
++    'binary'
++    >>> type_of_target(['a', 'b', 'a'])
++    'binary'
++    >>> type_of_target([1.0, 2.0])
++    'binary'
++    >>> type_of_target([1, 0, 2])
++    'multiclass'
++    >>> type_of_target([1.0, 0.0, 3.0])
++    'multiclass'
++    >>> type_of_target(['a', 'b', 'c'])
++    'multiclass'
++    >>> type_of_target(np.array([[1, 2], [1, 1]]))
++    'multiclass-multioutput'
++    >>> type_of_target([[1, 2], [3, 1]])
++    'multiclass-multioutput'
++    >>> type_of_target(np.array([[1.5, 2.0], [3.0, 1.6]]))
++    'continuous-multioutput'
++    >>> type_of_target(np.array([[0, 1], [1, 1]]))
++    'multilabel-indicator'
++    """
++    # -- Start Patch --
++    # Handle pandas Series with nullable dtypes explicitly to avoid
++    # incorrect 'unknown' classification when converted to object arrays.
++    if pd is not None and isinstance(y, pd.Series):
++        original_dtype = getattr(y, "dtype", None)
++        if original_dtype:
++            is_nullable_int = isinstance(original_dtype, pd.IntegerDtype)
++            is_nullable_bool = isinstance(original_dtype, pd.BooleanDtype)
++            is_nullable_float = isinstance(original_dtype, pd.FloatingDtype)
++
++            if is_nullable_int or is_nullable_bool or is_nullable_float:
++                # Use pandas methods to handle potential pd.NA
++                y_valid = y.dropna()
++                if y_valid.empty:
++                    # All values are NA or the series is empty
++                    return "unknown"
++
++                unique_values = pd.unique(y_valid)
++
++                if is_nullable_bool:
++                    # Boolean type is always binary (when not all NA)
++                    return "binary"
++
++                # For Integer and Floating nullable types
++                if len(unique_values) > 2:
++                    return "multiclass"
++                else:  # <= 2 unique values
++                    # Matches logic for standard numeric types below
++                    return "binary"
++    # -- End Patch --
++
++    valid = (
++        isinstance(y, (Sequence, sp.spmatrix)) or hasattr(y, "__array__")
++    ) and not isinstance(y, str)
++
++    if not valid:
++        raise ValueError(
++            "Expected array-like (array or non-string sequence), "
++            "got %r" % y
++        )
++
++    sparse_pandas = y.__class__.__name__ in ["SparseSeries", "SparseDataFrame"]
++    if sparse_pandas:
++        raise ValueError("y cannot be class 'SparseSeries' or 'SparseDataFrame'")
++
++    if is_multilabel(y):
++        return "multilabel-indicator"
++
++    try:
++        y = column_or_1d(y, warn=True)
++    except ValueError:
++        # Known case: multioutput continuous target (see tests)
++        # Unknown cases: multioutput multiclass target, other weird use cases
++        # Let's try to check dimensions, types and count unique values
++        try:
++            # We need to ensure that we have a 2D array
++            y = check_array(y, ensure_2d=False)
++        except ValueError:
++            # Cannot check array, so maybe sequence of sequences?
++            # Check if this is a ragged array
++            if hasattr(y, "__len__") and len(y) > 0 and isinstance(y[0], Sequence):
++                if any(len(y[0]) != len(yi) for yi in y):
++                    return "unknown"
++            return "unknown"
++
++        shape = y.shape
++        if len(shape) == 1:
++            # Came here from column_or_1d, so it must be numpy scalar
++            return "unknown"
++        if len(shape) != 2 or shape[1] == 0:
++            return "unknown"
++        if shape[1] == 1:
++            warnings.warn(
++                "A column-vector y was passed when a 1d array was"
++                " expected. Please change the shape of y to "
++                "(n_samples, ), for example using ravel().",
++                stacklevel=2,
++            )
++            # Treated as 1D target, let the rest of the function handle it
++            y = y.ravel()
++            # Re-calculate unique values
++            unique_values = np.unique(y)
++        else:
++            # We have identified a 2D array shape[1] > 1
++            # Check the type of the data
++            y_numeric = y.dtype.kind in "biufc"
++
++            if y_numeric and y.dtype.kind == "f":
++                # Check finite for floats
++                if not np.all(np.isfinite(y)):
++                    return "unknown"
++                # We are handling floats which are not integers
++                if np.any(y != y.astype(int)):
++                    # [.1, .2], [1., 0.]
++                    return "continuous-multioutput"
++                else:
++                    # [1., 0.], [2., 3.]
++                    return "multiclass-multioutput"
++            if y_numeric:
++                # We are handling integers or boolean
++                return "multiclass-multioutput"
++            else:
++                # Mix of types, object dtype, etc.
++                return "unknown"
++
++    # Infer the type of classification target
++    unique_values = np.unique(y)
++    if unique_values.ndim > 1:
++        # Invalid inputs (e.g. object arrays of sequences)
++        return "unknown"
++
++    # Check the type of the data
++    y_numeric = unique_values.dtype.kind in "biufc"
++
++    if not y_numeric:
++        # Then it is object type, this is only supported for classification
++        # We need to check that all elements are strings or bytes
++        # We also dump pandas objects here. Now, numpy string arrays are objects.
++        if unique_values.dtype.kind != "O":
++            return "unknown"
++
++        # Try to parse as strings
++        try:
++            unique_values.astype(str)
++        except:  # noqa
++            return "unknown"
++
++    # Check finite for numeric types
++    if y_numeric:
++        if not np.all(np.isfinite(unique_values)):
++            return "unknown"
++
++    # Check for continuous is_integral_float targets
++    if y.dtype.kind == "f" and _is_integral_float(y):
++        # [.1, .2], [1., 0.]
++        return "multiclass"
++
++    if len(unique_values) <= 1:
++        # Only one class
++        return "binary"
++    if y.dtype.kind == "f":
++        # [.1, .2], [1., 0.]
++        # check if they are integers => if yes multiclass (handled) / else continuous
++        if np.any(unique_values != unique_values.astype(int)):
++            return "continuous"
++        else:
++            return "multiclass"
++    if y_numeric:
++        # Integer values
++        if len(unique_values) <= 2:
++            # [1, 0], [1, 2], [-1, 1]
++            return "binary"
++        else:
++            # [1, 0, 2]
++            return "multiclass"
++    else:
++        # String values
++        if len(unique_values) <= 2:
++            return "binary"
++        else:
++            return "multiclass"
++
++
++def _unique_labels_indicator(y):
++    """Extract an ordered array of unique labels from label indicator matrix.
++
++    Parameters
++    ----------
++    y : ndarray of shape (n_samples, n_labels) or sparse matrix
++        Label indicator matrix.
++
++    Returns
++    -------
++    out : ndarray of shape (n_unique_labels,)
++        An ordered array of unique labels.
++
++    """
++    xp, _ = get_namespace(y)
++    if hasattr(y, "shape") and y.shape[1] == 0:
++        return xp.asarray([])
++    if sp.issparse(y):
++        y = check_array(y, accept_sparse=["csr", "csc", "coo"])
++        # Find the first non-zero index for each column assuming this
++        # indicator matrix is based on a 1d sequence of labels.
++        # For example, if y = [[0, 1], [1, 0]], the first non-zero indices
++        # are [1, 0] and the unique labels are [0, 1].
++        if isinstance(y, sp.coo_matrix):
++            _, col_idx = xp.unique_values(xp.asarray(y.col)).tolist()
++        elif isinstance(y, sp.csc_matrix):
++            _, col_idx = xp.unique_values(xp.asarray(y.indices)).tolist()
++        elif isinstance(y, sp.csr_matrix):
++            _, col_idx = xp.unique_values(xp.asarray(y.indices)).tolist()
++        else:
++            raise TypeError(f"Unsupported sparse matrix type: {type(y)}")
++        return xp.take(xp.arange(y.shape[1]), xp.asarray(col_idx), axis=0)
++    else:
++        # Assume this is a dense matrix
++        y = check_array(y, ensure_2d=False)
++        return xp.arange(y.shape[1])
++
++
++def _unique_labels_multiclass(y):
++    """Extract an ordered array of unique labels for multiclass classification."""
++    # -- Start Patch --
++    # Handle pandas Series with nullable dtypes explicitly
++    if pd is not None and isinstance(y, pd.Series):
++        original_dtype = getattr(y, "dtype", None)
++        if original_dtype and isinstance(
++            original_dtype, (pd.IntegerDtype, pd.BooleanDtype, pd.FloatingDtype)
++        ):
++            # Use pandas methods for nullable dtypes, drop NA
++            # pd.unique returns a numpy array or ExtensionArray.
++            # The subsequent processing in unique_labels expects a numpy array.
++            unique_vals = pd.unique(y.dropna())
++            # Ensure numpy array output
++            if hasattr(unique_vals, "to_numpy"):
++                return unique_vals.to_numpy()
++            else:
++                return np.asarray(unique_vals)
++    # -- End Patch --
++    # check_classification_targets(y)
++    y_ = column_or_1d(y

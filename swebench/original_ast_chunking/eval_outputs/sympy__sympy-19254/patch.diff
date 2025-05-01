@@ -1,0 +1,150 @@
+```patch
+--- a/sympy/polys/factortools.py
++++ b/sympy/polys/factortools.py
+@@ -1,6 +1,10 @@
+ """Polynomial factorization tools."""
+ 
+-from sympy.polys.polyerrors import DomainError, CoercionFailed
++from math import log as _log, ceil as _ceil
++
++from sympy.functions.combinatorial.numbers import binomial
++from sympy.polys.polyerrors import DomainError, CoercionFailed, NotReversible
++from sympy.polys.polyutils import (
++    _sort_factors, dmp_ground_coeffs)
+ from sympy.polys.densearith import (
+     dup_LC, dmp_ground_LC,
+     dup_TC, dmp_ground_TC,
+@@ -16,10 +20,6 @@
+     dup_primitive, dmp_primitive,
+     dup_extract, dmp_extract)
+ from sympy.polys.densetools import (
+-    dup_clear_denominators,
+-    dup_trunc,
+-    dup_content, dmp_content,
+-    dup_monic, dmp_monic)
++    dup_clear_denominators, dup_trunc, dup_content, dmp_content, dup_monic, dmp_monic)
+ from sympy.polys.euclidtools import (
+     dup_inner_gcd, dmp_inner_gcd,
+     dup_gcd, dmp_gcd,
+@@ -31,11 +31,8 @@
+     gf_factor_sqf,
+     gf_from_int_poly, gf_to_int_poly)
+ from sympy.polys.sqfreetools import (
+-    dup_sqf_p, dmp_sqf_p,
+-    dup_sqf_norm, dmp_sqf_norm,
+-    dup_sqf_part, dmp_sqf_part)
+-
+-from sympy.polys.polyutils import _sort_factors
++    dup_sqf_p, dmp_sqf_p, dup_sqf_norm, dmp_sqf_norm, dup_sqf_part, dmp_sqf_part)
++
+ from sympy.utilities import subsets, public
+ 
+ from sympy.ntheory import isprime, factorint
+@@ -43,8 +40,6 @@
+ from sympy.core.compatibility import as_int
+ 
+ from sympy.polys.domains import FF
+-
+-from math import log as _log, ceil as _ceil
+ 
+ 
+ @public
+@@ -100,28 +95,59 @@
+     return _sort_factors(result)
+ 
+ 
+-def dup_zz_mignotte_bound(f, K):
+-    """Mignotte bound for univariate polynomials in `K[x]`. """
+-    a = dup_max_norm(f, K)
+-    b = abs(dup_LC(f, K))
++def _dup_l2_norm(f, K):
++    """Compute the L2 norm of `f` in `K[x]`. """
++    if not f:
++        return K.zero
++
++    s = sum(c**2 for c in f)
++
++    try:
++        # Use K.isqrt if available (e.g., ZZ)
++        sqrt_s_floor = K.isqrt(s)
++        if sqrt_s_floor**2 == s:
++            return sqrt_s_floor
++        else:
++            # ceil(sqrt(s)) = floor(sqrt(s)) + 1 if s is not a perfect square
++            return sqrt_s_floor + 1
++    except (AttributeError, TypeError):
++        # Fallback for domains without isqrt or if sqrt is needed
++        # This might involve floats, ensure sufficient precision if used.
++        # For ZZ, the above integer arithmetic is preferred.
++        # This path is less likely for ZZ but serves as a conceptual fallback.
++        from math import ceil, sqrt
++        return K(ceil(sqrt(float(s))))
++
++
++def _dmp_l2_norm(f, u, K):
++    """Compute the L2 norm of `f` in `K[X]`. """
++    coeffs = dmp_ground_coeffs(f, u, K)
++    if not coeffs:
++        return K.zero
++
++    s = sum(c**2 for c in coeffs)
++
++    try:
++        sqrt_s_floor = K.isqrt(s)
++        if sqrt_s_floor**2 == s:
++            return sqrt_s_floor
++        else:
++            return sqrt_s_floor + 1
++    except (AttributeError, TypeError):
++        from math import ceil, sqrt
++        return K(ceil(sqrt(float(s))))
++
++
++def dup_zz_knuth_cohen_bound(f, K):
++    """Knuth-Cohen bound for univariate factors in `ZZ[x]`. """
+     n = dup_degree(f)
+-
+-    return K.sqrt(K(n + 1))*2**n*a*b
+-
+-
+-def dmp_zz_mignotte_bound(f, u, K):
+-    """Mignotte bound for multivariate polynomials in `K[X]`. """
+-    a = dmp_max_norm(f, u, K)
+-    b = abs(dmp_ground_LC(f, u, K))
++    if n < 0: return K.zero
++    if n == 0: return abs(f[0])
++    return K(binomial(n, n // 2)) * _dup_l2_norm(f, K)
++
++def dmp_zz_knuth_cohen_bound(f, u, K):
++    """Knuth-Cohen bound for multivariate factors in `ZZ[X]`. """
+     n = sum(dmp_degree_list(f, u))
+-
+-    return K.sqrt(K(n + 1))*2**n*a*b
+-
+-
+-def dup_zz_hensel_step(m, f, g, h, s, t, K):
+-    """
++    if n < 0: return K.zero
++    if n == 0: return abs(dmp_ground_coeffs(f, u, K)[0])
++    return K(binomial(n, n // 2)) * _dmp_l2_norm(f, u, K)
++
++
++def dup_zz_hensel_step(m, f, g, h, s, t, K):
++    r"""
+     One step in Hensel lifting in `Z[x]`.
+ 
+     Given positive integer `m` and `Z[x]` polynomials `f`, `g`, `h`, `s`
+@@ -201,7 +227,10 @@
+     A = dup_max_norm(f, K)
+     b = dup_LC(f, K)
+     B = int(abs(K.sqrt(K(n + 1))*2**n*A*b))
+-    C = int((n + 1)**(2*n)*A**(2*n - 1))
++    # B is the bound on the coefficients of factors. Use Knuth-Cohen bound.
++    B = dup_zz_knuth_cohen_bound(f, K)
++    B = int(B) # Convert to Python int for use with math.log etc.
++    C = int((n + 1)**(2*n)*A**(2*n - 1)) # Bound on number of factor combinations? Keep using A (max_norm).
+     gamma = int(_ceil(2*_log(C, 2)))
+     bound = int(2*gamma*_log(gamma))
+     a = []
+
+```

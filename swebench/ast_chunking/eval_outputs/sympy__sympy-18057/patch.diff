@@ -1,0 +1,19 @@
+```patch
+--- a/sympy/core/expr.py
++++ b/sympy/core/expr.py
+@@ -121,7 +121,10 @@
+         # N.B. If this method returns None, the result of the comparison
+         # is determined by the Python interpreter as usual.
+         try:
+-            other = sympify(other)
++            # We want to compare Expr to other objects.
++            # If other is not sympifiable it is not equal to self.
++            # If other is sympifiable, then we may be able to make a
++            # determination. We force sympify(strict=True) to prevent
++            # ``Symbol('x') == 'x'`` from returning True.
++            other = sympify(other, strict=True)
+         except SympifyError:
+             # Cannot sympify other? Then it is structurally unequal.
+             return False
+
+```

@@ -1,0 +1,46 @@
+```patch
+--- a/django/db/backends/base/creation.py
++++ b/django/db/backends/base/creation.py
+@@ -19,21 +19,29 @@
+         amounts of data.
+         """
+         # Iteratively return every object for all models to serialize.
++        from django.core import serializers
++        from django.db import router
++        from django.db.migrations.loader import MigrationLoader
++
+         def get_objects():
+-            from django.db.migrations.loader import MigrationLoader
+             loader = MigrationLoader(self.connection, ignore_no_migrations=True)
++            # Determine the MIGRATE setting for the current database connection.
++            migrate_setting = self.connection.settings_dict['TEST'].get('MIGRATE', True)
++
+             for app_config in apps.get_app_configs():
+                 if (
+                     app_config.models_module is not None and
+-                    app_config.label in loader.migrated_apps and
+                     app_config.name not in settings.TEST_NON_SERIALIZED_APPS
+                 ):
++                    has_migrations = app_config.label in loader.graph.nodes
++                    # When MIGRATE=False, only apps without migrations are fully
++                    # created via run_syncdb=True. Apps with migrations have no
++                    # tables created. Skip serializing them.
++                    if not migrate_setting and has_migrations:
++                        continue
++
+                     for model in app_config.get_models():
+                         if (
+                             model._meta.can_migrate(self.connection) and
+                             router.allow_migrate_model(self.connection.alias, model)
+                         ):
+-                            queryset = model._default_manager.using(
+-                                self.connection.alias,
+-                            ).order_by(model._meta.pk.name)
+-                            yield from queryset.iterator()
++                            queryset = model._default_manager.using(self.connection.alias).order_by(model._meta.pk.name)
++                            yield from queryset.iterator()
++
+         # Serialize to a string
+         out = StringIO()
+         serializers.serialize("json", get_objects(), indent=None, stream=out)
+```

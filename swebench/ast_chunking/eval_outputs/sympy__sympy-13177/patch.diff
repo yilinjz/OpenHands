@@ -1,0 +1,14 @@
+```diff
+--- a/sympy/functions/elementary/integers.py
++++ b/sympy/functions/elementary/integers.py
+@@ -315,7 +315,7 @@
+         elif p.is_Pow:
+             # Mod(x**n, x) == 0 ?
+             # need to check q.is_integer as well, see issue #6500
+-            if p.base == q and p.exp.is_integer and p.exp > 1:
++            if p.base == q and p.exp.is_integer and p.exp > 1 and q.is_integer:
+                 return S.Zero
+             # Mod(x**n, x**m) == 0 if n > m ?
+             if q.is_Pow and p.base == q.base and \
+
+```

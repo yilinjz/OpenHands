@@ -1,0 +1,36 @@
+```patch
+--- a/sympy/functions/elementary/hyperbolic.py
++++ b/sympy/functions/elementary/hyperbolic.py
+@@ -101,11 +101,13 @@
+         # cosh(z) = 0 iff z = I*(pi/2 + n*pi)
+         # We need to check if arg/I - pi/2 is a multiple of pi
+         res = (arg/S.ImaginaryUnit - S.Pi/2)/S.Pi
+-        if res.is_integer:
++        check = res.is_integer
++        if check is True:
+             return True
+-        if res.is_integer == False:
++        if check is False:
+             return False
++        # If check is None, we can't determine if it's zero
++        return None
+ 
+     def _eval_is_positive(self):
+         # cosh(x+I*y) = cos(y)*cosh(x) + I*sin(y)*sinh(x)
+@@ -246,11 +248,13 @@
+         # sinh(z) = 0 iff z = n*pi*I
+         # Check if arg/(pi*I) is an integer
+         res = arg / (S.Pi * S.ImaginaryUnit)
+-        if res.is_integer:
++        check = res.is_integer
++        if check is True:
+             return True
+-        if res.is_integer == False:
++        if check is False:
+             return False
++        # If check is None, we can't determine if it's zero
++        return None
+ 
+     def _eval_is_negative(self):
+         z = self.args[0]
+```

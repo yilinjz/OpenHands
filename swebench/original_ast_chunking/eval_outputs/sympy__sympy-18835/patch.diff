@@ -1,0 +1,92 @@
+```patch
+--- a/sympy/utilities/iterables.py
++++ b/sympy/utilities/iterables.py
+@@ -1086,37 +1086,57 @@
+ def uniq(seq):
+     """
+     Yield unique elements from ``seq`` preserving order.
+
+-    The second
+-    parameter ``result``  is used internally; it is not necessary to pass
+-    anything for this.
++    Note: This function will raise a ``RuntimeError`` if the input sequence
++    ``seq`` is modified while iterating over it (e.g. if ``seq`` is a list
++    and items are added or removed). This check is only performed if ``seq``
++    supports ``len()``.
+ 
+     Examples
+     ========
+ 
+     >>> from sympy.utilities.iterables import uniq
+     >>> dat = [1, 4, 1, 5, 4, 2, 1, 2]
+-    >>> type(uniq(dat)) in (list, tuple)
+-    False
+-
+     >>> list(uniq(dat))
+     [1, 4, 5, 2]
+     >>> list(uniq(x for x in dat))
+     [1, 4, 5, 2]
+     >>> list(uniq([[1], [2, 1], [1]]))
+     [[1], [2, 1]]
++
++    It also raises RuntimeError if the sequence is modified during iteration:
++
++    >>> f = list('THISTLE')
++    >>> try:
++    ...     for i in uniq(f):
++    ...         f.remove(i) # Don't modify a sequence while iterating over it!
++    ... except RuntimeError:
++    ...     print("Caught modification")
++    Caught modification
+     """
++    initial_size = None
++    supports_len = False
+     try:
+-        seen = set()
+-        result = result or []
+-        for i, s in enumerate(seq):
+-            if not (s in seen or seen.add(s)):
+-                yield s
+-    except TypeError:
+-        if s not in result:
+-            yield s
+-            result.append(s)
+-        if hasattr(seq, '__getitem__'):
+-            for s in uniq(seq[i + 1:], result):
+-                yield s
+-        else:
+-            for s in uniq(seq, result):
+-                yield s
++        initial_size = len(seq)
++        supports_len = True
++    except TypeError:
++        pass # seq might be an iterator without len()
++
++    def check_size():
++        # Check supports_len first to avoid calling len() unnecessarily or if it failed initially.
++        if supports_len:
++            try:
++                current_size = len(seq)
++                if current_size != initial_size:
++                    raise RuntimeError("sequence changed size during iteration")
++            except TypeError:
++                # Sequence may have become unsized during iteration. Disable check.
++                nonlocal supports_len
++                supports_len = False
++
++    seen_hashable = set()
++    seen_unhashable = [] # Use a list for unhashable items
++
++    for item in seq:
++        check_size() # Check at the start of each iteration
++        try:
++            # Try using the set for hashable items
++            if item not in seen_hashable:
++                seen_hashable.add(item)
++                yield item
++        except TypeError: # Unhashable item
++            # Fallback to list check for unhashable items
++            if item not in seen_unhashable:
++                seen_unhashable.append(item)
++                yield item
+```

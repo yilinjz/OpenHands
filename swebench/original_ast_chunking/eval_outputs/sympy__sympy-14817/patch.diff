@@ -1,0 +1,53 @@
+```patch
+--- a/sympy/printing/pretty/pretty.py
++++ b/sympy/printing/pretty/pretty.py
+@@ -15,18 +15,34 @@
+         return self._print(B.blocks)
+ 
+     def _print_MatAdd(self, expr):
++        # Imports moved inside function for clarity and locality
++        from sympy.matrices.expressions import MatMul
++        from sympy.core.numbers import Number
++        from sympy.matrices.expressions.matexpr import MatrixExpr
++        from sympy.core import Expr
++
++        def _mat_coeff_isneg(term):
++            """Helper to check if a MatAdd term is structurally negative."""
++            # Returns True if term is MatMul(-NegativeNumber, ...)
++            if isinstance(term, MatMul) and term.args:
++                coeff = term.args[0]
++                # Check if coeff is a scalar Number and is negative
++                if (isinstance(coeff, Expr) and
++                        not isinstance(coeff, MatrixExpr) and
++                        isinstance(coeff, Number) and
++                        coeff.is_negative == True): # Use == True to handle None
++                    return True
++            return False
++
+         s = None
+         for item in expr.args:
+             pform = self._print(item)
+             if s is None:
+                 s = pform     # First element
+             else:
+-                if S(item.args[0]).is_negative:
++                # Check if the item is like -1 * Matrix
++                if _mat_coeff_isneg(item):
++                    # If the term is structurally negative, it will print with a leading '-',
++                    # so we just need a space separator.
+                     s = prettyForm(*stringPict.next(s, ' '))
+-                    pform = self._print(item)
+                 else:
++                    # Otherwise, add " + " separator.
+                     s = prettyForm(*stringPict.next(s, ' + '))
+                 s = prettyForm(*stringPict.next(s, pform))
+ 
++        if s is None: # Handle empty MatAdd (e.g., MatAdd())
++             # This case might not occur if MatAdd ensures args, but good to handle.
++             # Returning '0' seems reasonable, though ideally ZeroMatrix(shape)
++             return prettyForm('0')
++
+         return s
+ 
+     def _print_MatMul(self, expr):
+```

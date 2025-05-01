@@ -1,0 +1,21 @@
+```patch
+--- a/sympy/physics/quantum/tensorproduct.py
++++ b/sympy/physics/quantum/tensorproduct.py
+@@ -188,10 +188,11 @@
+                 add_args = []
+                 for aa in arg.args:
+                     tp = TensorProduct(*args[:i] + (aa,) + args[i+1:])
+-                    if tp.is_TensorProduct:
+-                        add_args.append(tp._eval_expand_tensorproduct(**hints))
+-                    else:
+-                        add_args.append(tp)
++                    # Fix: handle scalar factors possibly returned by TensorProduct constructor
++                    # See https://github.com/sympy/sympy/issues/11415
++                    c_part, nc_part = tp.args_cnc()
++                    if len(nc_part) == 1 and isinstance(nc_part[0], TensorProduct):
++                        nc_part = (nc_part[0]._eval_expand_tensorproduct(**hints), )
++                    add_args.append(Mul(*c_part)*Mul(*nc_part))
+                 return Add(*add_args)
+         return self
+ 
+```

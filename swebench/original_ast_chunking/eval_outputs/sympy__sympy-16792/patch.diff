@@ -1,0 +1,15 @@
+```patch
+--- a/sympy/utilities/autowrap.py
++++ b/sympy/utilities/autowrap.py
+@@ -100,6 +100,10 @@
+             name_h = binary_function(name_h, expr_h, backend='dummy')
+             expr = expr.subs(expr_h, name_h(*args_h))
+     try:
++        # FIXME: The CodeGen.routine method (likely in sympy/codegen/codegen.py)
++        # needs to correctly determine the C/Cython type for all provided 'args',
++        # including array types (e.g., MatrixSymbol -> pointer), even if the
++        # argument does not appear in the 'expr'. See issue #21101.
+         routine = code_gen.routine('autofunc', expr, args)
+     except CodeGenArgumentListError as e:
+         # if all missing arguments are for pure output, we simply attach them
+```

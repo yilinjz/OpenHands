@@ -1,0 +1,23 @@
+```patch
+--- a/sphinx/domains/std.py
++++ b/sphinx/domains/std.py
+@@ -50,6 +50,7 @@
+ 
+ 
+ class Cmdoption(ObjectDescription):
++    """Description of a command-line option (.. option)."""
+     has_content = True
+     required_arguments = 1
+     optional_arguments = 0
+@@ -68,10 +69,6 @@
+             potential_sig = potential_sig.strip()
+             m = option_desc_re.match(potential_sig)
+             if not m:
+-                logger.warning(__('Malformed option description %r, should look like '
+-                                  '"opt", "-opt args", "--opt args", "/opt args" '
+-                                  'or "+opt args"'), potential_sig,
+-                               location=signode)
+                 optname, args = potential_sig, ''
+             else:
+                 optname, args = m.groups()
+```

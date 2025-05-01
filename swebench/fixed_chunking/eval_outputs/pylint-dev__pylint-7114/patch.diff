@@ -1,0 +1,61 @@
+```patch
+--- a/pylint/lint/expand_modules.py
++++ b/pylint/lint/expand_modules.py
+@@ -9,12 +9,14 @@
+                 modname = ".".join(
+                     modutils.modpath_from_file(something, path=additional_search_path)
+                 )
+-            except ImportError:
++            except (ImportError, IndexError):  # modpath_from_file can raise IndexError
+                 modname = os.path.splitext(basename)[0]
++            _is_arg_directory = os.path.isdir(something) # Store if the original arg was a directory
+             if os.path.isdir(something):
+                 filepath = os.path.join(something, "__init__.py")
+             else:
+                 filepath = something
++
+         else:
+             # suppose it's a module or package
+             modname = something
+@@ -27,10 +29,13 @@
+                 # The SyntaxError is a Python bug and should be
+                 # removed once we move away from imp.find_module: https://bugs.python.org/issue10588
+                 errors.append({"key": "fatal", "mod": modname, "ex": ex})
++                _is_arg_directory = False # Not a directory argument if lookup failed
+                 continue
++            _is_arg_directory = os.path.isdir(filepath) # Check if resolved path is directory
+
+         filepath = os.path.normpath(filepath)
+-        modparts = (modname or something).split(".")
++        effective_modname = modname or os.path.splitext(basename)[0]
++        modparts = effective_modname.split(".")
+         try:
+             spec = modutils.file_info_from_modpath(
+                 modparts, path=additional_search_path
+@@ -43,15 +48,21 @@
+         else:
+             is_namespace = modutils.is_namespace(spec)
+             is_directory = modutils.is_directory(spec)
+-        if not is_namespace:
++
++        # If the original argument was a directory, but we ended up with a filepath
++        # pointing to a non-existent __init__.py, we should skip adding it.
++        # The directory content will be discovered later by other mechanisms.
++        if _is_arg_directory and not os.path.exists(filepath):
++            continue
++
++        # Add the module/file to the list, unless it's a namespace package
++        # without a concrete __init__.py file path (though the check above handles this).
++        if not is_namespace or os.path.isfile(filepath):
+             result.append(
+                 {
+                     "path": filepath,
+-                    "name": modname,
++                    "name": effective_modname,
+                     "isarg": True,
+-                    "basepath": filepath,
++                    "basepath": os.path.dirname(filepath), # Directory containing the file/package
+                     "basename": os.path.basename(filepath),
+                     "modpath": modparts,
+                     "is_directory": is_directory,
+```

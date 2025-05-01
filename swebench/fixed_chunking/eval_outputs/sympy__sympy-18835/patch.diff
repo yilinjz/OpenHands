@@ -1,0 +1,108 @@
+```patch
+--- a/sympy/utilities/iterables.py
++++ b/sympy/utilities/iterables.py
+@@ -66,41 +66,66 @@
+     return False
+ 
+ 
+-def uniq(seq, result=None):
++def uniq(seq):
+     """
+-    Yield unique elements from ``seq`` as an iterator. The second
+-    parameter ``result``  is used internally; it is not necessary to pass
+-    anything for this.
++    Yield unique elements from ``seq`` in order, preserving original order.
++
++    Handles both hashable and unhashable types.
+ 
+     Examples
+     ========
+ 
+     >>> from sympy.utilities.iterables import uniq
+     >>> dat = [1, 4, 1, 5, 4, 2, 1, 2]
+-    >>> type(uniq(dat)) in (list, tuple)
+-    False
+-
+     >>> list(uniq(dat))
+     [1, 4, 5, 2]
+     >>> list(uniq(x for x in dat))
+     [1, 4, 5, 2]
+     >>> list(uniq([[1], [2, 1], [1]]))
+     [[1], [2, 1]]
++
++    Modification of the sequence during iteration is detected for
++    sized sequences:
++
++    >>> f = list('THISTLE')
++    >>> it = uniq(f)
++    >>> next(it)
++    'T'
++    >>> f.remove('T') # Modify the list
++    >>> next(it) # doctest: +IGNORE_EXCEPTION_DETAIL
++    Traceback (most recent call last):
++      ...
++    RuntimeError: list changed size during iteration
+     """
++    # Check if sequence size can be tracked
++    initial_len = -1
++    check_len = False
+     try:
+-        seen = set()
+-        result = result or []
+-        for i, s in enumerate(seq):
+-            if not (s in seen or seen.add(s)):
++        initial_len = len(seq)
++        check_len = True
++    except TypeError:
++        pass # Cannot check length (e.g., generator)
++
++    seen_hashable = set()
++    seen_unhashable = []
++
++    # Use explicit iterator and loop with `next`
++    seq_iterator = iter(seq)
++
++    while True:
++        # Check for size change before getting the next item
++        if check_len:
++            try:
++                current_len = len(seq)
++                if current_len != initial_len:
++                    try:
++                        tname = type(seq).__name__
++                    except AttributeError:
++                        tname = "sequence"
++                    raise RuntimeError("%s changed size during iteration" % tname)
++            except TypeError:
++                # If len() worked initially but fails now, stop checking
++                check_len = False
++
++        # Get next item
++        try:
++            s = next(seq_iterator)
++        except StopIteration:
++            break # End of sequence
++
++        # Try using the set for hashable items
++        try:
++            if s not in seen_hashable:
++                seen_hashable.add(s)
++                seen_unhashable.append(s) # Keep track for unhashable checks
+                 yield s
+-    except TypeError:
+-        if s not in result:
+-            yield s
+-            result.append(s)
+-        if hasattr(seq, '__getitem__'):
+-            for s in uniq(seq[i + 1:], result):
++        except TypeError: # Unhashable item
++            if s not in seen_unhashable:
++                seen_unhashable.append(s)
+                 yield s
+-        else:
+-            for s in uniq(seq, result):
+-                yield s
+ 
+ 
+ def generate_bell(n):
+```

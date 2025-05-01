@@ -1,0 +1,14 @@
+```patch
+--- a/sympy/parsing/mathematica.py
++++ b/sympy/parsing/mathematica.py
+@@ -481,7 +481,7 @@
+                         return self.global_dict[name]
+                     return _sympify(name)
+                 # Add other cases if needed, e.g., for specific Mathematica constructs parsed as strings
+-            except (SyntaxError, TypeError, ValueError):
++            except (SyntaxError, TypeError, ValueError, NameError):
+                  # If ast.parse fails or name lookup fails, treat as raw symbol
+                  return _sympify(l)
+             # Fallback if ast.parse succeeds but doesn't match handled types
++            return _sympify(l)
+```

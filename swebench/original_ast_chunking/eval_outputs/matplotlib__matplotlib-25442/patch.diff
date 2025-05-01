@@ -1,0 +1,17 @@
+```patch
+--- a/lib/matplotlib/offsetbox.py
++++ b/lib/matplotlib/offsetbox.py
+@@ -1565,8 +1565,12 @@
+ 
+     def disconnect(self):
+         """Disconnect the callbacks."""
++        # If the reference artist is gone, or its figure is gone, we can't get
++        # the canvas to disconnect signals, but they are already useless, so
++        # just clear the cids list.
++        if self.ref_artist is None or self.ref_artist.figure is None:
++            self._cids = []
++            return
+         for cid in self._cids:
+             self.canvas.mpl_disconnect(cid)
+         self._cids = []
+```

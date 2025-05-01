@@ -1,0 +1,14 @@
+```diff
+--- a/django/db/models/deletion.py
++++ b/django/db/models/deletion.py
+@@ -61,4 +61,8 @@
+         for model, instances in self.data.items():
+             for instance in instances:
+                 setattr(instance, model._meta.pk.attname, None)
++        # Ensure all collected models are present in the counter, even if the
++        # deletion count is 0. Models are sorted alphabetically for stability.
++        for model in sorted(self.data, key=lambda m: m._meta.label):
++            deleted_counter.setdefault(model._meta.label, 0)
+         return sum(deleted_counter.values()), dict(deleted_counter)
+
+```

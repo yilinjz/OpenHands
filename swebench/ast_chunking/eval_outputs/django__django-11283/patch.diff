@@ -1,0 +1,67 @@
+```diff
+--- a/django/contrib/auth/migrations/0011_update_proxy_permissions.py
++++ b/django/contrib/auth/migrations/0011_update_proxy_permissions.py
+@@ -1,5 +1,6 @@
+ from django.db import migrations
+ from django.db.models import Q
++from django.db.utils import IntegrityError
+ 
+ 
+ def update_proxy_model_permissions(apps, schema_editor, reverse=False):
+@@ -9,6 +10,8 @@
+     """
+     Permission = apps.get_model('auth', 'Permission')
+     ContentType = apps.get_model('contenttypes', 'ContentType')
++    # Ensure we're using the correct database connection for ContentType lookups.
++    db_alias = schema_editor.connection.alias
+     for Model in apps.get_models():
+         opts = Model._meta
+         if not opts.proxy:
+@@ -21,15 +24,35 @@
+         permissions_query = Q(codename__in=proxy_default_permissions_codenames)
+         for codename, name in opts.permissions:
+             permissions_query = permissions_query | Q(codename=codename, name=name)
+-        concrete_content_type = ContentType.objects.get_for_model(Model, for_concrete_model=True)
+-        proxy_content_type = ContentType.objects.get_for_model(Model, for_concrete_model=False)
++
++        # We use get_for_model directly because the ContentTypes may not exist
++        # in the ContentType cache.
++        try:
++            concrete_content_type = ContentType.objects.db_manager(db_alias).get_for_model(
++                Model, for_concrete_model=True)
++            proxy_content_type = ContentType.objects.db_manager(db_alias).get_for_model(
++                Model, for_concrete_model=False)
++        except ContentType.DoesNotExist:
++            # Content types might not exist if the model wasn't installed before
++            # this migration. Skip this model.
++            continue
++
+         old_content_type = proxy_content_type if reverse else concrete_content_type
+         new_content_type = concrete_content_type if reverse else proxy_content_type
+-        Permission.objects.filter(
++
++        # Permissions that should have the new_content_type
++        new_perms = Permission.objects.using(db_alias).filter(
++            permissions_query,
++            content_type=new_content_type,
++        )
++        new_perms_codenames = set(new_perms.values_list('codename', flat=True))
++
++        # Find permissions that have the old_content_type
++        old_perms = Permission.objects.using(db_alias).filter(
+             permissions_query,
+             content_type=old_content_type,
+-        ).update(content_type=new_content_type)
++        )
++        # Update permissions that don't already exist with the new_content_type
++        perms_to_update = old_perms.exclude(codename__in=new_perms_codenames)
++        perms_to_update.update(content_type=new_content_type)
++
++        # Delete permissions that already exist with the new_content_type
++        perms_to_delete = old_perms.filter(codename__in=new_perms_codenames)
++        perms_to_delete.delete()
+ 
+ 
+ def revert_proxy_model_permissions(apps, schema_editor):
+
+```

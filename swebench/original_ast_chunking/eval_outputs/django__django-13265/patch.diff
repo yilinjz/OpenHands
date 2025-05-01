@@ -1,0 +1,45 @@
+```patch
+--- a/django/db/migrations/operations/models.py
++++ b/django/db/migrations/operations/models.py
+@@ -20,7 +20,10 @@
+     def state_forwards(self, app_label, state):
+         model_state = state.models[app_label, self.name_lower]
+         model_state.options['order_with_respect_to'] = self.order_with_respect_to
+-        state.reload_model(app_label, self.name_lower, delay=True)
++        # Reload the model state immediately so subsequent operations in the
++        # same migration see the effect (presence/absence of _order field).
++        # This is necessary if an AddIndex operation on '_order' follows
++        # this operation in the same migration.
++        state.reload_model(app_label, self.name_lower)
+ 
+     def database_forwards(self, app_label, schema_editor, from_state, to_state):
+         to_model = to_state.apps.get_model(app_label, self.name)
+@@ -46,13 +49,19 @@
+         self.database_forwards(app_label, schema_editor, from_state, to_state)
+ 
+     def references_field(self, model_name, name, app_label):
+-        return (
+-            self.references_model(model_name, app_label) and
+-            (
+-                self.order_with_respect_to is None or
+-                name == self.order_with_respect_to
+-            )
+-        )
++        if not self.references_model(model_name, app_label):
++            return False
++
++        # References the FK field when adding ordering.
++        references_fk = (
++            self.order_with_respect_to is not None and
++            name == self.order_with_respect_to
++        )
++        # References the '_order' field implicitly when adding ordering, so
++        # that operations like AddIndex depend on this one.
++        references_order = (
++            self.order_with_respect_to is not None and name == '_order'
++        )
++        return references_fk or references_order
+ 
+     def describe(self):
+         return "Set order_with_respect_to on %s to %s" % (self.name, self.order_with_respect_to)
+```

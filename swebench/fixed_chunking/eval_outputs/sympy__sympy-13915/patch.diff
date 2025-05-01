@@ -1,0 +1,25 @@
+```patch
+--- a/sympy/core/basic.py
++++ b/sympy/core/basic.py
+@@ -14,6 +14,19 @@
+          >>> limit(x**3 - 3*x, x, oo)
+          oo
+ 
++         Substitution into an expression that is undefined at the substitution
++         point is possible, but the result is undefined (`nan`) or an infinite
++         quantity (`oo`, `zoo`):
++
++         >>> from sympy import oo, zoo, nan, symbols
++         >>> a, b = symbols('a b')
++         >>> r = (1/(a+b) + 1/(a-b))/(1/(a+b) - 1/(a-b)) # = -a/b
++         >>> r.subs(b, a) # -> (1/(2*a) + 1/0) / (1/(2*a) - 1/0) -> zoo / (-zoo)
++         nan
++         >>> r.limit(b, a)
++         -1
++         >>> (1/x).subs(x, 0)
++         zoo
++
+          If the substitution will be followed by numerical
+          evaluation, it is better to pass the substitution to
+          evalf as
+```

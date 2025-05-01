@@ -1,0 +1,31 @@
+```patch
+--- a/django/db/models/base.py
++++ b/django/db/models/base.py
+@@ -47,18 +47,13 @@
+                         "related object '%s'." % (operation_name, field.name)
+                     )
+                 # A pk may have been assigned manually to a model instance not
+-                # saved to the database (or auto-generated in a case like
+-                # UUIDField), but we allow the save to proceed and rely on the
+-                # database to raise an IntegrityError if applicable. If
+-                # constraints aren't supported by the database, there's the
+-                # unavoidable risk of data corruption.
+-                elif getattr(self, field.attname) is None:
+-                    # Use pk from related object if it has been saved after
+-                    # an assignment.
++                # saved to the database (or auto-generated). Update the
++                # associated FK value if it doesn't match the related
++                # instance's primary key.
++                elif getattr(self, field.attname) != obj.pk:
+                     setattr(self, field.attname, obj.pk)
+-                # If the relationship's pk/to_field was changed, clear the
+-                # cached relationship.
+-                if getattr(obj, field.target_field.attname) != getattr(self, field.attname):
+-                    field.delete_cached_value(self)
++                    # Setting the fk via setattr calls the descriptor which will
++                    # invalidate the previously cached instance on the field.
++                    # ForeignObjectCache shouldn't be accessed. Refs #19359.
+ 
+     def delete(self, using=None, keep_parents=False):
+         using = using or router.db_for_write(self.__class__, instance=self)
+```

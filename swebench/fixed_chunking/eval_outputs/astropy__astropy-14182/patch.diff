@@ -1,0 +1,53 @@
+```patch
+--- a/astropy/io/ascii/rst.py
++++ b/astropy/io/ascii/rst.py
+@@ -11,15 +11,21 @@
+ 
+     """
+ 
++    # Need to inherit from FixedFixedWidth to get header_rows functionality
++    # through BaseHeader/BaseWriter easily.
++    # SimpleRSTHeader inherits FixedFixedWidthHeader.
++    # SimpleRSTData inherits FixedFixedWidthData.
+     _format_name = "rst"
+     _description = "reStructuredText simple table"
+     data_class = SimpleRSTData
+     header_class = SimpleRSTHeader
+ 
+-    def __init__(self):
+-        super().__init__(delimiter_pad=None, bookend=False)
++    def __init__(self, **kwargs):
++        # Ensure default RST behavior if not overridden
++        kwargs.setdefault("delimiter_pad", None)
++        kwargs.setdefault("bookend", False)
++        super().__init__(**kwargs)
+ 
+     def write(self, lines):
+-        lines = super().write(lines)
+-        lines = [lines[1]] + lines + [lines[1]]
+-        return lines
++        # lines has [header1, ..., headerN, separator, data1, ..., dataM]
++        n_header = len(self.header.header_rows)
++        # Separator should always exist unless table is completely empty.
++        # Handle cases where lines might be short or separator missing.
++        if n_header < len(lines):
++            separator_line = lines[n_header]
++        else:
++            # Attempt to generate separator if missing (e.g., empty table)
++            separator_line = self.header.get_ruler_line()
++            # If table is truly empty (no cols), separator might be empty string.
++            # If lines is also empty, return empty list.
++            if not lines and not separator_line:
++                return []
++
++        # Construct the final list of lines for RST format:
++        # [separator, header1..N, separator, data1..M, separator]
++        processed_lines = (
++            [separator_line]
++            + lines[:n_header]
++            + [separator_line]
++            + lines[n_header + 1 :]
++            + [separator_line]
++        )
++        return processed_lines
+```

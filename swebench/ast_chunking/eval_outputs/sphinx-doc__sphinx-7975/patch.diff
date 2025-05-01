@@ -1,0 +1,45 @@
+```diff
+--- a/sphinx/domains/index.py
++++ b/sphinx/domains/index.py
+@@ -106,24 +106,28 @@
+         content = sorted(self.entries.items())
+
+         # group entries by primary key's first character
+-        grouped: Dict[str, List[IndexEntry]] = {}
++        grouped_letters: Dict[str, List[IndexEntry]] = {}
++        grouped_symbols: List[IndexEntry] = []
+         for key, entries in content:
+             # normalize first character for grouping
+             letter = unicodedata.normalize('NFD', key[0])[0]
+             if letter.isalpha():
+                 letter = letter.upper()
++                # if the key is not grouped yet, initialize a new group
++                if letter not in grouped_letters:
++                    grouped_letters[letter] = []
++                grouped_letters[letter].extend(entries)
+             else:
+-                # gettext_noop is used here for performance reasons
+-                letter = gettext_noop('Symbols')
++                # Add to the single symbols list
++                grouped_symbols.extend(entries)
+
+-            # if the key is not grouped yet, initialize a new group
+-            if letter not in grouped:
+-                grouped[letter] = []
+-            grouped[letter].extend(entries)
++        # Combine symbols and letters into the final list 'result'
++        result: List[Tuple[str, List[IndexEntry]]] = []
++        symbols_key = gettext_noop('Symbols')
++        if grouped_symbols:
++            result.append((symbols_key, grouped_symbols))
+
+         # sort groups by keys. The 'Symbols' group comes first.
+-        result = [(key, grouped[key]) for key in sorted(grouped.keys(), key=locale.strxfrm)]
+-        result.sort(key=lambda item: item[0] != gettext_noop('Symbols'))
++        for key in sorted(grouped_letters.keys(), key=locale.strxfrm):
++            result.append((key, grouped_letters[key]))
+
+         # organize items in groups:
+         # - sort by primary key
+
+```

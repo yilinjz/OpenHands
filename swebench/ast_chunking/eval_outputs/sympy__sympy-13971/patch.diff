@@ -1,0 +1,34 @@
+```patch
+--- a/sympy/printing/latex.py
++++ b/sympy/printing/latex.py
+@@ -1277,7 +1277,7 @@
+         if isinstance(s.length, Integer) and s.length <= self._settings["latex_seq_length_threshold"]:
+             # Print all terms for short sequences
+             terms = ", ".join(self._print(term) for term in s)
+-            return r"\left[ %s \right]" % terms
++            return r"[ %s ]" % terms
+
+         # For long or infinite sequences, print first few terms and ellipsis
+         # Default values, can be adjusted based on settings if needed in the future
+@@ -1293,16 +1293,16 @@
+         if s.stop == S.Infinity:
+             # Infinite sequence starting from a finite point or -oo
+             terms_str = r"%s, \ldots" % ", ".join(start_terms)
+-            return r"\left[ %s \right]" % terms_str
++            return r"[ %s ]" % terms_str
+         elif s.start == -S.Infinity:
+             # Infinite sequence ending at a finite point
+             end_terms = [self._print(s.coeff(s.stop - i)) for i in range(n_terms_end -1, -1, -1)]
+             terms_str = r"\ldots, %s" % ", ".join(end_terms)
+-            return r"\left[ %s \right]" % terms_str
++            return r"[ %s ]" % terms_str
+         else:
+             # Finite sequence, but long
+             end_terms = [self._print(s.coeff(s.stop - i)) for i in range(n_terms_end - 1, -1, -1)]
+             terms_str = r"%s, \ldots, %s" % (", ".join(start_terms), ", ".join(end_terms))
+-            return r"\left[ %s \right]" % terms_str
++            return r"[ %s ]" % terms_str
+
+     def _print_SeqPer(self, s):
+         # Check if the sequence is finite and short
+```

@@ -1,0 +1,48 @@
+```patch
+--- a/sphinx/environment/adapters/indexentries.py
++++ b/sphinx/environment/adapters/indexentries.py
+@@ -118,23 +118,35 @@
+             for subentry in indexentry[1].values():
+                 subentry[0].sort(key=keyfunc0)  # type: ignore
+
+-        # sort the index entries; put all symbols at the front, even those
+-        # following the letters in ASCII, this is where the chr(127) comes from
+-        def keyfunc(entry: Tuple[str, List]) -> Tuple[str, str]:
++        # sort the index entries; symbols (group 0) come before letters/underscores/categories (group 1)
++        def keyfunc(entry: Tuple[str, List]) -> Tuple[int, str, str]:
+             key, (void, void, category_key) = entry
++            original_key = key  # Keep original key for secondary sort
++
+             if category_key:
+                 # using specified category key to sort
+                 key = category_key
++
+             lckey = unicodedata.normalize('NFD', key.lower())
+             if lckey.startswith('\N{RIGHT-TO-LEFT MARK}'):
+                 lckey = lckey[1:]
+-            if lckey[0:1].isalpha() or lckey.startswith('_'):
+-                lckey = chr(127) + lckey
+-            # ensure a determinstic order *within* letters by also sorting on
+-            # the entry itself
+-            return (lckey, entry[0])
++
++            # Determine the sort group (0 for symbols, 1 for letters/etc.)
++            sort_group = 1  # Default to letter/category group
++            first_char = lckey[0] if lckey else ''
++
++            # Grouping logic based on the key used for grouping (entry key or category key)
++            if not first_char:
++                sort_group = 0 # Empty key is like a symbol
++            elif not first_char.isalpha() and first_char != '_':
++                sort_group = 0 # It's a symbol
++
++            # Primary sort key within the group is the normalized key used for grouping
++            primary_sort_key = lckey
++            # Secondary sort key is always the normalized original entry key
++            secondary_sort_key = unicodedata.normalize('NFD', original_key.lower())
++
++            return (sort_group, primary_sort_key, secondary_sort_key)
+         newlist = sorted(new.items(), key=keyfunc)
+
+         if group_entries:
+```

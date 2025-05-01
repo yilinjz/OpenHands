@@ -1,0 +1,76 @@
+```patch
+--- a/django/db/migrations/operations/models.py
++++ b/django/db/migrations/operations/models.py
+@@ -130,20 +130,22 @@
+         new_model = to_state.apps.get_model(app_label, self.new_name)
+         if self.allow_migrate_model(schema_editor.connection.alias, new_model):
+             old_model = from_state.apps.get_model(app_label, self.old_name)
+-            schema_editor.alter_db_table(
+-                new_model,
+-                old_model._meta.db_table,
+-                new_model._meta.db_table,
+-            )
+-            # Rename M2M fields whose name is based on this model's db_table
+-            for (old_field, new_field) in zip(old_model._meta.local_many_to_many, new_model._meta.local_many_to_many):
+-                if new_field.remote_field.through._meta.auto_created:
+-                    schema_editor.alter_db_table(
+-                        new_field.remote_field.through,
+-                        old_field.remote_field.through._meta.db_table,
+-                        new_field.remote_field.through._meta.db_table,
+-                    )
++            # If the db_table is unchanged, skip renaming the table.
++            if old_model._meta.db_table != new_model._meta.db_table:
++                schema_editor.alter_db_table(
++                    new_model,
++                    old_model._meta.db_table,
++                    new_model._meta.db_table,
++                )
++                # Rename M2M fields whose name is based on this model's db_table.
++                for (old_field, new_field) in zip(old_model._meta.local_many_to_many, new_model._meta.local_many_to_many):
++                    # Skip models that aren't actually changing name.
++                    if old_field.remote_field.through._meta.db_table != new_field.remote_field.through._meta.db_table:
++                        schema_editor.alter_db_table(
++                            new_field.remote_field.through,
++                            old_field.remote_field.through._meta.db_table,
++                            new_field.remote_field.through._meta.db_table,
++                        )
+ 
+     def database_backwards(self, app_label, schema_editor, from_state, to_state):
+         # The operation is irreversible if the model is not allowed to be
+@@ -154,20 +156,22 @@
+         old_model = to_state.apps.get_model(app_label, self.old_name)
+         if self.allow_migrate_model(schema_editor.connection.alias, old_model):
+             new_model = from_state.apps.get_model(app_label, self.new_name)
+-            schema_editor.alter_db_table(
+-                old_model,
+-                new_model._meta.db_table,
+-                old_model._meta.db_table,
+-            )
+-            # Rename M2M fields whose name is based on this model's db_table
+-            for (old_field, new_field) in zip(old_model._meta.local_many_to_many, new_model._meta.local_many_to_many):
+-                if old_field.remote_field.through._meta.auto_created:
+-                    schema_editor.alter_db_table(
+-                        old_field.remote_field.through,
+-                        new_field.remote_field.through._meta.db_table,
+-                        old_field.remote_field.through._meta.db_table,
+-                    )
++            # If the db_table is unchanged, skip renaming the table.
++            if old_model._meta.db_table != new_model._meta.db_table:
++                schema_editor.alter_db_table(
++                    old_model,
++                    new_model._meta.db_table,
++                    old_model._meta.db_table,
++                )
++                # Rename M2M fields whose name is based on this model's db_table.
++                for (old_field, new_field) in zip(old_model._meta.local_many_to_many, new_model._meta.local_many_to_many):
++                    # Skip models that aren't actually changing name.
++                    if old_field.remote_field.through._meta.db_table != new_field.remote_field.through._meta.db_table:
++                        schema_editor.alter_db_table(
++                            old_field.remote_field.through,
++                            new_field.remote_field.through._meta.db_table,
++                            old_field.remote_field.through._meta.db_table,
++                        )
+ 
+     def describe(self):
+         return "Rename model %s to %s" % (self.old_name, self.new_name)
+```

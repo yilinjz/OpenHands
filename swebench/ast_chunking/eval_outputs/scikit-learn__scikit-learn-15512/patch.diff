@@ -1,0 +1,96 @@
+```diff
+--- a/sklearn/cluster/_affinity_propagation.py
++++ b/sklearn/cluster/_affinity_propagation.py
+@@ -57,8 +57,8 @@
+ 56     <sphx_glr_auto_examples_cluster_plot_affinity_propagation.py>`.
+ 57 
+ 58     When the algorithm does not converge, it returns an empty array as
+-59     ``cluster_center_indices`` and ``-1`` as label for each training sample.
+-60 
++59     ``cluster_centers_indices`` and ``-1`` as label for each training sample.
++60
+ 61     When all training samples have equal similarities and equal preferences,
+ 62     the assignment of cluster centers and labels depends on the preference.
+ 63     If the preference is smaller than the similarities, a single cluster center
+@@ -218,6 +218,7 @@
+     e = np.zeros((n_samples, convergence_iter))
+     ind = np.arange(n_samples)
+ 
++    # Run affinity propagation
+     converged = False
+     for it in range(max_iter):
+         # tmp = A + S; compute responsibilities
+@@ -261,36 +262,36 @@
+             unconverged = (np.sum((se == convergence_iter) + (se == 0))
+                            != n_samples)
+             if (not unconverged and (K > 0)) or (it == max_iter):
++            # Check convergence
++            if not unconverged and K > 0:
+                 if verbose:
+-                    print("Converged after %d iterations." % it)
++                    print("Converged after %d iterations." % (it + 1))
++                converged = True
+                 break
+     else:
++        # Loop finished without converging
+         if verbose:
+-            print("Did not converge")
++            print("Did not converge after %d iterations." % max_iter)
+
+-    I = np.flatnonzero(E)
+-    K = I.size  # Identify exemplars
+-
+-    if K > 0:
+-        c = np.argmax(S[:, I], axis=1)
+-        c[I] = np.arange(K)  # Identify clusters
+-        # Refine the final set of exemplars and clusters and return results
+-        for k in range(K):
+-            ii = np.where(c == k)[0]
+-            j = np.argmax(np.sum(S[ii[:, np.newaxis], ii], axis=0))
+-            I[k] = ii[j]
+-
+-        c = np.argmax(S[:, I], axis=1)
+-        c[I] = np.arange(K)
+-        labels = I[c]
+-        # Reduce labels to a sorted, gapless, list
+-        cluster_centers_indices = np.unique(labels)
+-        labels = np.searchsorted(cluster_centers_indices, labels)
+-    else:
+-        labels = np.empty(n_samples, dtype=np.intp)
+-        labels.fill(-1)
++    if not converged:
++        # Return empty results as per docstring
++        labels = np.full(n_samples, -1, dtype=np.int64)
+         cluster_centers_indices = np.array([])
++        n_iter_final = max_iter
++    else:
++        # Converged: Calculate final clusters
++        I = np.flatnonzero(E)
++        K = I.size  # Identify exemplars
++        if K > 0:
++            c = np.argmax(S[:, I], axis=1)
++            c[I] = np.arange(K)  # Identify clusters
++            # Refine the final set of exemplars and clusters
++            for k in range(K):
++                ii = np.where(c == k)[0]
++                j = np.argmax(np.sum(S[ii[:, np.newaxis], ii], axis=0))
++                I[k] = ii[j]
++            c = np.argmax(S[:, I], axis=1)
++            c[I] = np.arange(K)
++            labels = I[c]
++            # Reduce labels to a sorted, gapless, list
++            cluster_centers_indices = np.unique(labels)
++            labels = np.searchsorted(cluster_centers_indices, labels)
++        else:
++            # Converged, but K=0 (e.g., preference too low)
++            labels = np.full(n_samples, -1, dtype=np.int64)
++            cluster_centers_indices = np.array([])
++        n_iter_final = it + 1
+
+     if return_n_iter:
+-        return cluster_centers_indices, labels, it + 1
++        return cluster_centers_indices, labels, n_iter_final
+     else:
+         return cluster_centers_indices, labels
+
+```

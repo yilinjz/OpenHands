@@ -1,0 +1,14 @@
+```diff
+--- a/src/_pytest/_io/saferepr.py
++++ b/src/_pytest/_io/saferepr.py
+@@ -8,7 +8,7 @@
+ def _format_repr_exception(exc: Exception, obj: object) -> str:
+     """Format the technical representation of an object that raised an exception during __repr__."""
+     try:
+-        obj_cls_name = obj.__class__.__name__
++        obj_cls_name = type(obj).__name__
+         obj_id = id(obj)
+     except Exception:
+         # Fallback if even accessing the class name fails.
+
+```

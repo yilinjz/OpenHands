@@ -1,0 +1,22 @@
+```patch
+--- a/sympy/printing/latex.py
++++ b/sympy/printing/latex.py
+@@ -1055,10 +1055,14 @@
+         return tex
+ 
+     def _print_SingularityFunction(self, expr, exp=None):
++        # expr is SingularityFunction(x, a, n)
+         shift = self._print(expr.args[0] - expr.args[1])
+         power = self._print(expr.args[2])
+-        tex = r"{\left\langle %s \right\rangle}^{%s}" % (shift, power)
+-        return tex
++        # Base LaTeX for <x-a>^n
++        base_tex = r"{\left\langle %s \right\rangle}^{%s}" % (shift, power)
++        if exp is not None:
++            # If called from _print_Pow for expr**exp, wrap the base_tex
++            return r"{\left( %s \right)}^{%s}" % (base_tex, exp)
++        return base_tex
+ 
+     def _print_Heaviside(self, expr, exp=None):
+         tex = r"\theta\left(%s\right)" % self._print(expr.args[0])
+```

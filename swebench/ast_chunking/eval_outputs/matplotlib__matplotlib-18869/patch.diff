@@ -1,0 +1,38 @@
+```diff
+--- a/lib/matplotlib/__init__.py
++++ b/lib/matplotlib/__init__.py
+@@ -1,11 +1,13 @@
++import importlib
++import logging
++from packaging.version import parse as parse_version
++import os
++import sys
++
+ # Quickfix to ensure Microsoft Visual C++ redistributable
+ # DLLs are loaded before importing kiwisolver
+ from . import ft2font
+-
+ from ._version import __version__
+
+-# Need to import numpy after ft2font, otherwise importing numpy may load an
+-# incompatible version of the library, see #19301.
+ from . import _api, cbook, _docstring, rcsetup
+ from matplotlib.cbook import MatplotlibDeprecationWarning, sanitize_sequence
+ from matplotlib.rcsetup import defaultParams, validate_backend, cycler
+@@ -17,8 +19,14 @@
+ from pathlib import Path
+ import tempfile
+
++# BEFORE importing pyplot, figures, etc.
++_check_versions()
++
++# Parse the version string into a tuple.
++_parsed_version = parse_version(__version__)
++version_info = _parsed_version.release[:3]  # (major, minor, micro)
++del _parsed_version  # Clean up namespace
+
+-_check_versions()
+
+
+ _log = logging.getLogger(__name__)
+```

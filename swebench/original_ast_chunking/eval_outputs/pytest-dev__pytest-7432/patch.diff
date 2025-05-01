@@ -1,0 +1,42 @@
+```patch
+--- a/src/_pytest/skipping.py
++++ b/src/_pytest/skipping.py
+@@ -10,15 +10,16 @@
+         else:
+             rep.longrepr = "Unexpected success"
+         rep.outcome = "failed"
+-    elif item.config.option.runxfail:
+-        pass  # don't interfere
+-    elif call.excinfo and isinstance(call.excinfo.value, xfail.Exception):
+-        assert call.excinfo.value.msg is not None
+-        rep.wasxfail = "reason: " + call.excinfo.value.msg
+-        rep.outcome = "skipped"
+-    elif not rep.skipped and xfailed:
+-        if call.excinfo:
+-            raises = xfailed.raises
++    # xfail handling (only if --runxfail is NOT active)
++    elif not item.config.option.runxfail:
++        if call.excinfo and isinstance(call.excinfo.value, xfail.Exception):
++            assert call.excinfo.value.msg is not None
++            rep.wasxfail = "reason: " + call.excinfo.value.msg
++            rep.outcome = "skipped"
++        elif not rep.skipped and xfailed:
++            if call.excinfo:
++                raises = xfailed.raises
++                # Handle xfail(raises=...)
+             if raises is not None and not isinstance(call.excinfo.value, raises):
+                 rep.outcome = "failed"
+             else:
+@@ -33,8 +34,10 @@
+                 rep.outcome = "passed"
+                 rep.wasxfail = xfailed.reason
+ 
++    # --- Location fixing for skips from marks ---
++    # This needs to happen regardless of --runxfail.
+     if (
+-        item._store.get(skipped_by_mark_key, True)
++        item._store.get(skipped_by_mark_key, False)  # Skipped by mark?
+         and rep.skipped
+         and type(rep.longrepr) is tuple
+     ):
+```

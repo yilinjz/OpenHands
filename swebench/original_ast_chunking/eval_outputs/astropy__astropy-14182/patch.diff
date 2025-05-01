@@ -1,0 +1,34 @@
+```patch
+--- a/astropy/io/ascii/rst.py
++++ b/astropy/io/ascii/rst.py
+@@ -59,14 +59,24 @@
+     data_class = SimpleRSTData
+     header_class = SimpleRSTHeader
+ 
+-    def __init__(self):
+-        super().__init__(delimiter_pad=None, bookend=False)
++    def __init__(self, header_rows=None):
++        """
++        Parameters
++        ----------
++        header_rows : list, optional
++            List of header row identifiers to include in the output. Allowed
++            values are 'name', 'unit', 'dtype', 'format', 'description'.
++            The default is ``['name']``.
++        """
++        super().__init__(delimiter_pad=None, bookend=False, header_rows=header_rows)
++        # RST requires the header row 'name'
++        if "name" not in self.header.header_rows:
++            self.header.header_rows.insert(0, "name")
+ 
+     def write(self, lines):
+-        lines = super().write(lines)
+-        lines = [lines[1]] + lines + [lines[1]]
+-        return lines
+-
++        # Write header and data to lines list
++        header_lines = self.header.write(lines)
++        data_lines = self.data.write(lines)
++        separator_line = header_lines[-1]
++        return [separator_line] + header_lines + data_lines + [separator_line]
+```

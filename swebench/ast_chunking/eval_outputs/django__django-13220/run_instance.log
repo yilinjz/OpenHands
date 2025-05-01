@@ -1,0 +1,123 @@
+2025-05-01 19:54:17,647 - INFO - Creating container for django__django-13220...
+2025-05-01 19:54:17,683 - INFO - Container for django__django-13220 created: dfb1148343c91d4fa14a9452918292e425c90c4a1b1de5232f9575e04e42e932
+2025-05-01 19:54:17,955 - INFO - Container for django__django-13220 started: dfb1148343c91d4fa14a9452918292e425c90c4a1b1de5232f9575e04e42e932
+2025-05-01 19:54:17,955 - INFO - Intermediate patch for django__django-13220 written to logs/run_evaluation/20250501_195119/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/django__django-13220/patch.diff, now applying to container...
+2025-05-01 19:54:18,081 - INFO - Failed to apply patch to container: git apply --verbose
+2025-05-01 19:54:18,139 - INFO - Failed to apply patch to container: git apply --verbose --reject
+2025-05-01 19:54:18,194 - INFO - >>>>> Applied Patch:
+patching file django/core/exceptions.py
+Hunk #1 succeeded at 63 with fuzz 3.
+
+2025-05-01 19:54:19,719 - INFO - Git diff before:
+diff --git a/django/core/exceptions.py b/django/core/exceptions.py
+index dc084b8692..27fe520535 100644
+--- a/django/core/exceptions.py
++++ b/django/core/exceptions.py
+@@ -63,6 +63,46 @@ class RequestDataTooBig(SuspiciousOperation):
+     pass
+ 
+ 
++
++    def __eq__(self, other):
++        if not isinstance(other, ValidationError):
++            return NotImplemented
++
++        def _get_error_sort_key(error):
++            """
++            Generate a sort key for a ValidationError. Used to compare lists
++            of errors independent of their order. Make sure the key is stable
++            and handles different types for params.
++            """
++            params_repr = tuple(sorted(error.params.items())) if isinstance(error.params, dict) else error.params
++            return (str(error.message), error.code, params_repr)
++
++        def _compare_error_lists(list1, list2):
++            """Compare two lists of ValidationErrors independent of order."""
++            if len(list1) != len(list2):
++                return False
++            try:
++                sorted_list1 = sorted(list1, key=_get_error_sort_key)
++                sorted_list2 = sorted(list2, key=_get_error_sort_key)
++            except TypeError:
++                # If params contains unorderable types, sorting fails.
++                # Consider these ValidationErrors unequal.
++                return False
++
++            for e1, e2 in zip(sorted_list1, sorted_list2):
++                if not (e1.message == e2.message and e1.code == e2.code and e1.params == e2.params):
++                    return False
++            return True
++
++        self_is_dict = hasattr(self, 'error_dict')
++        other_is_dict = hasattr(other, 'error_dict')
++
++        if self_is_dict != other_is_dict:
++            return False
++
++        if self_is_dict:  # Both have error_dict
++            if set(self.error_dict.keys()) != set(other.error_dict.keys()):
++                return False
+ class RequestAborted(Exception):
+     """The request was closed before it was completed, or timed out."""
+     pass
+2025-05-01 19:54:19,719 - INFO - Eval script for django__django-13220 written to logs/run_evaluation/20250501_195119/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/django__django-13220/eval.sh; copying to container...
+2025-05-01 19:54:29,107 - INFO - Test runtime: 9.33 seconds
+2025-05-01 19:54:29,107 - INFO - Test output for django__django-13220 written to logs/run_evaluation/20250501_195119/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/django__django-13220/test_output.txt
+2025-05-01 19:54:29,208 - INFO - Git diff after:
+diff --git a/django/core/exceptions.py b/django/core/exceptions.py
+index dc084b8692..27fe520535 100644
+--- a/django/core/exceptions.py
++++ b/django/core/exceptions.py
+@@ -63,6 +63,46 @@ class RequestDataTooBig(SuspiciousOperation):
+     pass
+ 
+ 
++
++    def __eq__(self, other):
++        if not isinstance(other, ValidationError):
++            return NotImplemented
++
++        def _get_error_sort_key(error):
++            """
++            Generate a sort key for a ValidationError. Used to compare lists
++            of errors independent of their order. Make sure the key is stable
++            and handles different types for params.
++            """
++            params_repr = tuple(sorted(error.params.items())) if isinstance(error.params, dict) else error.params
++            return (str(error.message), error.code, params_repr)
++
++        def _compare_error_lists(list1, list2):
++            """Compare two lists of ValidationErrors independent of order."""
++            if len(list1) != len(list2):
++                return False
++            try:
++                sorted_list1 = sorted(list1, key=_get_error_sort_key)
++                sorted_list2 = sorted(list2, key=_get_error_sort_key)
++            except TypeError:
++                # If params contains unorderable types, sorting fails.
++                # Consider these ValidationErrors unequal.
++                return False
++
++            for e1, e2 in zip(sorted_list1, sorted_list2):
++                if not (e1.message == e2.message and e1.code == e2.code and e1.params == e2.params):
++                    return False
++            return True
++
++        self_is_dict = hasattr(self, 'error_dict')
++        other_is_dict = hasattr(other, 'error_dict')
++
++        if self_is_dict != other_is_dict:
++            return False
++
++        if self_is_dict:  # Both have error_dict
++            if set(self.error_dict.keys()) != set(other.error_dict.keys()):
++                return False
+ class RequestAborted(Exception):
+     """The request was closed before it was completed, or timed out."""
+     pass
+2025-05-01 19:54:29,209 - INFO - Grading answer for django__django-13220...
+2025-05-01 19:54:29,210 - INFO - report: {'django__django-13220': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_eq (test_exceptions.test_validation_error.TestValidationError)', 'test_eq_nested (test_exceptions.test_validation_error.TestValidationError)', 'test_hash (test_exceptions.test_validation_error.TestValidationError)', 'test_hash_nested (test_exceptions.test_validation_error.TestValidationError)']}, 'PASS_TO_PASS': {'success': ['test_messages_concatenates_error_dict_values (test_exceptions.test_validation_error.TestValidationError)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-13220: resolved: False
+2025-05-01 19:54:29,210 - INFO - Attempting to stop container sweb.eval.django__django-13220.20250501_195119...
+2025-05-01 19:54:44,514 - INFO - Attempting to remove container sweb.eval.django__django-13220.20250501_195119...
+2025-05-01 19:54:44,547 - INFO - Container sweb.eval.django__django-13220.20250501_195119 removed.

@@ -1,0 +1,39 @@
+```patch
+--- a/sympy/combinatorics/permutations.py
++++ b/sympy/combinatorics/permutations.py
+@@ -113,17 +113,6 @@
+         # for convenience in case one wants to enter permutations where
+         # counting starts from 1.
+ 
+-        temp = flatten(args)
+-        if has_dups(temp):
+-            if is_cycle:
+-                raise ValueError('there were repeated elements; to resolve '
+-                'cycles use Cycle%s.' % ''.join([str(tuple(c)) for c in args]))
+-            else:
+-                raise ValueError('there were repeated elements.')
+-        temp = set(temp)
+-
+-        if not is_cycle and \
+-                any(i not in temp for i in range(len(temp))):
+-            raise ValueError("Integers 0 through %s must be present." %
+-                             max(temp))
+-
+         if is_cycle:
+             # it's not necessarily canonical so we won't store
+             # it -- use the array form instead
+@@ -133,6 +122,13 @@
+                 c = c(*ci)
+             aform = c.list()
+         else:
++            # array form, e.g. [1, 0, 2]
++            if has_dups(args):
++                raise ValueError('there were repeated elements.')
++            # make sure 0..n-1 are present
++            temp = set(args)
++            if any(i not in temp for i in range(len(args))):
++                raise ValueError("Integers 0 through %s must be present." % (len(args) - 1))
+             aform = list(args)
+         if size and size > len(aform):
+             # don't allow for truncation of permutation which
+```

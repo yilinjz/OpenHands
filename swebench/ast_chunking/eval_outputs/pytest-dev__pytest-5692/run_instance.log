@@ -1,0 +1,97 @@
+2025-05-01 20:01:16,375 - INFO - Creating container for pytest-dev__pytest-5692...
+2025-05-01 20:01:16,404 - INFO - Container for pytest-dev__pytest-5692 created: d87ed25c86a9892808867c4116ff4ba944666724def1abbcc547d8a3af723b86
+2025-05-01 20:01:16,704 - INFO - Container for pytest-dev__pytest-5692 started: d87ed25c86a9892808867c4116ff4ba944666724def1abbcc547d8a3af723b86
+2025-05-01 20:01:16,704 - INFO - Intermediate patch for pytest-dev__pytest-5692 written to logs/run_evaluation/20250501_195119/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/pytest-dev__pytest-5692/patch.diff, now applying to container...
+2025-05-01 20:01:16,815 - INFO - Failed to apply patch to container: git apply --verbose
+2025-05-01 20:01:16,870 - INFO - Failed to apply patch to container: git apply --verbose --reject
+2025-05-01 20:01:16,925 - INFO - >>>>> Applied Patch:
+patching file src/_pytest/junitxml.py
+Hunk #1 succeeded at 6 with fuzz 3.
+Hunk #2 succeeded at 662 with fuzz 2 (offset 621 lines).
+Hunk #3 succeeded at 674 with fuzz 3 (offset 621 lines).
+
+2025-05-01 20:01:17,225 - INFO - Git diff before:
+diff --git a/src/_pytest/junitxml.py b/src/_pytest/junitxml.py
+index 15c630b1d..4805a0715 100644
+--- a/src/_pytest/junitxml.py
++++ b/src/_pytest/junitxml.py
+@@ -6,6 +6,8 @@
+ Based on initial code from Ross Lawley.
+ 
+ Output conforms to https://github.com/jenkinsci/xunit-plugin/blob/master/
++import socket
++import datetime
+ src/main/resources/org/jenkinsci/plugins/xunit/types/model/xsd/junit-10.xsd
+ """
+ import functools
+@@ -657,6 +659,12 @@ class LogXML:
+         )
+         logfile.write('<?xml version="1.0" encoding="utf-8"?>')
+ 
++        timestamp = datetime.datetime.fromtimestamp(self.suite_start_time).isoformat(timespec="seconds")
++        hostname = socket.gethostname()
++
++        timestamp = datetime.datetime.fromtimestamp(self.suite_start_time).isoformat(timespec="seconds")
++        hostname = socket.gethostname()
++
+         suite_node = Junit.testsuite(
+             self._get_global_properties_node(),
+             [x.to_xml() for x in self.node_reporters_ordered],
+@@ -666,6 +674,10 @@ class LogXML:
+             skipped=self.stats["skipped"],
+             tests=numtests,
+             time="%.3f" % suite_time_delta,
++            hostname=hostname,
++            timestamp=timestamp,
++            hostname=hostname,
++            timestamp=timestamp,
+         )
+         logfile.write(Junit.testsuites([suite_node]).unicode(indent=0))
+         logfile.close()
+2025-05-01 20:01:17,225 - INFO - Eval script for pytest-dev__pytest-5692 written to logs/run_evaluation/20250501_195119/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/pytest-dev__pytest-5692/eval.sh; copying to container...
+2025-05-01 20:01:24,568 - INFO - Test runtime: 7.29 seconds
+2025-05-01 20:01:24,569 - INFO - Test output for pytest-dev__pytest-5692 written to logs/run_evaluation/20250501_195119/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/pytest-dev__pytest-5692/test_output.txt
+2025-05-01 20:01:24,634 - INFO - Git diff after:
+diff --git a/src/_pytest/junitxml.py b/src/_pytest/junitxml.py
+index 15c630b1d..4805a0715 100644
+--- a/src/_pytest/junitxml.py
++++ b/src/_pytest/junitxml.py
+@@ -6,6 +6,8 @@
+ Based on initial code from Ross Lawley.
+ 
+ Output conforms to https://github.com/jenkinsci/xunit-plugin/blob/master/
++import socket
++import datetime
+ src/main/resources/org/jenkinsci/plugins/xunit/types/model/xsd/junit-10.xsd
+ """
+ import functools
+@@ -657,6 +659,12 @@ class LogXML:
+         )
+         logfile.write('<?xml version="1.0" encoding="utf-8"?>')
+ 
++        timestamp = datetime.datetime.fromtimestamp(self.suite_start_time).isoformat(timespec="seconds")
++        hostname = socket.gethostname()
++
++        timestamp = datetime.datetime.fromtimestamp(self.suite_start_time).isoformat(timespec="seconds")
++        hostname = socket.gethostname()
++
+         suite_node = Junit.testsuite(
+             self._get_global_properties_node(),
+             [x.to_xml() for x in self.node_reporters_ordered],
+@@ -666,6 +674,10 @@ class LogXML:
+             skipped=self.stats["skipped"],
+             tests=numtests,
+             time="%.3f" % suite_time_delta,
++            hostname=hostname,
++            timestamp=timestamp,
++            hostname=hostname,
++            timestamp=timestamp,
+         )
+         logfile.write(Junit.testsuites([suite_node]).unicode(indent=0))
+         logfile.close()
+2025-05-01 20:01:24,635 - INFO - Grading answer for pytest-dev__pytest-5692...
+2025-05-01 20:01:24,635 - INFO - report: {'pytest-dev__pytest-5692': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['testing/test_junitxml.py::TestPython::test_hostname_in_xml', 'testing/test_junitxml.py::TestPython::test_timestamp_in_xml']}, 'PASS_TO_PASS': {'success': [], 'failure': ['testing/test_junitxml.py::test_mangle_test_address', 'testing/test_junitxml.py::test_dont_configure_on_slaves', 'testing/test_junitxml.py::test_invalid_xml_escape', 'testing/test_junitxml.py::test_logxml_path_expansion', 'testing/test_junitxml.py::TestPython::test_summing_simple', 'testing/test_junitxml.py::TestPython::test_summing_simple_with_errors', 'testing/test_junitxml.py::TestPython::test_timing_function', 'testing/test_junitxml.py::TestPython::test_junit_duration_report[call]', 'testing/test_junitxml.py::TestPython::test_junit_duration_report[total]', 'testing/test_junitxml.py::TestPython::test_setup_error', 'testing/test_junitxml.py::TestPython::test_teardown_error', 'testing/test_junitxml.py::TestPython::test_call_failure_teardown_error', 'testing/test_junitxml.py::TestPython::test_skip_contains_name_reason', 'testing/test_junitxml.py::TestPython::test_mark_skip_contains_name_reason', 'testing/test_junitxml.py::TestPython::test_mark_skipif_contains_name_reason', 'testing/test_junitxml.py::TestPython::test_mark_skip_doesnt_capture_output', 'testing/test_junitxml.py::TestPython::test_classname_instance', 'testing/test_junitxml.py::TestPython::test_classname_nested_dir', 'testing/test_junitxml.py::TestPython::test_internal_error', 'testing/test_junitxml.py::TestPython::test_failure_function[no]', 'testing/test_junitxml.py::TestPython::test_failure_function[system-out]', 'testing/test_junitxml.py::TestPython::test_failure_function[system-err]', 'testing/test_junitxml.py::TestPython::test_failure_verbose_message', 'testing/test_junitxml.py::TestPython::test_failure_escape', 'testing/test_junitxml.py::TestPython::test_junit_prefixing', 'testing/test_junitxml.py::TestPython::test_xfailure_function', 'testing/test_junitxml.py::TestPython::test_xfailure_marker', 'testing/test_junitxml.py::TestPython::test_xfail_captures_output_once', 'testing/test_junitxml.py::TestPython::test_xfailure_xpass', 'testing/test_junitxml.py::TestPython::test_xfailure_xpass_strict', 'testing/test_junitxml.py::TestPython::test_collect_error', 'testing/test_junitxml.py::TestPython::test_unicode', 'testing/test_junitxml.py::TestPython::test_assertion_binchars', 'testing/test_junitxml.py::TestPython::test_pass_captures_stdout', 'testing/test_junitxml.py::TestPython::test_pass_captures_stderr', 'testing/test_junitxml.py::TestPython::test_setup_error_captures_stdout', 'testing/test_junitxml.py::TestPython::test_setup_error_captures_stderr', 'testing/test_junitxml.py::TestPython::test_avoid_double_stdout', 'testing/test_junitxml.py::TestNonPython::test_summing_simple', 'testing/test_junitxml.py::test_nullbyte', 'testing/test_junitxml.py::test_nullbyte_replace', 'testing/test_junitxml.py::test_logxml_changingdir', 'testing/test_junitxml.py::test_logxml_makedir', 'testing/test_junitxml.py::test_logxml_check_isdir', 'testing/test_junitxml.py::test_escaped_parametrized_names_xml', 'testing/test_junitxml.py::test_double_colon_split_function_issue469', 'testing/test_junitxml.py::test_double_colon_split_method_issue469', 'testing/test_junitxml.py::test_unicode_issue368', 'testing/test_junitxml.py::test_record_property', 'testing/test_junitxml.py::test_record_property_same_name', 'testing/test_junitxml.py::test_record_fixtures_without_junitxml[record_property]', 'testing/test_junitxml.py::test_record_fixtures_without_junitxml[record_xml_attribute]', 'testing/test_junitxml.py::test_record_attribute', 'testing/test_junitxml.py::test_record_fixtures_xunit2[record_xml_attribute]', 'testing/test_junitxml.py::test_record_fixtures_xunit2[record_property]', 'testing/test_junitxml.py::test_root_testsuites_tag', 'testing/test_junitxml.py::test_runs_twice', 'testing/test_junitxml.py::test_fancy_items_regression', 'testing/test_junitxml.py::test_global_properties', 'testing/test_junitxml.py::test_url_property', 'testing/test_junitxml.py::test_record_testsuite_property', 'testing/test_junitxml.py::test_record_testsuite_property_junit_disabled', 'testing/test_junitxml.py::test_record_testsuite_property_type_checking[True]', 'testing/test_junitxml.py::test_record_testsuite_property_type_checking[False]', 'testing/test_junitxml.py::test_set_suite_name[my_suite]', 'testing/test_junitxml.py::test_set_suite_name[]', 'testing/test_junitxml.py::test_escaped_skipreason_issue3533', 'testing/test_junitxml.py::test_logging_passing_tests_disabled_does_not_log_test_output']}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for pytest-dev__pytest-5692: resolved: False
+2025-05-01 20:01:24,635 - INFO - Attempting to stop container sweb.eval.pytest-dev__pytest-5692.20250501_195119...
+2025-05-01 20:01:39,890 - INFO - Attempting to remove container sweb.eval.pytest-dev__pytest-5692.20250501_195119...
+2025-05-01 20:01:39,911 - INFO - Container sweb.eval.pytest-dev__pytest-5692.20250501_195119 removed.

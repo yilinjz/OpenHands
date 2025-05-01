@@ -1,0 +1,44 @@
+```diff
+--- a/django/db/models/base.py
++++ b/django/db/models/base.py
+@@ -413,6 +413,7 @@
+         errors.extend(cls._check_fields(**kwargs))
+         errors.extend(cls._check_m2m_through_same_relationship())
+         errors.extend(cls._check_ordering())
++        errors.extend(cls._check_constraints())
+         errors.extend(cls._check_indexes(databases=kwargs.get('databases')))
+         errors.extend(cls._check_unique_together())
+         errors.extend(cls._check_swappable())
+@@ -459,6 +460,30 @@
+                     id='models.E016',
+                 )
+             ]
++
++    @classmethod
++    def _check_constraints(cls):
++        """Check constraints for invalid field references."""
++        errors = []
++        # Use total_constraints to include constraints from abstract parents.
++        from django.db import models  # Avoid circular import
++
++        for constraint in cls._meta.total_constraints:
++            if isinstance(constraint, models.UniqueConstraint):
++                for field_name in constraint.fields:
++                    try:
++                        cls._meta.get_field(field_name)
++                    except models.FieldDoesNotExist:
++                        errors.append(
++                            checks.Error(
++                                "'%s' refers to the nonexistent field '%s'." % (
++                                    constraint.name, field_name,
++                                ),
++                                hint="Check the fields attribute of the UniqueConstraint.",
++                                obj=cls,
++                                id='models.E040',
++                            )
++                        )
+         return errors
+ 
+     @classmethod
+
+```

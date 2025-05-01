@@ -1,0 +1,26 @@
+```patch
+--- a/django/db/migrations/writer.py
++++ b/django/db/migrations/writer.py
+@@ -1,5 +1,6 @@
+ 
+ import os
++import re
+ from importlib import import_module
+ 
+ from django import get_version
+@@ -175,6 +176,14 @@
+         # Add migration base class import
+         imports.add('from django.db import migrations')
+ 
++        # Ensure 'models' is imported if 'models.Model' appears directly in
++        # the operations code. This can happen for example in `bases` lists
++        # for CreateModel, where the serializer might not add the import.
++        operations_string = "".join(operations_buff)
++        if re.search(r'\bmodels\.Model\b', operations_string):
++            # The set automatically handles duplicates if serializer added it.
++            imports.add('from django.db import models')
++
+         # If there's a settings import, put it first
+         if hasattr(settings, 'AUTH_USER_MODEL') and settings.AUTH_USER_MODEL:
+             for i, imp in enumerate(sorted(imports)):
+```

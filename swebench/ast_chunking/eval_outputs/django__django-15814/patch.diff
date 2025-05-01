@@ -1,0 +1,50 @@
+```diff
+--- a/django/db/models/sql/compiler.py
++++ b/django/db/models/sql/compiler.py
+@@ -752,7 +752,9 @@
+                     "from_parent": from_parent,
+                 }
+                 columns = self.get_default_columns(
+-                    start_alias=alias, opts=model._meta, from_parent=opts.model
++                    start_alias=alias,
++                    opts=model._meta.concrete_model._meta,
++                    from_parent=opts.model,
+                 )
+                 select_fields = []
+                 for col in columns:
+@@ -761,7 +763,10 @@
+                 klass_info["select_fields"] = select_fields
+                 next = requested.get(f.name, {})
+                 next_klass_infos = self.get_related_selections(
+-                    select, model._meta, alias, cur_depth + 1, next, restricted
++                    select,
++                    model._meta.concrete_model._meta,
++                    alias,
++                    cur_depth + 1, next, restricted,
+                 )
+                 get_related_klass_infos(klass_info, next_klass_infos)
+ 
+@@ -797,7 +802,9 @@
+                 }
+                 related_klass_infos.append(klass_info)
+                 select_fields = []
+-                columns = self.get_default_columns(start_alias=alias, opts=model._meta)
++                columns = self.get_default_columns(
++                    start_alias=alias, opts=model._meta.concrete_model._meta
++                )
+                 for col in columns:
+                     select_fields.append(len(select))
+                     select.append((col, None))
+@@ -805,7 +812,10 @@
+                 next = requested.get(f.related_query_name(), {})
+                 # This is the recursive call.
+                 next_klass_infos = self.get_related_selections(
+-                    select, model._meta, alias, cur_depth + 1, next, restricted
++                    select,
++                    model._meta.concrete_model._meta,
++                    alias,
++                    cur_depth + 1, next, restricted,
+                 )
+                 get_related_klass_infos(klass_info, next_klass_infos)
+ 
+```

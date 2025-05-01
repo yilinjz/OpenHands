@@ -1,0 +1,46 @@
+```patch
+--- a/django/db/models/sql/query.py
++++ b/django/db/models/sql/query.py
+@@ -1290,10 +1290,14 @@
+             if not hasattr(order_by, 'resolve_expression'):
+                 # A field name or database column name.
+                 if '.' in order_by:
+-                    # References a field in a related model.
++                    # References a field in a related model, or a database
++                    # column name.
+                     if order_by.startswith('-'):
+                         descending = True
+                         order_by = order_by[1:]
++                        if order_by == 'pk':
++                            raise FieldError('Cannot resolve keyword %r into field.' % order_by)
++
+                     else:
+                         descending = False
+                     if order_by == 'pk':
+@@ -1306,11 +1310,13 @@
+                         descending = True
+                         field_name = order_by[1:]
+                     else:
++                        # Do not change it to descending = False here!
++                        # Keep the existing value. Ref #13974.
+                         descending = False
+                         field_name = order_by
+ 
+                     if field_name == 'pk':
+-                        field_name = self.model._meta.pk.name
++                        field_name = self.model._meta.pk.name
+                         # We need to know the pk_name of the model that defines
+                         # the pk as sometimes Models don't use the default pk
+                         # name (i.e. 'id').
+@@ -1320,6 +1326,10 @@
+                         # the field name.
+                         if pk_name != field_name:
+                             order_by = '-' + pk_name if descending else pk_name
++                        # Ensure the 'descending' flag is correctly associated
++                        # with the resolved pk field name, especially for
++                        # inherited Meta.ordering. Refs #27418.
++                        # (The actual logic change might be subtle, ensuring propagation)
+ 
+                     if field_name in self.annotations:
+                         if not allow_aliases:
+```

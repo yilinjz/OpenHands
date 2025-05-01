@@ -1,0 +1,20 @@
+```patch
+--- a/src/_pytest/assertion/util.py
++++ b/src/_pytest/assertion/util.py
+@@ -262,9 +262,12 @@
+             else:
+                 side = "Right"
+                 seq = right
++            extra_item = seq[idx]
++            # Format bytes item as repr(b'x') instead of its ordinal integer
++            formatted_item = repr(bytes([extra_item])) if isinstance(seq, bytes) else repr(extra_item)
+             diff_items.append(
+-                "%s contains more items, first extra item: %r\n"
++                "%s contains more items, first extra item: %s\n"
+                 "\n"
+-                "Use -v to get the full diff" % (side, seq[idx])
++                "Use -v to get the full diff" % (side, formatted_item)
+             )
+
+         if verbose > 0:
+```

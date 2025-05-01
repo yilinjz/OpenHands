@@ -1,0 +1,36 @@
+```diff
+--- a/lib/matplotlib/legend.py
++++ b/lib/matplotlib/legend.py
+@@ -386,6 +386,7 @@
+                  shadow=None,
+                  fancybox=None,
+                  ncol=1,              # number of columns
++                 draggable=False,
+                  **kwargs):
+         """
+         Parameters
+@@ -481,6 +482,10 @@
+             If bool, determines whether to draw a shadow behind the legend.
+             The property can also be configured by passing a dictionary of
+             :class:`~matplotlib.patches.Patch` properties.
++        draggable : bool, default: False
++            Whether the legend can be dragged with the mouse. The location of
++            the legend can be changed by pressing the mouse button over the
++            legend, dragging it to the desired position, and releasing the button.
+ 
+         Other Parameters
+         ----------------
+@@ -513,7 +518,11 @@
+             raise ValueError("Legend location specified by 'loc' and "
+                              "'bbox_to_anchor' differs from the default")
+ 
+-        self._draggable = None
++        self._draggable = None  # must be defined before the check below
++        # Must be called at the end of __init__, otherwise the default handler
++        # may overwrite the location.
++        if draggable:
++            self.set_draggable(True)
+ 
+         self._update_prop(kwargs)
+ 
+```

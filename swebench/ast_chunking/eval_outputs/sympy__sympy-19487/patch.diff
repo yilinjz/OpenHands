@@ -1,0 +1,16 @@
+```diff
+--- a/sympy/functions/elementary/complexes.py
++++ b/sympy/functions/elementary/complexes.py
+@@ -91,6 +91,10 @@
+             return self.args[0] / Abs(self.args[0])
+         return self
+
++    def _eval_rewrite_as_Abs(self, arg, **kwargs):
++        """Rewrite sign(x) as x/Abs(x)."""
++        return arg / Abs(arg)
++
+     @classmethod
+     def eval(cls, arg):
+         # handle what we can
+
+```

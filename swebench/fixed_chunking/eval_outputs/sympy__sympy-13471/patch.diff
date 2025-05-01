@@ -1,0 +1,18 @@
+```patch
+--- a/sympy/core/numbers.py
++++ b/sympy/core/numbers.py
+@@ -1041,7 +1041,12 @@
+                 # it's a hexadecimal (coming from a pickled object)
+                 # assume that it is in standard form
+                 num = list(num)
+-                num[1] = long(num[1], 16)
++                # Python 2's hex() gives strings like '0x1L' which Python 3's
++                # int() doesn't like.
++                hex_mantissa = num[1]
++                if hex_mantissa.endswith('L'):
++                    hex_mantissa = hex_mantissa[:-1]
++                num[1] = long(hex_mantissa, 16)
+                 _mpf_ = tuple(num)
+             else:
+                 if len(num) == 4:
+```

@@ -1,0 +1,26 @@
+```diff
+--- a/django/db/migrations/recorder.py
++++ b/django/db/migrations/recorder.py
+@@ -1,5 +1,9 @@
++from django.apps.registry import Apps
+ from django.db import DatabaseError, models
++from django.db.utils import ConnectionRouter
+ from django.utils.functional import classproperty
++from django.utils.timezone import now
++
+ from .exceptions import MigrationSchemaMissing
+ 
+ 
+@@ -54,6 +58,10 @@
+         # in the codebase.
+         if self.has_table():
+             return
++        # Check if the related app is allowed to be migrated
++        router = ConnectionRouter(self.connection.alias)
++        if not router.allow_migrate_model(self.connection.alias, self.Migration):
++            return
+         # Make the table
+         try:
+             with self.connection.schema_editor() as editor:
+
+```

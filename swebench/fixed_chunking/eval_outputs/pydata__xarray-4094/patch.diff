@@ -1,0 +1,92 @@
+```patch
+--- a/xarray/core/dataarray.py
++++ b/xarray/core/dataarray.py
+@@ -1850,10 +1850,11 @@
+ 
+     def to_unstacked_dataset(
+         self, dim: Hashable, level: int = 0, name: Hashable = None
+-    ) -> "Dataset":
++    ) -> "Dataset":
+         """Unstack a DataArray along a dimension with a MultiIndex coordinate
+         to produce a Dataset.
+ 
++        The specified dimension must have a MultiIndex coordinate. The specified
+         The specified dimension must have a MultiIndex coordinate. The specified
+         level of the MultiIndex provides the names of the DataArrays in the
+         new Dataset.
+@@ -1869,34 +1870,42 @@
+         Returns
+         -------
+         Dataset
++
++        See Also
++        --------
++        Dataset.to_stacked_array
+         """
+-        if name is None:
+-            name = self.name
+-
+         index = self.get_index(dim)
+         if not isinstance(index, pd.MultiIndex):
+             raise ValueError(f"coordinate {dim!r} is not a MultiIndex")
+ 
+-        level_coord = index.get_level_values(level)
+-        unique_coord_values = pd.unique(level_coord)
++        # Determine the name of the level to use for variable names
++        if isinstance(level, int):
++            if level >= index.nlevels:
++                raise ValueError(f"Level {level} exceeds the number of levels in MultiIndex {dim!r}")
++            level_name = index.names[level]
++        else:
++            level_name = level
++
++        if level_name not in index.names:
++             raise ValueError(f"Level {level_name!r} not found in MultiIndex {dim!r}")
++
++        if level_name is None:
++            # pandas MultiIndex level names can be None.
++            # This conflicts with using it as a dimension name after unstacking.
++            # Also, variable names in a Dataset cannot be None.
++            raise ValueError(
++                f"The specified level {level} of the MultiIndex {dim!r} must have a name."
++            )
++
++        # Unstack the specified dimension
++        unstacked_array = self.unstack(dim)
++
++        # The dimension corresponding to the variable names is now `level_name`
++        variable_dim = level_name
+ 
+         datasets = []
+-        for value in unique_coord_values:
+-            # Select data for the current variable name
+-            subset = self.sel({dim: level_coord == value})
+-
+-            # Create a new DataArray for this variable
+-            # Remove the unstacked dimension and its coordinate
+-            subset = subset.drop_vars(dim)
+-
+-            # Rename the DataArray if a name was provided
+-            if name is not None:
+-                subset.name = name
+-
+-            # Create a dataset from this single DataArray
+-            # The name of the DataArray becomes the variable name in the dataset
+-            ds = subset.to_dataset(name=value)
++        for value in unstacked_array.coords[variable_dim].values:
++            # Select the slice corresponding to the current variable name
++            # drop=True drops the scalar coordinate variable_dim
++            subset = unstacked_array.sel({variable_dim: value}, drop=True)
++
++            # Create a dataset for this variable
++            ds = xr.Dataset({value: subset})
+             datasets.append(ds)
+ 
+         # Merge the datasets for each variable
+-        merged = merge(datasets, compat="override")
++        # Rely on automatic alignment based on shared coordinates.
++        merged = merge(datasets)
+ 
+         return merged
+ 
+```

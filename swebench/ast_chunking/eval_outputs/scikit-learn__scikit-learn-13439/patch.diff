@@ -1,0 +1,18 @@
+```diff
+--- a/sklearn/pipeline.py
++++ b/sklearn/pipeline.py
+@@ -253,6 +253,12 @@
+                                  self.steps[ind])
+             return Pipeline(steps, memory=self.memory)
+ 
++    def __len__(self):
++        """
++        Returns the length of the Pipeline
++        """
++        return len(self.steps)
++
+     # Estimator interface
+ 
+     def _validate_steps(self):
+
+```

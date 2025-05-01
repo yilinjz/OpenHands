@@ -1,0 +1,23 @@
+```patch
+--- a/sympy/core/sympify.py
++++ b/sympy/core/sympify.py
+@@ -448,11 +448,13 @@
+     if hasattr(a, '_sympy_'):
+         return a._sympy_()
+ 
+-    if strict:
+-        raise SympifyError(a)
+-
+-    # XXX: Is this needed? Returning the object seems problematic
+-    # return a
++    # If we reached here, 'a' is an unknown object without _sympy_
++    # Raise an error for all unknown types, regardless of strict mode,
++    # to prevent potential security issues with repr() or unexpected behavior.
++    raise SympifyError(
++        "Cannot sympify %r of type %s. Sympy does not know how to convert this object. "
++        "Add a _sympy_ method to the class, or ensure the object is of a known type "
++        "(e.g., number, string, Sympy object)." % (a, type(a).__name__))
+ 
+ def _sympify(a):
+     """Short version of sympify for internal usage.
+```

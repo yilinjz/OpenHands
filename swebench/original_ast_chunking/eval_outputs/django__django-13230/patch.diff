@@ -1,0 +1,21 @@
+```patch
+--- a/django/contrib/syndication/views.py
++++ b/django/contrib/syndication/views.py
+@@ -33,6 +33,8 @@
+             if updateddate and is_naive(updateddate):
+                 updateddate = make_aware(updateddate, tz)
+ 
++            comments = self._get_dynamic_attr('item_comments', item)
++
+             feed.add_item(
+                 title=title,
+                 link=link,
+@@ -47,6 +49,7 @@
+                 author_email=author_email,
+                 author_link=author_link,
+                 categories=self._get_dynamic_attr('item_categories', item),
++                comments=comments,
+                 item_copyright=self._get_dynamic_attr('item_copyright', item),
+                 **self.item_extra_kwargs(item)
+             )
+```

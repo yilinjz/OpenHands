@@ -1,0 +1,67 @@
+```patch
+--- a/sklearn/utils/_set_output.py
++++ b/sklearn/utils/_set_output.py
+@@ -1,5 +1,6 @@
+ """Utilities for the set_output API."""
+ import warnings
++import numpy as np
+
+ try:
+     import pandas as pd
+@@ -49,15 +50,28 @@
+         # TODO: Improve this check when feature_names_out supports callable
+         if callable(columns):
+             columns = columns()
+-        data_to_wrap.columns = columns
++        try:
++            data_to_wrap.columns = columns
++        except ValueError as e:
++            warnings.warn(
++                f"Could not set dataframe columns: {e}. Setting columns to default.",
++                UserWarning,
++                stacklevel=2,
++            )
+     if index is not None:
+-        data_to_wrap.index = index
++        if len(index) != data_to_wrap.shape[0]:
++            warnings.warn(
++                f"The length of the output {data_to_wrap.shape[0]} does not match the"
++                f" length of the input {len(index)}. This can happen when dealing"
++                " with aggregation transformers. Defaulting to the transformer's"
++                " index.",
++                UserWarning,
++                stacklevel=2,
++            )
++        else:
++            data_to_wrap.index = index
+     return data_to_wrap
+
+-# If data_to_wrap is not pandas, create a DataFrame
+-# TODO: Improve this check when feature_names_out supports callable
+-if callable(columns):
+-    columns = columns()
+-return pd.DataFrame(data_to_wrap, index=index, columns=columns)
++    # If data_to_wrap is not pandas, create a DataFrame
++    # TODO: Improve this check when feature_names_out supports callable
++    if callable(columns):
++        columns = columns()
++
++    # Check for index length mismatch before creating DataFrame
++    # Use np.asarray to get the shape of array-like objects
++    output_shape = np.asarray(data_to_wrap).shape
++    if index is not None and len(index) != output_shape[0]:
++        warnings.warn(
++            f"The length of the output {output_shape[0]} does not match the length"
++            f" of the input {len(index)}. This can happen when dealing with"
++            " aggregation transformers. Setting index to range.",
++            UserWarning,
++            stacklevel=2,
++        )
++        # Do not assign the original index if lengths mismatch
++        index = None
++
++    return pd.DataFrame(data_to_wrap, index=index, columns=columns)
+
+
+ def _wrap_data_with_container(method, data_to_wrap, original_input, estimator):
+```

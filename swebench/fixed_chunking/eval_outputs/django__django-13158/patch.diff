@@ -1,0 +1,16 @@
+```patch
+--- a/django/db/models/sql/query.py
++++ b/django/db/models/sql/query.py
+@@ -344,7 +344,10 @@
+         obj.explain_info = self.explain_info
+         obj.external_aliases = self.external_aliases.copy()
+         if self.combined_queries:
+-            obj.combined_queries = tuple(q.clone() for q in self.combined_queries)
++            # When cloning combined query, we must ensure that query
++            # underlying the clone is configured correctly.
++            obj.combined_queries = tuple(q.clone(klass=Query) for q in self.combined_queries)
++            obj.select = ()
+         return obj
+
+     def __getstate__(self):
+```

@@ -1,0 +1,24 @@
+```diff
+--- a/sympy/utilities/iterables.py
++++ b/sympy/utilities/iterables.py
+@@ -21,10 +21,16 @@
+ 19     [[1], [2, 1]]
+ 20     """
+ 21     try:
++        # Store initial length if seq is a list to detect modification
++        _initial_len = None
++        _is_list = isinstance(seq, list)
++        if _is_list:
++            _initial_len = len(seq)
++
+ 22         seen = set()
+ 23         result = result or []
+ 24         for i, s in enumerate(seq):
++            # Check for modification if it was initially a list
++            if _is_list and len(seq) != _initial_len:
++                raise RuntimeError("list changed size during iteration")
+ 25             if not (s in seen or seen.add(s)):
+ 26                 yield s
+ 27     except TypeError:
+
+```

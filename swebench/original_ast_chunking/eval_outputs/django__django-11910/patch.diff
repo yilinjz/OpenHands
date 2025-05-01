@@ -1,0 +1,98 @@
+```patch
+--- a/django/db/migrations/autodetector.py
++++ b/django/db/migrations/autodetector.py
+@@ -4,10 +4,17 @@
+ 1             old_model_name = self.renamed_models.get((app_label, model_name), model_name)
+ 2             old_field_name = self.renamed_fields.get((app_label, model_name, field_name), field_name)
+ 3             old_field = self.old_apps.get_model(app_label, old_model_name)._meta.get_field(old_field_name)
+-4             new_field = self.new_apps.get_model(app_label, model_name)._meta.get_field(field_name)
++5             new_field = self.new_apps.get_model(app_label, model_name)._meta.get_field(field_name).clone()
+ 6             dependencies = []
++7             # Store original relational attributes that might be temporarily changed
++8             # for comparison.
++9             original_remote_field_model = None
++10            original_remote_field_name = None
++11            original_remote_field_through = None
++12            original_from_fields = None
++13            original_to_fields = None
+ 7             # Implement any model renames on relations; these are handled by RenameModel
+ 8             # so we need to exclude them from the comparison
+ 9             if hasattr(new_field, "remote_field") and getattr(new_field.remote_field, "model", None):
+@@ -14,29 +21,40 @@
+ 12                     new_field.remote_field.model._meta.model_name,
+ 13                 )
+ 14                 if rename_key in self.renamed_models:
++15                    # Store original and modify for comparison
++16                    original_remote_field_model = new_field.remote_field.model
+ 15                     new_field.remote_field.model = old_field.remote_field.model
+ 16                 # Handle ForeignKey which can only have a single to_field.
+ 17                 remote_field_name = getattr(new_field.remote_field, 'field_name', None)
+ 18                 if remote_field_name:
+ 19                     to_field_rename_key = rename_key + (remote_field_name,)
+ 20                     if to_field_rename_key in self.renamed_fields:
++21                        # Store original and modify for comparison
++22                        original_remote_field_name = new_field.remote_field.field_name
+ 21                         new_field.remote_field.field_name = old_field.remote_field.field_name
+ 22                 # Handle ForeignObjects which can have multiple from_fields/to_fields.
+ 23                 from_fields = getattr(new_field, 'from_fields', None)
+ 24                 if from_fields:
+ 25                     from_rename_key = (app_label, model_name)
++26                    # Store original and modify for comparison
++27                    original_from_fields = new_field.from_fields
+ 26                     new_field.from_fields = tuple([
+ 27                         self.renamed_fields.get(from_rename_key + (from_field,), from_field)
+ 28                         for from_field in from_fields
+ 29                     ])
++30                    # Store original and modify for comparison
++31                    original_to_fields = new_field.to_fields
+ 30                     new_field.to_fields = tuple([
+ 31                         self.renamed_fields.get(rename_key + (to_field,), to_field)
+ 32                         for to_field in new_field.to_fields
+ 33                     ])
+ 34                 dependencies.extend(self._get_dependencies_for_foreign_key(new_field))
+ 35             if hasattr(new_field, "remote_field") and getattr(new_field.remote_field, "through", None):
++36                # M2M fields' remote_field.model points to the remote model.
++37                # Ensure that we compare against the correct state of the remote
++38                # model (taking into account model renames).
+ 36                 rename_key = (
+ 37                     new_field.remote_field.through._meta.app_label,
+ 38                     new_field.remote_field.through._meta.model_name,
+ 39                 )
+ 40                 if rename_key in self.renamed_models:
++41                    # Store original and modify for comparison
++42                    original_remote_field_through = new_field.remote_field.through
+ 41                     new_field.remote_field.through = old_field.remote_field.through
+ 42             old_field_dec = self.deep_deconstruct(old_field)
+ 43             new_field_dec = self.deep_deconstruct(new_field)
++44
++45            # Restore original relational attributes after deconstruction.
++46            if original_remote_field_model:
++47                new_field.remote_field.model = original_remote_field_model
++48            if original_remote_field_name:
++49                new_field.remote_field.field_name = original_remote_field_name
++50            if original_from_fields:
++51                new_field.from_fields = original_from_fields
++52            if original_to_fields:
++53                new_field.to_fields = original_to_fields
++54            if original_remote_field_through:
++55                new_field.remote_field.through = original_remote_field_through
++56
++57            # Did the field change? Run comparisons.
++58            if old_field_dec != new_field_dec:
++59                is_pk_related_change = any(
++60                    (f.primary_key or f.unique) and f.remote_field
++61                    for f in (old_field, new_field)
++62                )
++63                if is_pk_related_change:
++64                    dependencies.append((app_label, model_name, field_name, 'pk_related_change'))
++65
++66                self.add_operation(
++67                    app_label,
++68                    operations.AlterField(
++69                        model_name=model_name,
++70                        name=field_name,
++71                        field=new_field,
++72                    ),
++73                    dependencies=dependencies,
++74                )
+```

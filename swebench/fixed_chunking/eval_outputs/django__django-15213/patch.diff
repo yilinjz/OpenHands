@@ -1,0 +1,48 @@
+```patch
+--- a/django/db/models/expressions.py
++++ b/django/db/models/expressions.py
+@@ -1,5 +1,8 @@
+ import copy
+ from functools import partialmethod, wraps
++
++from django.db.models.fields import BooleanField
++from django.db.models.query_utils import Q
+ from django.db.models.sql.constants import (
+     CURRVAL, LCONN, NEXTVAL, RCONN, SHARED_LOCK, SKIP_LOCKED,
+ )
+@@ -7,6 +10,7 @@
+     AND, OR, ORDER_DIR, ORDER_NULLS,
+ )
+ from django.db.models.sql.query import Query
++from django.db.models.sql.where import EverythingNode, NothingNode
+ from django.utils.deconstruct import deconstructible
+ from django.utils.functional import cached_property
+ from django.utils.hashable import make_hashable
+@@ -517,8 +521,25 @@
+     def resolve_expression(self, query=None, allow_joins=True, reuse=None, summarize=False, for_save=False):
+         c = self.copy()
+         c.is_summary = summarize
+-        c.expression = c.expression.resolve_expression(query, allow_joins, reuse, summarize, for_save)
++        expression_resolution = getattr(c.expression, 'resolve_expression', None)
++        if expression_resolution:
++            c.expression = expression_resolution(query, allow_joins, reuse, summarize, for_save)
++
++        # Convert Q() / ~Q() to Value(False) / Value(True) if possible.
++        if isinstance(c.expression, Q) and query is not None:
++            where = query.build_where(c.expression)
++            if isinstance(where, NothingNode):
++                c.expression = Value(False)
++                # Re-resolve the new Value expression.
++                c.expression = c.expression.resolve_expression(
++                    query, allow_joins, reuse, summarize, for_save
++                )
++            elif isinstance(where, EverythingNode):
++                c.expression = Value(True)
++                # Re-resolve the new Value expression.
++                c.expression = c.expression.resolve_expression(
++                    query, allow_joins, reuse, summarize, for_save
++                )
+         return c
+ 
+     def as_sql(self, compiler, connection):
+```

@@ -1,0 +1,29 @@
+```patch
+--- a/lib/matplotlib/colors.py
++++ b/lib/matplotlib/colors.py
+@@ -726,13 +726,19 @@
+         # Clip values > N-1 and < 0
+         # Assign the bad-value index to masked elements.
+         # Set the over-value index to values > N-1.
+-        # Set the under-value index to values < 0.
++        # Set the under-value index to values < 0. Use np.array(value).astype(
++        # xa.dtype) to avoid NumPy deprecation warnings about assigning
++        # out-of-range integers.
+         mask_bad = ma.getmask(xa)
+         if not cbook.is_scalar(mask_bad) and mask_bad.any():
+             if self._i_bad is not None:
+-                xa[mask_bad] = self._i_bad
++                xa[mask_bad] = np.array(self._i_bad).astype(xa.dtype)
+         if self._i_over is not None:
+-            xa[xa > self.N - 1] = self._i_over
++            # Note: "> N - 1" instead of ">= N" to handle unsigned integers.
++            xa[xa > self.N - 1] = np.array(self._i_over).astype(xa.dtype)
+         if self._i_under is not None:
+-            xa[xa < 0] = self._i_under
++            # The check xa < 0 is False for unsigned integers like uint8, but
++            # this line is harmless. The cast ensures the assignment works
++            # correctly if _i_under is out of range for the dtype.
++            xa[xa < 0] = np.array(self._i_under).astype(xa.dtype)
+
+         # Mask values that are already outside the valid range.
+```

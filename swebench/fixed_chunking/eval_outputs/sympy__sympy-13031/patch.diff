@@ -1,0 +1,82 @@
+```patch
+--- a/sympy/matrices/common.py
++++ b/sympy/matrices/common.py
+@@ -1,4 +1,7 @@
+-0         return self._eval_get_diag_blocks()
++# Note: Ensure necessary imports are present, e.g.:
++from functools import reduce
++from .matrices import ShapeError # Adjust import path if needed for ShapeError
++
++class MatrixCommon(object): # Assuming this is the class structure
++    def _eval_get_diag_blocks(self): # Placeholder for context
++        # ... original implementation ...
++        pass
+
+ 1
+ 2     @classmethod
+@@ -16,11 +19,23 @@
+ 14         [0, 1, 0, 2]])
+ 15         """
+ 16         if len(args) == 0:
+-17             return cls._new()
++17             return cls._new() # Returns 0x0 matrix
++
++        # Check shapes and handle zero-row case
++        rows = args[0].rows
++        for M in args[1:]:
++            if M.rows != rows:
++                raise ShapeError("Matrices must have the same number of rows to hstack.")
++
++        if rows == 0:
++            # Explicitly handle the zero-row case by summing columns
++            total_cols = sum(M.cols for M in args)
++            # Create a new matrix of shape (0, total_cols)
++            return cls._new(0, total_cols, [])
++        else:
++            # Non-zero rows: use reduce with row_join (previous logic)
++            kls = type(args[0])
++            return reduce(kls.row_join, args)
+
+-19         kls = type(args[0])
+-20         return reduce(kls.row_join, args)
+ 21
+ 22     def reshape(self, rows, cols):
+ 23         """Reshape the matrix. Total number of elements must remain the same.
+@@ -49,3 +64,35 @@
+     def row_del(self, row):
+         """Delete the specified row."""
+         if row < 0:
++            row += self.rows
++        if not 0 <= row < self.rows:
++            raise IndexError("Row index out of bounds: %s" % row)
++        # Keep track of the new shape
++        new_rows, new_cols = self.rows - 1, self.cols
++        new_list = self._mat[:row*self.cols] + self._mat[(row+1)*self.cols:]
++        return self._new(new_rows, new_cols, new_list)
++
++    # ... intervening methods like vec ...
++
++    @classmethod
++    def vstack(cls, *args):
++        """Return a matrix formed by joining args vertically (i.e.
++        by repeated application of col_join).
++        # ... (Examples) ...
++        """
++        if len(args) == 0:
++            return cls._new() # Returns 0x0 matrix
++
++        # Check shapes and handle zero-column case
++        cols = args[0].cols
++        for M in args[1:]:
++            if M.cols != cols:
++                raise ShapeError("Matrices must have the same number of columns to vstack.")
++
++        if cols == 0:
++            # Explicitly handle the zero-column case by summing rows
++            total_rows = sum(M.rows for M in args)
++            return cls._new(total_rows, 0, [])
++        else:
++            # Non-zero columns: use reduce with col_join (previous logic)
++            kls = type(args[0])
++            return reduce(kls.col_join, args)
+```

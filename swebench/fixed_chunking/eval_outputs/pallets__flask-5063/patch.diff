@@ -1,0 +1,75 @@
+```patch
+--- a/src/flask/cli.py
++++ b/src/flask/cli.py
+@@ -354,11 +354,13 @@
+     rules = list(app.url_map.iter_rules())
+     if not rules:
+         click.echo("No routes were registered.")
++        click.echo('Hint: Use "flask run --host=0.0.0.0" to expose the server.')
+         return
+ 
+     ignored_methods = set(() if all_methods else ("HEAD", "OPTIONS"))
+ 
+     if sort == "rule":
++        # Sort by domain first, then rule
+         rules.sort(key=lambda rule: (rule.subdomain or "", rule.rule))
+     elif sort == "endpoint":
+         rules.sort(key=lambda rule: rule.endpoint)
+@@ -366,16 +368,29 @@
+     rows = []
+     column_widths = {
+         "endpoint": 0,
++        "domain": 0,
+         "methods": 0,
+         "rule": 0,
+     }
+ 
++    server_name = app.config.get("SERVER_NAME")
++    default_domain = server_name or "<no server name>"
++
+     for rule in rules:
+         methods = ", ".join(sorted(rule.methods - ignored_methods))
++
++        domain_str = default_domain
++        if rule.subdomain:
++            if server_name:
++                domain_str = f"{rule.subdomain}.{server_name}"
++            else:
++                # Indicate subdomain exists but server name is not set
++                domain_str = f"{rule.subdomain}.<no server name>"
++
+         rows.append(
+-            {"endpoint": rule.endpoint, "methods": methods, "rule": rule.rule}
++            {"domain": domain_str, "endpoint": rule.endpoint, "methods": methods, "rule": rule.rule}
+         )
+-        column_widths["endpoint"] = max(column_widths["endpoint"], len(rule.endpoint))
++        column_widths["domain"] = max(column_widths["domain"], len(domain_str))
++        column_widths["endpoint"] = max(column_widths["endpoint"], len(rule.endpoint))
+         column_widths["methods"] = max(column_widths["methods"], len(methods))
+         column_widths["rule"] = max(column_widths["rule"], len(rule.rule))
+ 
+@@ -383,16 +398,18 @@
+ 
+     header = (
+         f"{'Domain':<{column_widths['domain']}}  "
+-        f"{'Endpoint':<{column_widths['endpoint']}}  "
++        f"{'Endpoint':<{column_widths['endpoint']}}  " # Adjust spacing if needed
+         f"{'Methods':<{column_widths['methods']}}  "
+         f"{'Rule':<{column_widths['rule']}}"
+     )
+     click.echo(header)
+     click.echo(
+         f"{'-' * column_widths['domain']}  "
+-        f"{'-' * column_widths['endpoint']}  "
++        f"{'-' * column_widths['endpoint']}  " # Adjust spacing if needed
+         f"{'-' * column_widths['methods']}  "
+         f"{'-' * column_widths['rule']}"
+     )
+ 
+     for row in rows:
+         click.echo(
++            f"{row['domain']:<{column_widths['domain']}}  "
+             f"{row['endpoint']:<{column_widths['endpoint']}}  "
+             f"{row['methods']:<{column_widths['methods']}}  "
+             f"{row['rule']:<{column_widths['rule']}}"
+```

@@ -1,0 +1,33 @@
+```diff
+--- a/src/_pytest/junitxml.py
++++ b/src/_pytest/junitxml.py
+@@ -6,6 +6,8 @@
+ import sys
+ import time
+ import functools
++import socket
++import datetime
+ from io import StringIO
+ from xml.sax.saxutils import escape
+ 
+@@ -39,6 +41,9 @@
+         )
+         logfile.write('<?xml version="1.0" encoding="utf-8"?>')
+ 
++        timestamp = datetime.datetime.fromtimestamp(self.suite_start_time).isoformat(timespec="seconds")
++        hostname = socket.gethostname()
++
+         suite_node = Junit.testsuite(
+             self._get_global_properties_node(),
+             [x.to_xml() for x in self.node_reporters_ordered],
+@@ -48,6 +53,8 @@
+             skipped=self.stats["skipped"],
+             tests=numtests,
+             time="%.3f" % suite_time_delta,
++            hostname=hostname,
++            timestamp=timestamp,
+         )
+         logfile.write(Junit.testsuites([suite_node]).unicode(indent=0))
+         logfile.close()
+
+```

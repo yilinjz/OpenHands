@@ -1,0 +1,29 @@
+```patch
+--- a/requests/utils.py
++++ b/requests/utils.py
+@@ -40,13 +40,19 @@
+ def stream_decode_response_unicode(iterator, r):
+     """Stream decodes a iterator."""
+ 
+-    if r.encoding is None:
++    encoding = r.encoding
++
++    # If no encoding is specified in the headers, test if the content
++    # has been read partially or fully. If it has been, fall back to
++    # apparent_encoding (codecs.chardet) like .text does.
++    if encoding is None and r._content_consumed and r.content:
++        if isinstance(r.content, bytes):
++            encoding = r.apparent_encoding
++
++    if encoding is None:
+         for item in iterator:
+             yield item
+         return
+ 
+-    decoder = codecs.getincrementaldecoder(r.encoding)(errors='replace')
++    decoder = codecs.getincrementaldecoder(encoding)(errors='replace')
+     for chunk in iterator:
+         rv = decoder.decode(chunk)
+         if rv:
+
+```

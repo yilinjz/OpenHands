@@ -1,0 +1,45 @@
+```patch
+--- a/sympy/combinatorics/permutations.py
++++ b/sympy/combinatorics/permutations.py
+@@ -258,25 +258,18 @@
+             # list of cycles e.g. [[1, 2], [3, 4]]
+             cycles = args[0]
+             if len(cycles) == 0:
+-                perm = _af_new([]) # identity
++                # Identity permutation, potentially with a specified size
++                perm = _af_new([], size=size) # Use _af_new helper which handles size
+             else:
+-                # process first cycle
+-                c = cycles[0]
+-                perm = _new_from_cycle(c)
+-                elements = list(c)
+-                # process remaining cycles
+-                for c in cycles[1:]:
+-                    perm = perm * _new_from_cycle(c)
+-                    elements.extend(c)
+-                # check for duplicates across cycles
+-                if has_dups(elements):
+-                    raise ValueError(filldedent('''
+-                        All elements must be unique. Try using Cycle().'''))
++                # Start with identity and compose cycles from left to right
++                perm = _af_new([]) # Start with identity of size 0
++                for c in cycles:
++                    # Compose with permutation from the current cycle
++                    # Multiplication handles composition correctly, even with non-disjoint cycles.
++                    # The Permutation(c) call ensures each individual cycle is valid.
++                    perm = perm * Permutation(c) # This recursively calls __new__
+ 
+             if size is not None:
+-                perm = Permutation(perm.array_form, size=size)
+-            obj = Basic.__new__(cls, perm.array_form, size=perm.size)
+-            obj._array_form = perm.array_form
+-            obj._size = perm.size
+-            return obj
++                # If size was specified, ensure the final permutation has that size.
++                # Re-create the permutation object using the final array form and the specified size.
++                # This handles padding or potential errors if size is incompatible.
++                perm = Permutation(perm.array_form, size=size)
+ 
+         elif isinstance(args[0], Cycle):
+             # Convert a single Cycle object
+```

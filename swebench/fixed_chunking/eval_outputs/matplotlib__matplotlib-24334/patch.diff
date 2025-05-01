@@ -1,0 +1,39 @@
+```patch
+--- a/lib/matplotlib/axis.py
++++ b/lib/matplotlib/axis.py
+@@ -208,6 +208,8 @@
+ 
+     # Wrapper around set_ticklabels used to generate Axes.set_x/ytickabels; can
+     # go away once the API of Axes.set_x/yticklabels becomes consistent.
++    # TODO: Make consistent with set_ticks signature.
++    # TODO: fontdict is deprecated.
+     def _set_ticklabels(self, labels, *, fontdict=None, minor=False, **kwargs):
+         """
+         Set this Axis' labels with list of string labels.
+@@ -329,6 +331,9 @@
+         return self.get_major_ticks(len(ticks))
+ 
+     def set_ticks(self, ticks, labels=None, *, minor=False, **kwargs):
++        # Avoid side effects in downstream processing.
++        kwargs = kwargs.copy()
++
+         """
+         Set this Axis' tick locations and optionally labels.
+ 
+@@ -357,6 +362,15 @@
+             pass *labels*. In other cases, please use `~.Axes.tick_params`.
+         """
+         ticks = self._set_tick_locations(ticks, minor=minor)
++        if kwargs:
++            from matplotlib.artist import _valid_property
++            from matplotlib.text import Text  # Avoid circular import.
++            valid_keys = _valid_property(Text)
++            for key in kwargs:
++                if key not in valid_keys:
++                    # Raise an error similar to Text.update or setp.
++                    raise AttributeError(f'{type(Text).__name__!r} object '
++                                         f'has no property {key!r}')
+         if labels is not None:
+             self.set_ticklabels(labels, minor=minor, **kwargs)
+         return ticks
+```

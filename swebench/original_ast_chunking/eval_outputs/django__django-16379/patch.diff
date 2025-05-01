@@ -1,0 +1,18 @@
+```patch
+--- a/django/core/cache/backends/filebased.py
++++ b/django/core/cache/backends/filebased.py
+@@ -74,10 +74,10 @@
+ 
+     def has_key(self, key, version=None):
+         fname = self._key_to_file(key, version)
+-        if os.path.exists(fname):
++        try:
+             with open(fname, "rb") as f:
+                 return not self._is_expired(f)
+-        return False
++        except FileNotFoundError:
++            return False
+ 
+     def _is_expired(self, f):
+         """
+```

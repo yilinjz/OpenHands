@@ -1,0 +1,15 @@
+```patch
+--- a/sphinx/ext/viewcode.py
++++ b/sphinx/ext/viewcode.py
+@@ -223,6 +223,10 @@
+     env = app.builder.env
+     if not hasattr(env, '_viewcode_modules'):
+         return
++    # Do not generate pages for epub builder if viewcode_enable_epub is False
++    if app.builder.name == 'epub' and not app.config.viewcode_enable_epub:
++        return
++
+     highlighter = app.builder.highlighter  # type: ignore
+     urito = app.builder.get_relative_uri
+ 
+```

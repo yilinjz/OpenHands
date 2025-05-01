@@ -1,0 +1,49 @@
+```patch
+--- a/sklearn/neighbors/base.py
++++ b/sklearn/neighbors/base.py
+@@ -10,6 +10,7 @@
+ # License: BSD 3 clause (C) INRIA, University of Amsterdam
+ 10 8 import warnings
+ 11 9 from abc import ABCMeta, abstractmethod
++12 10 import numbers
+ 13 11
+ 14 12 import numpy as np
+ 15 13 from scipy.sparse import csr_matrix, issparse
+@@ -107,6 +108,16 @@
+                  metric_params=None, n_jobs=1, **kwargs):
+ 
+         self.n_neighbors = n_neighbors
++        # Validate n_neighbors
++        if self.n_neighbors is not None:
++            if not isinstance(self.n_neighbors, numbers.Integral):
++                raise TypeError("n_neighbors must be an integer, got %s" %
++                                type(self.n_neighbors))
++            elif self.n_neighbors <= 0:
++                raise ValueError("Expected n_neighbors > 0. Got %d" %
++                                 self.n_neighbors)
++
++        # Rest of the parameters
+         self.radius = radius
+         self.algorithm = algorithm
+         self.leaf_size = leaf_size
+@@ -208,10 +219,19 @@
+         check_is_fitted(self, '_fit_method')
+ 
+         if n_neighbors is None:
++            # If n_neighbors is not specified, use the value passed in init
+             n_neighbors = self.n_neighbors
++        # Validate the number of neighbors
++        elif not isinstance(n_neighbors, numbers.Integral):
++            raise TypeError("n_neighbors must be an integer, got %s" %
++                            type(n_neighbors))
++        elif n_neighbors <= 0:
++            raise ValueError("Expected n_neighbors > 0. Got %d" %
++                             n_neighbors)
+ 
+         if X is not None:
+             query_is_train = False
++            X = check_array(X, accept_sparse='csr')
+         else:
+             query_is_train = True
+             X = self._fit_X
+```

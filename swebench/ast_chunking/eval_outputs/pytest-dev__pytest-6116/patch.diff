@@ -1,0 +1,12 @@
+```patch
+--- a/src/_pytest/main.py
++++ b/src/_pytest/main.py
+@@ -70,6 +70,7 @@
+             help="show help on Python coding style checking",
+         )
+         group.addoption(
++            "-C",  # TODO: Deprecate -c.
+             "--collect-only",
+             action="store_true",
+             help="only collect tests, don't execute them.",
+```

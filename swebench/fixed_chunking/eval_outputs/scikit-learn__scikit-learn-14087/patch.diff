@@ -1,0 +1,19 @@
+```patch
+--- a/sklearn/linear_model/logistic.py
++++ b/sklearn/linear_model/logistic.py
+@@ -2188,11 +2188,11 @@
+ 
+             # Average the coefficients obtained for the best C parameter
+             if multi_class == 'multinomial':
+-                w = np.mean([coefs_paths[i][:, best_indices[i], :]
++                w = np.mean([coefs_paths[i][best_indices[i]]
+                              for i in range(len(folds))], axis=0)
+             else:
+-                w = np.mean([coefs_paths[:, i, best_indices[i], :]
+-                             for i in range(len(folds))], axis=0)
++                w = np.mean([coefs_paths[i][best_indices[i]]
++                             for i in range(len(folds))], axis=0)
+ 
+             best_indices_C = best_indices % len(self.Cs_)
+             self.C_ = self.Cs_[best_indices_C]
+```

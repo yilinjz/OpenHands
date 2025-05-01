@@ -1,0 +1,17 @@
+```patch
+--- a/django/forms/widgets.py
++++ b/django/forms/widgets.py
+@@ -238,9 +238,11 @@
+                     (has_selected is False or self.allow_multiple_selected)
+                 )
+                 has_selected |= selected
++                # Pass the underlying value of the choice instead of the
++                # potentially wrapped ModelChoiceIteratorValue.
++                option_context_value = getattr(subvalue, 'value', subvalue)
+                 subgroup.append(self.create_option(
+-                    name, subvalue, sublabel, selected, index,
++                    name, option_context_value, sublabel, selected, index,
+                     subindex=subindex, attrs=attrs,
+                 ))
+                 if subindex is not None:
+```

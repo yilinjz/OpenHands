@@ -1,0 +1,113 @@
+```patch
+--- a/django/core/checks/model_checks.py
++++ b/django/core/checks/model_checks.py
+@@ -1,5 +1,6 @@
++from collections import defaultdict
+ from itertools import chain
+ 
+-from django.apps import apps
++from django.apps import apps
+ from django.conf import settings
+ from django.core.checks import Error, Tags, Warning, register
+ from django.db import models
+@@ -23,27 +24,45 @@
+     errors = []
+     for model in apps.get_models():
+         if not isinstance(model._meta.unique_together, (list, tuple)):
+-            errors.append(Error(
+-                "'unique_together' must be a list or tuple.",
+-                obj=model,
+-                id='models.E001',
+-            ))
++            errors.append(
++                Error(
++                    "'unique_together' must be a list or tuple.",
++                    obj=model,
++                    id='models.E001',
++                )
++            )
+         else:
+             for fields in model._meta.unique_together:
+                 if not isinstance(fields, (list, tuple)):
+-                    errors.append(Error(
+-                        "All 'unique_together' elements must be lists or tuples.",
++                    errors.append(
++                        Error(
++                            "All 'unique_together' elements must be lists or tuples.",
++                            obj=model,
++                            id='models.E002',
++                        )
++                    )
++
++    # Collect models per db_table
++    tables = defaultdict(list)
++    for model in apps.get_models(include_auto_created=True):
++        if model._meta.managed and not model._meta.proxy and not model._meta.swapped:
++            tables[model._meta.db_table].append(model)
++
++    # Check for table name collisions among models targeting the same database
++    for db_table, models_ M in tables.items():
++        if len(models_ M) > 1:
++            # Group models by the database they are routed to
++            models_by_db = defaultdict(list)
++            for model in models_ M:
++                db = router.db_for_write(model)
++                models_by_db[db].append(model)
++
++            # Check for collisions within each database group
++            for db, db_models in models_by_db.items():
++                if len(db_models) > 1:
++                    model_signatures = [f'{m._meta.app_label}.{m.__name__}' for m in db_models]
++                    errors.append(Error(
++                        "db_table '%s' is used by multiple models on database '%s': %s." % (
++                            db_table,
++                            db or 'default',  # Use 'default' if router returns None
++                            ', '.join(model_signatures),
++                        ),
++                        hint=(
++                            "Ensure models using the same table name target different databases, "
++                            "or explicitly set different db_table names."
++                        ),
+                         obj=model,
+-                        id='models.E002',
++                        id='models.E028',
+                     ))
+ 
+     return errors
+@@ -51,27 +70,10 @@
+ 
+ def check_all_models(app_configs=None, **kwargs):
+     errors = list(check_lazy_references(app_configs=app_configs, **kwargs))
+-    tables = {}
+     opts_models = defaultdict(list)
+     for model in apps.get_models(include_auto_created=True):
+         if model._meta.managed and not model._meta.proxy and not model._meta.swapped:
+-            # Check table name collisions.
+-            db_table = model._meta.db_table
+-            if db_table in tables:
+-                errors.append(Error(
+-                    "db_table '%s' is used by multiple models: %s, %s." % (
+-                        db_table,
+-                        '.'.join(tables[db_table].__module__.split('.')[:-1] + [tables[db_table].__name__]),
+-                        '.'.join(model.__module__.split('.')[:-1] + [model.__name__]),
+-                    ),
+-                    obj=model,
+-                    id='models.E028',
+-                ))
+-            else:
+-                tables[db_table] = model
+-
+             # Check that options that reference fields list fields defined in
+             # the model.
+             # TODO: Check fields on concrete superclasses.
+@@ -80,6 +82,9 @@
+             opts_models[model._meta].append(model)
+ 
+     errors.extend(check_unique_together(app_configs=app_configs, **kwargs))
++    # E028 is moved to check_unique_together to handle database routing.
++    # Ensure check_unique_together is called after model loading.
++
+     for opts, models in opts_models.items():
+         errors.extend(opts.check(models=models))
+ 
+```

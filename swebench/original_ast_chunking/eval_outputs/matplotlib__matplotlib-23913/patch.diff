@@ -1,0 +1,49 @@
+```patch
+--- a/lib/matplotlib/legend.py
++++ b/lib/matplotlib/legend.py
+@@ -31,6 +31,7 @@
+ from matplotlib.offsetbox import HPacker, VPacker, TextArea, DrawingArea
+ from matplotlib.patches import Patch, Rectangle, Shadow
+ from matplotlib.transforms import Bbox, BboxTransformTo, TransformedBbox
++from matplotlib.legend_handler import HandlerBase
+ 
+ 
+ _log = logging.getLogger(__name__)
+@@ -384,7 +385,9 @@
+                  ncols=1, prop=None, fontsize=None,
+                  labelcolor=None,
+                  borderpad=None, labelspacing=None, handlelength=None,
+-                 handleheight=None, handletextpad=None, borderaxespad=None,
++                 handleheight=None, handletextpad=None,
++                 borderaxespad=None,
++                 draggable=False, draggable_use_blit=False, draggable_update='loc',
+                  columnspacing=None,
+                  shadow=None, title=None, title_fontsize=None,
+                  title_fontproperties=None,  # Deprecated.
+@@ -523,6 +526,14 @@
+             The font size of the legend title. If the value is numeric the size
+             will be the absolute font size in points. String values are relative
+             to the current default font size. This argument is only used if *title*
++            is specified.
++        draggable : bool, default: False
++            Whether the legend can be dragged with the mouse.
++        draggable_use_blit : bool, default: False
++            If *draggable* is True, use blitting for faster rendering.
++        draggable_update : {'loc', 'bbox'}, default: 'loc'
++            If *draggable* is True, specifies which parameter to update when
++            dragged: 'loc' updates the *loc* parameter, 'bbox' updates the
+             *bbox_to_anchor* parameter.
+         alignment : {'center', 'left', 'right'}, default: 'center'
+             The alignment of the legend title and the box of entries. The entries
+@@ -680,6 +691,10 @@
+         self._draggable = None  # Will be a DraggableLegend instance if needed.
+         self._update_prop = prop
+ 
++        if draggable:
++            self.set_draggable(True, use_blit=draggable_use_blit,
++                               update=draggable_update)
++
+     def _set_artist_props(self, a):
+         """Set figure, transform, and clip box for artist *a*."""
+         a.set_figure(self.figure)
+```

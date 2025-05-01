@@ -1,0 +1,23 @@
+```patch
+--- a/lib/matplotlib/__init__.py
++++ b/lib/matplotlib/__init__.py
+@@ -12,7 +12,7 @@
+ # The full version, including alpha/beta/rc tags, is in this __version__ string.
+ try:
+     # This is set by setuptools_scm
+-    from ._version import version as __version__
++    from ._version import version as __version__, version_tuple
+ except ImportError:
+     # Either matplotlib was not installed, or setuptools_scm was not run.
+     # Give a descriptive error message, because otherwise the error will be
+@@ -23,6 +23,9 @@
+         "Matplotlib requires setuptools_scm to be installed to determine "
+         "the version. Please install it and reinstall Matplotlib.") from None
+ 
++# Expose the version tuple for easy comparison.
++version_info = version_tuple
++
+ # Proceed with other imports.
+ import contextlib
+ import functools
+```

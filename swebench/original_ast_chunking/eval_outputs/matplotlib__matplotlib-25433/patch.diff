@@ -1,0 +1,45 @@
+```patch
+--- a/lib/matplotlib/widgets.py
++++ b/lib/matplotlib/widgets.py
+@@ -19,15 +19,31 @@
+ 
+     def release(self, event):
+         """Button release event handler and validator."""
+-        if not self.ignore(event) and self._eventpress:
+-            event = self._clean_event(event)
+-            self._eventrelease = event
++        # Ignore events if not active or if a button press event has not been
++        # registered before.
++        if self.ignore(event) or not self._eventpress:
++            return False
++
++        event = self._clean_event(event)
++        self._eventrelease = event
++        # Store potentially mutable state refs before calling callback
++        canvas = self.canvas
++        ax = self.ax
++
++        try:
+             self._release(event)
++        finally:
++            # Always clear press/release event states
+             self._eventpress = None
+             self._eventrelease = None
++            # Check if the widget's axes and figure are still valid before
++            # modifying other state. Use try-except for safety.
++            try:
++                if ax.figure is not None and ax in ax.figure.axes:
++                    self._state.discard('move')
++                else:  # Widget context is likely invalid (e.g., clf() called)
++                    self._state.clear()  # Clear all states
++            except (ReferenceError, AttributeError):  # widget state is invalid
++                self._state.clear()  # Clear all states
++
++        return True  # Event was processed.
+-            self._state.discard('move')
+-            return True
+-        return False
+ 
+     def _release(self, event):
+         """Button release event handler."""
+```

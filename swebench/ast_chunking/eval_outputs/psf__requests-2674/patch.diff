@@ -1,0 +1,40 @@
+```diff
+--- a/requests/exceptions.py
++++ b/requests/exceptions.py
+@@ -7,7 +7,10 @@
+ This module contains the set of Requests' exceptions.
+ 
+ """
++# Grab the base exception from urllib3
+ from .packages.urllib3.exceptions import HTTPError as BaseHTTPError
++# Grab the specific exceptions from urllib3
++from .packages.urllib3.exceptions import (TimeoutError as Urllib3TimeoutError, ConnectTimeoutError as Urllib3ConnectTimeoutError, ReadTimeoutError as Urllib3ReadTimeoutError, DecodeError as Urllib3DecodeError)
+ 
+ 
+ class RequestException(IOError):
+@@ -53,12 +56,12 @@
+     """
+ 
+ 
+-class ConnectTimeout(ConnectionError, Timeout):
++class ConnectTimeout(ConnectionError, Timeout, Urllib3ConnectTimeoutError):
+     """The request timed out while trying to connect to the remote server.
+ 
+     Requests that produced this error are safe to retry.
+     """
+-
++    # Note: Inherits from Urllib3ConnectTimeoutError for broader catch compatibility.
+ 
+ class ReadTimeout(Timeout):
+     """The server did not send any data in the allotted amount of time."""
+@@ -89,7 +92,7 @@
+     """The server declared chunked encoding but sent an invalid chunk."""
+ 
+ 
+-class ContentDecodingError(RequestException, BaseHTTPError):
++class ContentDecodingError(RequestException, Urllib3DecodeError):
+     """Failed to decode response content"""
+ 
+ 
+
+```

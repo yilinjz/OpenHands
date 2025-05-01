@@ -1,0 +1,14 @@
+```diff
+--- a/django/db/models/sql/compiler.py
++++ b/django/db/models/sql/compiler.py
+@@ -115,7 +115,7 @@
+                         "model": model,
+                         "field": final_field,
+                         "reverse": True,
+-                        "local_setter": partial(local_setter, final_field),
++                        "local_setter": partial(remote_setter, name),
+                         "remote_setter": partial(remote_setter, name),
+                         "from_parent": from_parent,
+                     }
+
+```

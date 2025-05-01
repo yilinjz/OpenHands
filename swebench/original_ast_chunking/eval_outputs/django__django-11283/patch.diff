@@ -1,0 +1,93 @@
+```patch
+--- a/django/contrib/auth/migrations/0011_update_proxy_permissions.py
++++ b/django/contrib/auth/migrations/0011_update_proxy_permissions.py
+@@ -1,5 +1,6 @@
+ from django.db import migrations
+ from django.db.models import Q
++from django.core.exceptions import ObjectDoesNotExist
+ 
+ 
+ def update_proxy_model_permissions(apps, schema_editor, reverse=False):
+@@ -9,28 +10,54 @@
+     """
+     Permission = apps.get_model('auth', 'Permission')
+     ContentType = apps.get_model('contenttypes', 'ContentType')
++    # Ensure ContentType cache is populated before potentially deleting CTs
++    # that are related to stale permissions.
++    ContentType.objects.clear_cache()
++    db_alias = schema_editor.connection.alias
+     for Model in apps.get_models():
+         opts = Model._meta
+         if not opts.proxy:
+             continue
++
++        # Get or create the proxy & concrete ContentTypes
++        try:
++            concrete_content_type = ContentType.objects.using(db_alias).get_for_model(
++                Model, for_concrete_model=True
++            )
++            proxy_content_type = ContentType.objects.using(db_alias).get_for_model(
++                Model, for_concrete_model=False
++            )
++        except ObjectDoesNotExist:
++            # Gracefully handle ContentType automatically created by earlier
++            # versions of Django (which are now stale).
++            continue
++
++        old_content_type = proxy_content_type if reverse else concrete_content_type
++        new_content_type = concrete_content_type if reverse else proxy_content_type
++
++        if old_content_type == new_content_type:
++            # Avoid hitting the DB if there's no change
++            continue
++
++        # Collect all permission codenames for this model.
+         proxy_default_permissions_codenames = [
+             '%s_%s' % (action, opts.model_name)
+             for action in opts.default_permissions
+         ]
+-        permissions_query = Q(codename__in=proxy_default_permissions_codenames)
++        all_codenames = set(proxy_default_permissions_codenames)
+         for codename, name in opts.permissions:
+-            permissions_query = permissions_query | Q(codename=codename, name=name)
+-        concrete_content_type = ContentType.objects.get_for_model(Model, for_concrete_model=True)
+-        proxy_content_type = ContentType.objects.get_for_model(Model, for_concrete_model=False)
+-        old_content_type = proxy_content_type if reverse else concrete_content_type
+-        new_content_type = concrete_content_type if reverse else proxy_content_type
+-        Permission.objects.filter(
++            all_codenames.add(codename)
++
++        if not all_codenames:
++            continue
++
++        permissions_query = Q(codename__in=all_codenames)
++
++        # Permissions associated with the old content type.
++        permissions_to_migrate = Permission.objects.using(db_alias).filter(
+             permissions_query,
+             content_type=old_content_type,
+-        ).update(content_type=new_content_type)
++        )
++        # Permissions that already exist for the new content type.
++        existing_target_permissions = Permission.objects.using(db_alias).filter(
++            permissions_query,
++            content_type=new_content_type,
++        )
++        existing_target_codenames = set(existing_target_permissions.values_list('codename', flat=True))
++
++        # Delete permissions associated with the old content type if a permission
++        # with the same codename already exists for the new content type.
++        permissions_to_delete = permissions_to_migrate.filter(
++            codename__in=existing_target_codenames
++        )
++        permissions_to_delete.delete()
++
++        # Update the remaining permissions (those that won't conflict).
++        permissions_to_update = permissions_to_migrate.exclude(
++            codename__in=existing_target_codenames
++        )
++        permissions_to_update.update(content_type=new_content_type)
+ 
+ 
+ def revert_proxy_model_permissions(apps, schema_editor):
+```

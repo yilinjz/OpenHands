@@ -1,0 +1,42 @@
+```patch
+--- a/sympy/core/power.py
++++ b/sympy/core/power.py
+@@ -25,6 +25,7 @@
+ from .sympify import _sympify
+ from .singleton import S
+ from .expr import Expr, AtomicExpr
++from .logic import fuzzy_not
+ from .cache import cacheit
+ from .numbers import Float, Integer, Rational, Number, I, NumberSymbol
+ from .logic import fuzzy_bool
+@@ -181,17 +182,25 @@
+                         pass
+ 
+             if b is S.Zero:
++                # Evaluate 0**e
+                 if e.is_zero:
+                     # 0**0 = 1
+                     return S.One
+                 elif e.is_positive:
+                     # 0**positive = 0
++                    # Note: This includes 0**oo = 0
+                     return S.Zero
+                 elif e.is_negative:
+-                    # 0**negative = zoo
++                    # 0**negative = zoo (Complex Infinity)
++                    # Note: This includes 0**(-oo) = zoo
+                     return S.ComplexInfinity
+                 elif e.is_imaginary:
+                     if im(e) != 0:
++                        # 0**(iy) = nan for y != 0
+                         return S.NaN
++                # Check for NaN exponent separately
++                elif e is S.NaN:
++                    return S.NaN
++                # If e is none of the above (e.g., symbolic, complex with Re=0),
++                # Pow(0, e) may remain unevaluated or depend on assumptions.
++                # Let it pass through to the object creation.
+                 pass
+ 
+             # Negative base and complex exponent handling
+```

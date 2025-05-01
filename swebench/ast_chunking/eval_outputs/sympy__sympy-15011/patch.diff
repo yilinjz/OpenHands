@@ -1,0 +1,25 @@
+```patch
+--- a/sympy/utilities/lambdify.py
++++ b/sympy/utilities/lambdify.py
+@@ -4,8 +4,8 @@
+ 
+         Returns string form of args, and updated expr.
+         """
+-        from sympy import Dummy, Symbol, Function, flatten
+-        from sympy.matrices import DeferredVector
++        from sympy import Dummy, Symbol, Function, flatten
++        from sympy.matrices import DeferredVector, MatrixSymbol
+
+         dummify = self._dummify
+
+@@ -22,7 +22,7 @@
+             elif isinstance(arg, DeferredVector):
+                 argstrs.append(str(arg))
+             elif isinstance(arg, Symbol):
+-                argrep = self._argrepr(arg)
++            elif isinstance(arg, (Symbol, MatrixSymbol)):
++                argrep = self._argrepr(arg)
+
+                 if dummify or not self._is_safe_ident(argrep):
+                     dummy = Dummy()
+```

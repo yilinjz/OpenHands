@@ -1,0 +1,21 @@
+```patch
+--- a/sympy/printing/pretty/pretty.py
++++ b/sympy/printing/pretty/pretty.py
+@@ -1018,10 +1018,9 @@
+                 sign_height = prettySign.height()
+
+             if first:
+-                # change F baseline so it centers on the sign
+-                # XXX: Maybe this should be done *after* the loop?
+-                prettyF.baseline -= d - (prettyF.height()//2 -
+-                                         prettyF.baseline) - adjustment
++                # The baseline of the function (`prettyF`) was previously adjusted here
++                # to center it vertically relative to the summation symbol.
++                # However, this adjustment could lead to incorrect baselines (e.g., negative)
++                # and caused misalignment when the Sum was part of a larger expression (like Add).
++                # Removing this adjustment ensures the function's natural baseline is used
++                # for alignment, resolving the reported issue.
+                 first = False
+
+             # put padding to the right
+```

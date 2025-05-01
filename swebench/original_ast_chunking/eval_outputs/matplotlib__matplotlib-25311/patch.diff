@@ -1,0 +1,24 @@
+```patch
+--- a/lib/matplotlib/legend.py
++++ b/lib/matplotlib/legend.py
+@@ -808,6 +808,19 @@
+         """Return ``True`` if the legend is draggable, ``False`` otherwise."""
+         return self._draggable is not None
+ 
++    def __getstate__(self):
++        # Get state from parent.
++        state = super().__getstate__()
++        # The DraggableLegend helper holds references to the canvas and connects
++        # callbacks; it's not picklable. Drop it from the state.
++        state.pop('_draggable', None)
++        return state
++
++    def __setstate__(self, state):
++        super().__setstate__(state)
++        # _draggable is not pickled; ensure it is None after reconstruction.
++        self._draggable = None
++
+ 
+     def _parse_legend_args(self, args):
+         """Helper function to parse the arguments for ``legend()``."""
+```

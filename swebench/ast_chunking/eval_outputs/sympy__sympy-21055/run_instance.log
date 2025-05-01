@@ -1,0 +1,100 @@
+2025-05-01 20:06:23,321 - INFO - Creating container for sympy__sympy-21055...
+2025-05-01 20:06:23,364 - INFO - Container for sympy__sympy-21055 created: 6c5a0ee3566869243baae4328662e6c2466677f7b276a9989e3bbe09398552c5
+2025-05-01 20:06:23,760 - INFO - Container for sympy__sympy-21055 started: 6c5a0ee3566869243baae4328662e6c2466677f7b276a9989e3bbe09398552c5
+2025-05-01 20:06:23,760 - INFO - Intermediate patch for sympy__sympy-21055 written to logs/run_evaluation/20250501_195119/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/sympy__sympy-21055/patch.diff, now applying to container...
+2025-05-01 20:06:23,925 - INFO - Failed to apply patch to container: git apply --verbose
+2025-05-01 20:06:23,992 - INFO - Failed to apply patch to container: git apply --verbose --reject
+2025-05-01 20:06:24,076 - INFO - >>>>> Applied Patch:
+patching file sympy/functions/elementary/complexes.py
+Hunk #1 succeeded at 13 with fuzz 3 (offset 12 lines).
+Hunk #2 succeeded at 774 with fuzz 2 (offset 702 lines).
+
+2025-05-01 20:06:24,842 - INFO - Git diff before:
+diff --git a/sympy/functions/elementary/complexes.py b/sympy/functions/elementary/complexes.py
+index b34ca3a7de..0be4b2f2f5 100644
+--- a/sympy/functions/elementary/complexes.py
++++ b/sympy/functions/elementary/complexes.py
+@@ -11,7 +11,6 @@
+ from sympy.functions.elementary.miscellaneous import sqrt
+ from sympy.functions.elementary.piecewise import Piecewise
+ from sympy.functions.elementary.trigonometric import atan, atan2
+-
+ ###############################################################################
+ ######################### REAL and IMAGINARY PARTS ############################
+ ###############################################################################
+@@ -765,6 +764,26 @@ def _eval_derivative(self, t):
+         return (x * Derivative(y, t, evaluate=True) - y *
+                     Derivative(x, t, evaluate=True)) / (x**2 + y**2)
+ 
++    def _eval_refine(self, assumptions):
++        """
++        Simplify arg using assumptions.
++        """
++        from sympy.assumptions import ask, Q
++        if ask(Q.positive(self.args[0]), assumptions):
++            return S.Zero
++        if ask(Q.negative(self.args[0]), assumptions):
++            return S.Pi
++
++    def _eval_refine(self, assumptions):
++        """
++        Simplify arg using assumptions.
++        """
++        from sympy.assumptions import ask, Q
++        if ask(Q.positive(self.args[0]), assumptions):
++            return S.Zero
++        if ask(Q.negative(self.args[0]), assumptions):
++            return S.Pi
++
+     def _eval_rewrite_as_atan2(self, arg, **kwargs):
+         x, y = self.args[0].as_real_imag()
+         return atan2(y, x)
+2025-05-01 20:06:24,843 - INFO - Eval script for sympy__sympy-21055 written to logs/run_evaluation/20250501_195119/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/sympy__sympy-21055/eval.sh; copying to container...
+2025-05-01 20:06:38,974 - INFO - Test runtime: 14.05 seconds
+2025-05-01 20:06:38,974 - INFO - Test output for sympy__sympy-21055 written to logs/run_evaluation/20250501_195119/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/sympy__sympy-21055/test_output.txt
+2025-05-01 20:06:39,094 - INFO - Git diff after:
+diff --git a/sympy/functions/elementary/complexes.py b/sympy/functions/elementary/complexes.py
+index b34ca3a7de..0be4b2f2f5 100644
+--- a/sympy/functions/elementary/complexes.py
++++ b/sympy/functions/elementary/complexes.py
+@@ -11,7 +11,6 @@
+ from sympy.functions.elementary.miscellaneous import sqrt
+ from sympy.functions.elementary.piecewise import Piecewise
+ from sympy.functions.elementary.trigonometric import atan, atan2
+-
+ ###############################################################################
+ ######################### REAL and IMAGINARY PARTS ############################
+ ###############################################################################
+@@ -765,6 +764,26 @@ def _eval_derivative(self, t):
+         return (x * Derivative(y, t, evaluate=True) - y *
+                     Derivative(x, t, evaluate=True)) / (x**2 + y**2)
+ 
++    def _eval_refine(self, assumptions):
++        """
++        Simplify arg using assumptions.
++        """
++        from sympy.assumptions import ask, Q
++        if ask(Q.positive(self.args[0]), assumptions):
++            return S.Zero
++        if ask(Q.negative(self.args[0]), assumptions):
++            return S.Pi
++
++    def _eval_refine(self, assumptions):
++        """
++        Simplify arg using assumptions.
++        """
++        from sympy.assumptions import ask, Q
++        if ask(Q.positive(self.args[0]), assumptions):
++            return S.Zero
++        if ask(Q.negative(self.args[0]), assumptions):
++            return S.Pi
++
+     def _eval_rewrite_as_atan2(self, arg, **kwargs):
+         x, y = self.args[0].as_real_imag()
+         return atan2(y, x)
+2025-05-01 20:06:39,094 - INFO - Grading answer for sympy__sympy-21055...
+2025-05-01 20:06:39,094 - INFO - report: {'sympy__sympy-21055': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_arg'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_Abs', 'test_pow1', 'test_pow2', 'test_exp', 'test_Piecewise', 'test_atan2', 'test_re', 'test_im', 'test_complex', 'test_sign', 'test_func_args', 'test_eval_refine', 'test_refine_issue_12724'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-21055: resolved: True
+2025-05-01 20:06:39,095 - INFO - Attempting to stop container sweb.eval.sympy__sympy-21055.20250501_195119...
+2025-05-01 20:06:54,406 - INFO - Attempting to remove container sweb.eval.sympy__sympy-21055.20250501_195119...
+2025-05-01 20:06:54,435 - INFO - Container sweb.eval.sympy__sympy-21055.20250501_195119 removed.

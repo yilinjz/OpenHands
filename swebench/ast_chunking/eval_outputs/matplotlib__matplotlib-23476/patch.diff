@@ -1,0 +1,14 @@
+```patch
+--- a/lib/matplotlib/backends/backend_macosx.py
++++ b/lib/matplotlib/backends/backend_macosx.py
+@@ -28,7 +28,8 @@
+         # Must be initialized before FigureCanvasBase, which calls
+         # draw_idle, which potentially calls register_callback.
+         self._idle = True
+-        _macosx.FigureCanvas.__init__(self, width, height)
++        ratio = self._get_device_pixel_ratio()
++        _macosx.FigureCanvas.__init__(self, width / ratio, height / ratio)
+         self._draw_pending = False
+         self._is_drawing = False
+         self.figure.dpi = self.figure.dpi
+```

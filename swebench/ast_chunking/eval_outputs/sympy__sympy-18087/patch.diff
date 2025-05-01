@@ -1,0 +1,16 @@
+```patch
+--- a/sympy/simplify/trigsimp.py
++++ b/sympy/simplify/trigsimp.py
+@@ -500,11 +500,6 @@
+     # identities based on sin**2 + cos**2 = 1
+     # XXX these are not quite right for complex arguments
+     matchers_identity = [
+-        # pattern, result, function, wild
+-        # e.g. sqrt(1 - b**2) -> cos(c) where b = sin(c)
+-        (sqrt(1 - b**2), cos(c), sin(c), b),
+-        (sqrt(1 + b**2), cosh(c), sinh(c), b),
+-        (sqrt(b**2 - 1), sinh(c), cosh(c), b),
+     ]
+ 
+     # now expand the patterns for all functions defined in funcs
+```

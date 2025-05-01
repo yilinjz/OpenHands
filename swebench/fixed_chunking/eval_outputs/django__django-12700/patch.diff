@@ -1,0 +1,42 @@
+```patch
+--- a/django/views/debug.py
++++ b/django/views/debug.py
+@@ -42,22 +42,31 @@
+         """
+         Cleanse an individual setting key/value of sensitive content. If the
+         value is a dictionary, recursively cleanse the keys in that dictionary.
++        If the value is a list or tuple, recursively cleanse the items in it.
+         """
+         try:
+             if self.hidden_settings.search(key):
+                 cleansed = self.cleansed_substitute
+-            elif isinstance(value, dict):
+-                cleansed = {k: self.cleanse_setting(k, v) for k, v in value.items()}
+             else:
+-                cleansed = value
++                # Key is not sensitive, cleanse the value's structure recursively.
++                cleansed = self._cleanse_value_recursive(value)
+         except TypeError:
+             # If the key isn't regex-able, just return as-is.
+             cleansed = value
+ 
+         if callable(cleansed):
+             cleansed = CallableSettingWrapper(cleansed)
++
+         return cleansed
++
++    def _cleanse_value_recursive(self, value):
++        """Helper to recursively cleanse nested structures."""
++        if isinstance(value, dict):
++            # For dicts, call cleanse_setting on each item to check keys.
++            return {k: self.cleanse_setting(k, v) for k, v in value.items()}
++        elif isinstance(value, (list, tuple)):
++            # For lists/tuples, recursively cleanse each item's value structure.
++            return type(value)(self._cleanse_value_recursive(item) for item in value)
++        else:
++            # Base case: return non-container values as is.
++            return value
+ 
+     def get_safe_settings(self):
+         """
+```

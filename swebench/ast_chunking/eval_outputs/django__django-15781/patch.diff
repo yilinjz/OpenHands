@@ -1,0 +1,22 @@
+```diff
+--- a/django/core/management/base.py
++++ b/django/core/management/base.py
+@@ -4,7 +4,7 @@
+ import argparse
+ import os
+ import sys
+-from argparse import ArgumentParser, HelpFormatter
++from argparse import ArgumentParser, HelpFormatter, RawDescriptionHelpFormatter
+ from io import TextIOBase
+ 
+ import django
+@@ -244,6 +244,7 @@
+         parser = CommandParser(
+             prog="%s %s" % (os.path.basename(prog_name), subcommand),
+             description=self.help or None,
++            formatter_class=RawDescriptionHelpFormatter,
+             missing_args_message=getattr(self, "missing_args_message", None),
+             called_from_command_line=getattr(self, "_called_from_command_line", None),
+             **kwargs,
+
+```

@@ -1,0 +1,59 @@
+```patch
+--- a/django/db/migrations/serializer.py
++++ b/django/db/migrations/serializer.py
+@@ -1,6 +1,7 @@
+ import datetime
+ import decimal
+ import enum
++import functools
+ import importlib
+ import math
+ import os
+@@ -10,6 +11,18 @@
+ from django.db.migrations.utils import get_migration_name_timestamp
+ from django.utils.functional import Promise
+ from django.utils.version import get_docs_version
++
++
++def resolve_dotted_path(module, path):
++    """Resolve a dotted path within a module."""
++    obj = module
++    try:
++        for part in path.split("."):
++            obj = getattr(obj, part)
++        return obj
++    except AttributeError:
++        return None
++
+ 
+ class BaseSerializer:
+     def __init__(self, value):
+@@ -174,15 +187,18 @@
+         ):  # Class method
+             klass = self.value.__self__
+             module = klass.__module__
+-            name = self.value.__name__
++            method_name = self.value.__name__
++            klass_qualname = klass.__qualname__
+             # Check if the class is defined in the module or imported
+-            imported_module = importlib.import_module(module)
+-            if getattr(imported_module, klass.__name__, None) == klass:
+-                return f"{module}.{klass.__name__}.{name}", {f"import {module}"}
+-            else:
+-                # See if it's nested. This is complex because it could be
+-                # imported via any number of paths. Give up and use the repr.
++            try:
++                imported_module = importlib.import_module(module)
++                resolved_klass = resolve_dotted_path(imported_module, klass_qualname)
++            except ImportError:
+                 return repr(self.value), set()
++            # If the resolved class is the same as the one passed in,
++            # we're good.
++            if resolved_klass == klass:
++                return f"{module}.{klass_qualname}.{method_name}", {f"import {module}"}
++            # Otherwise, fallback to repr().
++            return repr(self.value), set()
+         # Instance method
+         elif hasattr(self.value, "__self__") and self.value.__self__ is not None:
+             # Bound method
+```

@@ -1,0 +1,26 @@
+```patch
+--- a/lib/matplotlib/backends/backend_ps.py
++++ b/lib/matplotlib/backends/backend_ps.py
+@@ -669,12 +669,13 @@
+                 continue
+ 
+             stream = self._get_text_ps(clean_line, ismath=ismath)
+-            for ps_name, xs_names in stream:
+-                if ps_name != self.fontname:
+-                    self.set_font(ps_name, self.fontsize)
+-                self._pswriter.write(
+-                    f"<{xs_names}> {_nums_to_str(currx, curry)} "
+-                    f"{angle:1.1f} {dx:1.3f} {dy:1.3f} {w:1.3f} {h:1.3f} "
+-                    f"{d:1.3f} {rgb[0]:.3f} {rgb[1]:.3f} {rgb[2]:.3f} at\n")
++            # stream can be None if the line is empty after stripping ligatures.
++            if stream is not None:
++                for ps_name, xs_names in stream:
++                    if ps_name != self.fontname:
++                        self.set_font(ps_name, self.fontsize)
++                    self._pswriter.write(
++                        f"<{xs_names}> {_nums_to_str(currx, curry)} "
++                        f"{angle:1.1f} {dx:1.3f} {dy:1.3f} {w:1.3f} {h:1.3f} "
++                        f"{d:1.3f} {rgb[0]:.3f} {rgb[1]:.3f} {rgb[2]:.3f} at\n")
+ 
+             if debugPS:
+```

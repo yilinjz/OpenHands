@@ -1,0 +1,19 @@
+```diff
+--- a/src/_pytest/tmpdir.py
++++ b/src/_pytest/tmpdir.py
+@@ -119,9 +119,11 @@
+             from_env = os.environ.get("PYTEST_DEBUG_TEMPROOT")
+             temproot = Path(from_env or tempfile.gettempdir()).resolve()
+             user = get_user() or "unknown"
++            # Sanitize the username to make it usable as part of a directory name.
++            # Replace non-alphanumeric characters with underscores.
++            sanitized_user = re.sub(r"\W", "_", user)
+             # use a sub-directory in the temproot to speed-up
+             # make_numbered_dir() call
+-            rootdir = temproot.joinpath(f"pytest-of-{user}")
++            rootdir = temproot.joinpath(f"pytest-of-{sanitized_user}")
+             rootdir.mkdir(exist_ok=True)
+             basetemp = make_numbered_dir_with_cleanup(
+                 prefix="pytest-", root=rootdir, keep=3, lock_timeout=LOCK_TIMEOUT
+
+```

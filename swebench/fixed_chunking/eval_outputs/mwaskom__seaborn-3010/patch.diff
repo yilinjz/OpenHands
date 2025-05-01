@@ -1,0 +1,24 @@
+```patch
+--- a/seaborn/_stats/regression.py
++++ b/seaborn/_stats/regression.py
+@@ -21,13 +21,17 @@
+     gridsize: int = 100
+ 
+     def _fit_predict(self, data):
++
++        # Drop rows with missing data
++        data = data.dropna(subset=["x", "y"])
+ 
+         x = data["x"]
+         y = data["y"]
+-        if x.nunique() <= self.order:
++
++        # Check if sufficient data remains for the fit
++        if len(data) <= self.order:
+             # TODO warn?
+             xx = yy = []
+         else:
+             p = np.polyfit(x, y, self.order)
+             xx = np.linspace(x.min(), x.max(), self.gridsize)
+
+```

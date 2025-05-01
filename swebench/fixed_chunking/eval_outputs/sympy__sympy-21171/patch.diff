@@ -1,0 +1,16 @@
+```patch
+--- a/sympy/printing/latex.py
++++ b/sympy/printing/latex.py
+@@ -1150,8 +1150,11 @@
+         return r"\delta\left( %s \right)" % self._print(expr.args[0])
+ 
+     def _print_SingularityFunction(self, expr):
++    def _print_SingularityFunction(self, expr, exp=None):
+         x, a, n = expr.args
+         tex = r"{\left\langle %s - %s \right\rangle}^{%s}" % (self._print(x), self._print(a), self._print(n))
++        if exp is not None:
++            tex = r"\left( %s \right)^{%s}" % (tex, exp)
+         return tex
+ 
+     def _print_Heaviside(self, expr, exp=None):
+```

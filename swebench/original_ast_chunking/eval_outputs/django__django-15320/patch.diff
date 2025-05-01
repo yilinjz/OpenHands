@@ -1,0 +1,14 @@
+```patch
+--- a/django/db/models/expressions.py
++++ b/django/db/models/expressions.py
+@@ -1311,6 +1311,8 @@
+         self.output_field = output_field
+         self.queryset = queryset
+         self.query = self.queryset.query
++        # Set the subquery flag on the query. The compiler needs this hint
++        # to generate the correct SQL, especially when using limit/offset.
+         self.query.subquery = True
+
+     def get_source_expressions(self):
+
+```

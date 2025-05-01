@@ -1,0 +1,14 @@
+```diff
+--- a/django/template/defaultfilters.py
++++ b/django/template/defaultfilters.py
+@@ -597,7 +597,7 @@
+                 # Translators: "literal" is a Python term
+                 ) % {"list": value, "literal": arg}
+             )
+-@register.filter(needs_autoescape=True)
++@register.filter(needs_autoescape=True, is_safe=True)
+ def join(value, arg, autoescape=True):
+     """
+     Join a list with a string, like Python's ``str.join(list)``.
+
+```

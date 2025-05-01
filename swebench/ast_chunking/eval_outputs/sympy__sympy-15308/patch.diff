@@ -1,0 +1,21 @@
+```patch
+--- a/sympy/printing/latex.py
++++ b/sympy/printing/latex.py
+@@ -79,3 +79,15 @@
+         def parens(x):
+             return self._print(x)
+         return r' \circ '.join(map(parens, expr.args))
++
++    def _print_MatPow(self, expr):
++        base = expr.base
++        exp = expr.exp
++        # Need to import PRECEDENCE or define it if not available
++        # Assuming PRECEDENCE['Pow'] is defined and appropriate
++        base_str = self.parenthesize(base, PRECEDENCE['Pow'])
++        exp_str = self._print(exp)
++        return "%s^{%s}" % (base_str, exp_str)
++
++    def _print_Trace(self, expr):
++        # Using \mathrm{Trace} to match the function name. \operatorname{Tr} is also common.
++        return r"\mathrm{Trace}\left(%s\right)" % self._print(expr.arg)
+```

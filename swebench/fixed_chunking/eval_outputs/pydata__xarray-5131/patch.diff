@@ -1,0 +1,13 @@
+```patch
+--- a/xarray/core/groupby.py
++++ b/xarray/core/groupby.py
+@@ -301,7 +301,7 @@
+ 
+     def __repr__(self) -> str:
+         return "{}, grouped over {!r} \n{}".format(
+-            self.__class__.__name__, self._unique_coord.name, self.dims_str
++            self.__class__.__name__, self._unique_coord.name, self.dims_str.strip()
+         )
+ 
+     def map(
+```

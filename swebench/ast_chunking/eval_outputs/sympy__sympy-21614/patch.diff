@@ -1,0 +1,35 @@
+```patch
+--- a/sympy/core/function.py
++++ b/sympy/core/function.py
+@@ -36,6 +36,8 @@
+ from sympy.utilities.iterables import iterable, is_sequence, NotIterable, ordered
+ from sympy.utilities.misc import filldedent, func_name
+ from sympy.utilities.exceptions import SymPyDeprecationWarning
++from sympy.matrices.common import MatrixKind
++from sympy.tensor.array.ndim_array import ArrayKind
+
+
+ class PoleError(Exception):
+@@ -461,6 +463,20 @@
+         # consistency checks handled in __new__
+         return expr._eval_derivative_n_times(v, n)
+
++    @property
++    @cacheit
++    def kind(self):
++        """
++        Return the kind of the derivative expression.
++
++        Explanation
++        ===========
++        The kind is inferred from the expression being differentiated.
++        Differentiation preserves the kind (Matrix, Array, Number). See
++        :ref:`low-level-kind-system` for more details.
++        """
++        return self.expr.kind
++
+     @property
+     def expr(self):
+         """Return the expression being differentiated."""
+
+```

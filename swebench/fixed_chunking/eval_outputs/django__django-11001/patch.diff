@@ -1,0 +1,58 @@
+```patch
+--- a/django/db/models/sql/compiler.py
++++ b/django/db/models/sql/compiler.py
+@@ -30,14 +30,20 @@
+                     raise DatabaseError('ORDER BY term does not match any column in the result set.')
+             sql, params = self.compile(resolved)
+             # Don't add the same column twice, but the order direction is
+-            # not taken into account so we strip it. When this entire method
+-            # is refactored into expressions, then we can check each part as we
+-            # generate it.
+-            without_ordering = self.ordering_parts.search(sql).group(1)
++            # not taken into account so we strip it.
++            # To handle multiline SQL, replace newlines with spaces and strip
++            # leading/trailing whitespace before applying the regex.
++            sql_oneline = ' '.join(sql.splitlines()).strip()
++            match = self.ordering_parts.match(sql_oneline)
++            if match:
++                without_ordering = match.group(1).strip()
++            else:
++                # Fall back to the whole string if ASC/DESC wasn't found
++                # (e.g., backend specific syntax).
++                without_ordering = sql_oneline
+             params_hash = make_hashable(params)
+             if (without_ordering, params_hash) in seen:
+                 continue
+             seen.add((without_ordering, params_hash))
+             result.append((resolved, (sql, params, is_ref)))
+         return result
+-
+-    def get_extra_select(self, order_by, select):
+-        extra_select = []
+-        if self.query.distinct and not self.query.distinct_fields:
+-            select_sql = [t[1] for t in select]
+-            for expr, (sql, params, is_ref) in order_by:
+-                without_ordering = self.ordering_parts.search(sql).group(1)
+-                if not is_ref and (without_ordering, params) not in select_sql:
++@@ -43,10 +49,16 @@
++     def get_extra_select(self, order_by, select):
++         extra_select = []
++         if self.query.distinct and not self.query.distinct_fields:
++-            select_sql = [t[1] for t in select]
+++            # Create a set of the existing select clauses' SQL and params.
+++            select_sql = {(sql, params) for _, (sql, params), _ in select}
++             for expr, (sql, params, is_ref) in order_by:
++-                without_ordering = self.ordering_parts.search(sql).group(1)
+++                # To handle multiline SQL, replace newlines with spaces and strip
+++                # leading/trailing whitespace before applying the regex.
+++                sql_oneline = ' '.join(sql.splitlines()).strip()
+++                match = self.ordering_parts.match(sql_oneline)
+++                if match:
+++                    without_ordering = match.group(1).strip()
+++                else:
+++                    # Fall back to the whole string if ASC/DESC wasn't found.
+++                    without_ordering = sql_oneline
++                 if not is_ref and (without_ordering, params) not in select_sql:
++                     # Add the ordering clause to the select clause if it isn't
++                     # already present and not a reference to an existing item.
+```

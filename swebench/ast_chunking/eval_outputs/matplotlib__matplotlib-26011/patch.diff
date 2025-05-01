@@ -1,0 +1,23 @@
+```diff
+--- a/lib/matplotlib/axis.py
++++ b/lib/matplotlib/axis.py
+@@ -1218,10 +1218,12 @@
+         if auto is not None:
+             self.set_autoscale_on(auto)
+ 
++        # Emit callback if limits actually changed. The emit flag is used below
++        # to control recursive updates of shared axes, which should not
++        # affect whether the callback is emitted on *this* axis.
++        if changed:
++            self.axes.callbacks.process(f'{name}lim_changed', self.axes)
++
+         if emit:
+-            self.axes.callbacks.process(f'{name}lim_changed', self.axes)
+             # Call all of the other axes that are shared with this one
+-            # _process_unit_info may have added new shared axes, possibly
+-            # including the current one, so retrieve the list again.
+             shared = getattr(self.axes, f'_shared_{name}_axes')
+             for other in shared.get_siblings(self.axes):
+                 if other is not self.axes and other.axison:
+
+```

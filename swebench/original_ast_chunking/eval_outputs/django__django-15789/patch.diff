@@ -1,0 +1,163 @@
+```patch
+--- a/django/template/defaultfilters.py
++++ b/django/template/defaultfilters.py
+@@ -1,10 +1,11 @@
+ """Default variable filters."""
+ 
+ from django.utils.html import json_script as _json_script
++from django.utils.html import conditional_escape, escape, escapejs, linebreaks, strip_tags
+ from django.utils.safestring import SafeData, mark_safe
+ from django.utils.timezone import is_aware, template_localtime
+ from django.utils.translation import gettext, ngettext
+-
++from django.core.serializers.json import DjangoJSONEncoder
+ from .base import Variable, register  # NOQA
+
+ # Unused variable filters are useful for keeping old templates working.
+@@ -15,7 +16,7 @@
+     Output value JSON-encoded, wrapped in a <script type="application/json">
+     tag (with an optional id).
+     """
+-    return _json_script(value, element_id)
++    return _json_script(value, element_id, encoder=DjangoJSONEncoder)
+ 
+ 
+ @register.filter(is_safe=True)
+--- a/django/utils/html.py
++++ b/django/utils/html.py
+@@ -6,6 +6,7 @@
+ from urllib.parse import parse_qsl, quote, unquote, urlencode, urlsplit, urlunsplit
+ 
+ from django.core.exceptions import ValidationError
++from django.core.serializers.json import DjangoJSONEncoder
+ from django.utils.datastructures import MultiValueDict
+ from django.utils.encoding import iri_to_uri
+ from django.utils.functional import Promise, keep_lazy, keep_lazy_text
+@@ -352,14 +353,15 @@
+     return mark_safe(value)
+ 
+ 
+-def json_script(value, element_id=None):
++def json_script(value, element_id=None, encoder=DjangoJSONEncoder):
+     """
+     Safely outputs a Python object as JSON, wrapped in a <script> tag.
+ 
+     The default behavior is to encode dates and times in ISO8601 format.
+ 
+     The contents of the <script> tag must be encoded carefully to contain
+-    valid JSON, and also to be safe from XSS attacks.
++    valid JSON, and also to be safe from XSS attacks. An optional ``encoder``
++    parameter can be used to control the serialization process.
+ 
+     The following characters are escaped in the resulting JSON:
+     <, >, &. This is needed to avoid XSS attacks. It is safe to pass the
+@@ -367,8 +369,6 @@
+ 
+     :param value: Python object to be serialized.
+     :param element_id: Optional ID for the <script> tag.
+-    :param encoder: Optional JSON encoder class. Defaults to
+-        django.core.serializers.json.DjangoJSONEncoder.
+     """
+     from django.core.serializers.json import DjangoJSONEncoder
+ 
+@@ -377,7 +377,7 @@
+     # characters are escaped. This is needed to avoid XSS attacks. It is safe
+     # to pass the result of this function safely into a template.
+     # See https://redux.js.org/recipes/server-rendering/#security-considerations
+-    json_str = json.dumps(value, cls=DjangoJSONEncoder).replace(
++    json_str = json.dumps(value, cls=encoder).replace(
+         "<", "\\u003c"
+     ).replace(
+         ">", "\\u003e"
+--- a/docs/ref/utils.txt
++++ b/docs/ref/utils.txt
+@@ -187,3 +187,21 @@
+ ``strip_tags()`` doesn't check for balanced tags. That is, it doesn't complain
+ if you have an opening tag without a closing tag. It also doesn't try to guess
+ what the author meant by putting ``<a href="foo">`` inside ``<a href="bar">``.
++
++``json_script()``
++=================
++
++.. function:: json_script(value, element_id=None, encoder=DjangoJSONEncoder)
++
++Safely outputs a Python object as JSON, wrapped in a ``<script>`` tag, ready
++for use with JavaScript.
++
++**Argument:** ``value``: The Python object to be serialized.
++
++**Optional arguments:**
++
++* ``element_id``: The ``id`` attribute of the resulting ``<script>`` tag.
++* ``encoder``: A custom JSON encoder class to use for serialization. Defaults
++  to :class:`django.core.serializers.json.DjangoJSONEncoder`.
++
++For example::
++
++    <script id="mydata" type="application/json">{"hello": "world"}</script>
++
++The resulting data can be accessed in JavaScript like this::
++
++    const data = JSON.parse(document.getElementById('mydata').textContent);
++
++This function is also available as a :tfilter:`template filter <json_script>`.
++When used as a filter, the ``encoder`` argument is not available.
++
++The primary use case for this function is to generate data that can be used by
++JavaScript code. It helps protect against cross-site scripting (XSS) attacks
++by escaping the characters ``<``, ``>`` and ``&``.
+--- a/tests/utils_tests/test_html.py
++++ b/tests/utils_tests/test_html.py
+@@ -1,5 +1,6 @@
+ import datetime
+ import json
++import uuid
+ from unittest import SimpleTestCase, mock, skipUnless
+ 
+ from django.core.exceptions import ValidationError
+@@ -7,6 +8,7 @@
+ from django.forms.utils import ErrorDict, ErrorList
+ from django.template import Context, Template
+ from django.template.defaultfilters import register as defaultfilters_register
++from django.core.serializers.json import DjangoJSONEncoder
+ from django.utils import html
+ from django.utils.functional import SimpleLazyObject, lazystr
+ from django.utils.html import (
+@@ -28,6 +30,14 @@
+ )
+ from django.utils.safestring import SafeData, SafeString, mark_safe
+ 
++
++class CustomJsonEncoder(json.JSONEncoder):
++    def encode(self, o):
++        if isinstance(o, uuid.UUID):
++            # Represent UUIDs differently from DjangoJSONEncoder
++            return '"uuid:%s"' % o
++        return super().encode(o)
++
+ # Mock out the built-in format method for testing purposes. It interferes with
+ # the tests otherwise as it results in the format_html tests having __format__
+ # called on them, which results in infinite recursion.
+@@ -332,6 +342,21 @@
+         )
+         self.assertEqual(result, expected)
+ 
++    def test_json_script_custom_encoder(self):
++        data = {"uuid": uuid.uuid4()}
++        expected = (
++            '<script id="data" type="application/json">'
++            '"uuid:%s"</script>' % data["uuid"]
++        )
++        result = json_script(data["uuid"], "data", encoder=CustomJsonEncoder)
++        self.assertEqual(result, expected)
++
++    def test_json_script_default_encoder_from_filter(self):
++        # Ensure the filter uses the default DjangoJSONEncoder
++        data = {"date": datetime.date(2023, 1, 1)}
++        expected = '<script id="data" type="application/json">{"date": "2023-01-01"}</script>'
++        t = Template('{{ data|json_script:"data" }}')
++        self.assertEqual(t.render(Context({"data": data})), expected)
+ 
+ class EscapeTests(SimpleTestCase):
+ 
+```

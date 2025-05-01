@@ -1,0 +1,42 @@
+```patch
+--- a/django/db/models/fields/related.py
++++ b/django/db/models/fields/related.py
+@@ -1,6 +1,7 @@
++from django.db.models.constants import RECURSIVE_RELATIONSHIP_CONSTANT
++
+ def contribute_to_class(self, cls, name, **kwargs):
+     # To support multiple relations to self, it's useful to have a non-None
+     # related name on symmetrical relations for internal reasons. The
+     # concept doesn't make a lot of sense externally ("you want me to
+@@ -21,6 +22,30 @@
+             cls.__name__.lower(),
+             name,
+         )
++    # Check for potential clashes if no related_name is explicitly provided
++    # and it wasn't handled by symmetrical/hidden logic above.
++    elif self.remote_field.related_name is None:
++        default_related_name = self.remote_field.get_accessor_name()
++        # Avoid checks for '+' names or if default is None (e.g. symmetrical m2m handled above)
++        if default_related_name and not default_related_name.endswith('+'):
++            potential_clash = False
++            for other_field in cls._meta.get_fields(include_hidden=True):
++                # Check other relations on the same model targeting the same remote model
++                if (
++                    other_field.is_relation
++                    and other_field != self
++                    and other_field.remote_field.model == self.remote_field.model
++                    and not other_field.remote_field.is_hidden()
++                    # Check if the other field *also* uses the default name and it matches ours
++                    # AND ensure the other field isn't handled by symmetrical/hidden logic either
++                    and other_field.remote_field.related_name is None
++                    and not (other_field.remote_field.symmetrical and (other_field.remote_field.model == RECURSIVE_RELATIONSHIP_CONSTANT or other_field.remote_field.model == cls._meta.object_name)) # Exclude symmetrical self M2M
++                    and other_field.remote_field.get_accessor_name() == default_related_name
++                ):
++                    potential_clash = True
++                    break
++            if potential_clash:
++                self.remote_field.related_name = name
+
+     super().contribute_to_class(cls, name, **kwargs)
+
+```

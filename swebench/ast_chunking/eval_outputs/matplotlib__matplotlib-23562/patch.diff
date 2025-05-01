@@ -1,0 +1,18 @@
+```diff
+--- a/lib/mpl_toolkits/mplot3d/art3d.py
++++ b/lib/mpl_toolkits/mplot3d/art3d.py
+@@ -18,10 +18,10 @@
+         self.stale = True
+
+     def get_facecolor(self):
+-        return self._facecolors2d
++        return self._facecolor3d
+
+     def get_edgecolor(self):
+-        return self._edgecolors2d
++        return self._edgecolor3d
+
+     get_facecolors = get_facecolor
+     get_edgecolors = get_edgecolor
+
+```

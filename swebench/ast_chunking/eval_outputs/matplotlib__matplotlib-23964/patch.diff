@@ -1,0 +1,15 @@
+```diff
+--- a/lib/matplotlib/backends/backend_ps.py
++++ b/lib/matplotlib/backends/backend_ps.py
+@@ -669,6 +669,9 @@
+             else:
+                 stream = self._get_text_stream(line, prop)
+
++            if stream is None:
++                continue
++
+             for ps_name, xs_names in stream:
+                 self.set_color(*gc.get_rgb(), store=False)
+                 self.set_font(ps_name, prop.get_size_in_points(), store=False)
+
+```

@@ -1,0 +1,84 @@
+```patch
+--- a/sympy/assumptions/refine.py
++++ b/sympy/assumptions/refine.py
+@@ -1,9 +1,10 @@
+ from typing import Dict, Callable
+ 
+-from sympy.core import S, Add, Expr, Basic, Mul
++from sympy.core import S, Add, Expr, Basic, Mul, pi
+ from sympy.logic.boolalg import Boolean
+ 
+ from sympy.assumptions import ask, Q  # type: ignore
++from sympy.core.numbers import nan
+ 
+ 
+ def refine(expr, assumptions=True):
+@@ -71,6 +72,49 @@
+     return None
+ 
+ 
++def refine_arg(expr, assumptions):
++    """
++    Handler for the arg() function.
++
++    Examples
++    ========
++
++    >>> from sympy.assumptions.refine import refine_arg
++    >>> from sympy import Symbol, Q, arg, I, pi, im
++    >>> x = Symbol('x')
++    >>> refine_arg(arg(x), Q.positive(x))
++    0
++    >>> refine_arg(arg(x), Q.negative(x))
++    pi
++    >>> y = Symbol('y', imaginary=True)
++    >>> refine_arg(arg(y), Q.imaginary(y) & Q.positive(im(y)))
++    pi/2
++    >>> refine_arg(arg(y), Q.imaginary(y) & Q.negative(im(y)))
++    -pi/2
++    >>> refine_arg(arg(Symbol('z', zero=True)), Q.zero(Symbol('z', zero=True)))
++    nan
++    """
++    from sympy.functions.elementary.complexes import im
++    arg_expr = expr.args[0]
++
++    if ask(Q.zero(arg_expr), assumptions):
++        return nan
++    if ask(Q.positive(arg_expr), assumptions):
++        return S.Zero
++    if ask(Q.negative(arg_expr), assumptions):
++        return S.Pi
++    if ask(Q.real(arg_expr), assumptions):
++        if ask(Q.nonnegative(arg_expr), assumptions):
++             return S.Zero
++        if ask(Q.nonpositive(arg_expr), assumptions):
++             return S.Pi
++    if ask(Q.imaginary(arg_expr), assumptions):
++        im_part = im(arg_expr)
++        if ask(Q.positive(im_part), assumptions):
++            return pi / 2
++        if ask(Q.negative(im_part), assumptions):
++            return -pi / 2
++    return None
++
+ def refine_im(expr, assumptions):
+     """
+     Handler for the im() function.
+@@ -146,7 +190,7 @@
+ # Handler dictionary mapping classes to functions. Every function should
+ # be of the form ``refine_FUNCTION(expr, assumptions)`` and return
+ # the refined expression or ``None`` if it is not possible to refine it.
+-from sympy.functions.elementary.complexes import Abs, sign, re, im
++from sympy.functions.elementary.complexes import Abs, sign, re, im, arg
+ from sympy.functions.elementary.piecewise import Piecewise
+ from sympy.logic.boolalg import Boolean
+ from sympy.core.relational import Relational
+@@ -156,6 +200,7 @@
+     Abs: refine_Abs,
+     sign: refine_sign,
+     re: refine_re,
++    arg: refine_arg,
+     im: refine_im,
+     Piecewise: refine_Piecewise,
+     Boolean: refine_Boolean,
+```

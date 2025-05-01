@@ -1,0 +1,104 @@
+2025-05-01 01:38:03,957 - INFO - Creating container for astropy__astropy-14182...
+2025-05-01 01:38:04,084 - INFO - Container for astropy__astropy-14182 created: 2a60547254d619c187b3c6dfd8ac334a58539f3562f8bb3cb07a8b8ada6ceb96
+2025-05-01 01:38:04,752 - INFO - Container for astropy__astropy-14182 started: 2a60547254d619c187b3c6dfd8ac334a58539f3562f8bb3cb07a8b8ada6ceb96
+2025-05-01 01:38:04,753 - INFO - Intermediate patch for astropy__astropy-14182 written to logs/run_evaluation/20250501_013755/swebench-lite_fixed-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/astropy__astropy-14182/patch.diff, now applying to container...
+2025-05-01 01:38:04,916 - INFO - >>>>> Applied Patch:
+Checking patch astropy/io/ascii/rst.py...
+Hunk #1 succeeded at 52 (offset 41 lines).
+Applied patch astropy/io/ascii/rst.py cleanly.
+
+2025-05-01 01:38:05,555 - INFO - Git diff before:
+diff --git a/astropy/io/ascii/rst.py b/astropy/io/ascii/rst.py
+index abdeba8efb..d994b8919b 100644
+--- a/astropy/io/ascii/rst.py
++++ b/astropy/io/ascii/rst.py
+@@ -52,15 +52,21 @@ class RST(FixedWidth):
+ 
+     """
+ 
++    # Need to inherit from FixedFixedWidth to get header_rows functionality
++    # through BaseHeader/BaseWriter easily.
++    # SimpleRSTHeader inherits FixedFixedWidthHeader.
++    # SimpleRSTData inherits FixedFixedWidthData.
+     _format_name = "rst"
+     _description = "reStructuredText simple table"
+     data_class = SimpleRSTData
+     header_class = SimpleRSTHeader
+ 
+-    def __init__(self):
+-        super().__init__(delimiter_pad=None, bookend=False)
++    def __init__(self, **kwargs):
++        # Ensure default RST behavior if not overridden
++        kwargs.setdefault("delimiter_pad", None)
++        kwargs.setdefault("bookend", False)
++        super().__init__(**kwargs)
+ 
+     def write(self, lines):
+-        lines = super().write(lines)
+-        lines = [lines[1]] + lines + [lines[1]]
+-        return lines
++        # lines has [header1, ..., headerN, separator, data1, ..., dataM]
++        n_header = len(self.header.header_rows)
+diff --git a/pyproject.toml b/pyproject.toml
+index 0d1ee66ab9..ec234472e2 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -1,5 +1,5 @@
+ [build-system]
+-requires = ["setuptools",
++requires = ["setuptools==68.0.0",
+             "setuptools_scm>=6.2",
+             "wheel",
+             "cython==0.29.30",
+2025-05-01 01:38:05,555 - INFO - Eval script for astropy__astropy-14182 written to logs/run_evaluation/20250501_013755/swebench-lite_fixed-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/astropy__astropy-14182/eval.sh; copying to container...
+2025-05-01 01:40:09,503 - INFO - Test runtime: 123.89 seconds
+2025-05-01 01:40:09,505 - INFO - Test output for astropy__astropy-14182 written to logs/run_evaluation/20250501_013755/swebench-lite_fixed-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/astropy__astropy-14182/test_output.txt
+2025-05-01 01:40:09,571 - INFO - Git diff after:
+diff --git a/astropy/io/ascii/rst.py b/astropy/io/ascii/rst.py
+index abdeba8efb..d994b8919b 100644
+--- a/astropy/io/ascii/rst.py
++++ b/astropy/io/ascii/rst.py
+@@ -52,15 +52,21 @@ class RST(FixedWidth):
+ 
+     """
+ 
++    # Need to inherit from FixedFixedWidth to get header_rows functionality
++    # through BaseHeader/BaseWriter easily.
++    # SimpleRSTHeader inherits FixedFixedWidthHeader.
++    # SimpleRSTData inherits FixedFixedWidthData.
+     _format_name = "rst"
+     _description = "reStructuredText simple table"
+     data_class = SimpleRSTData
+     header_class = SimpleRSTHeader
+ 
+-    def __init__(self):
+-        super().__init__(delimiter_pad=None, bookend=False)
++    def __init__(self, **kwargs):
++        # Ensure default RST behavior if not overridden
++        kwargs.setdefault("delimiter_pad", None)
++        kwargs.setdefault("bookend", False)
++        super().__init__(**kwargs)
+ 
+     def write(self, lines):
+-        lines = super().write(lines)
+-        lines = [lines[1]] + lines + [lines[1]]
+-        return lines
++        # lines has [header1, ..., headerN, separator, data1, ..., dataM]
++        n_header = len(self.header.header_rows)
+diff --git a/pyproject.toml b/pyproject.toml
+index 0d1ee66ab9..ec234472e2 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -1,5 +1,5 @@
+ [build-system]
+-requires = ["setuptools",
++requires = ["setuptools==68.0.0",
+             "setuptools_scm>=6.2",
+             "wheel",
+             "cython==0.29.30",
+2025-05-01 01:40:09,571 - INFO - Grading answer for astropy__astropy-14182...
+2025-05-01 01:40:09,577 - INFO - report: {'astropy__astropy-14182': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['astropy/io/ascii/tests/test_rst.py::test_rst_with_header_rows']}, 'PASS_TO_PASS': {'success': ['astropy/io/ascii/tests/test_rst.py::test_read_normal', 'astropy/io/ascii/tests/test_rst.py::test_read_normal_names', 'astropy/io/ascii/tests/test_rst.py::test_read_normal_names_include', 'astropy/io/ascii/tests/test_rst.py::test_read_normal_exclude', 'astropy/io/ascii/tests/test_rst.py::test_read_unbounded_right_column', 'astropy/io/ascii/tests/test_rst.py::test_read_unbounded_right_column_header', 'astropy/io/ascii/tests/test_rst.py::test_read_right_indented_table', 'astropy/io/ascii/tests/test_rst.py::test_trailing_spaces_in_row_definition'], 'failure': ['astropy/io/ascii/tests/test_rst.py::test_write_normal']}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for astropy__astropy-14182: resolved: False
+2025-05-01 01:40:09,578 - INFO - Attempting to stop container sweb.eval.astropy__astropy-14182.20250501_013755...
+2025-05-01 01:40:24,868 - INFO - Attempting to remove container sweb.eval.astropy__astropy-14182.20250501_013755...
+2025-05-01 01:40:24,946 - INFO - Container sweb.eval.astropy__astropy-14182.20250501_013755 removed.

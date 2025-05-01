@@ -1,0 +1,20 @@
+```diff
+--- a/sklearn/feature_selection/mutual_info_.py
++++ b/sklearn/feature_selection/mutual_info_.py
+@@ -50,10 +50,11 @@
+     """
+     X, y = check_X_y(X, y, accept_sparse='csc', y_numeric=not discrete_target)
+     n_samples, n_features = X.shape
+-
+-    if discrete_features == 'auto':
++
++    # Determine the discrete mask
++    if isinstance(discrete_features, str) and discrete_features == 'auto':
+         discrete_features = issparse(X)
+-
++    # Now discrete_features is bool or array-like
+     if isinstance(discrete_features, bool):
+         discrete_mask = np.empty(n_features, dtype=bool)
+         discrete_mask.fill(discrete_features)
+
+```

@@ -1,0 +1,58 @@
+```patch
+--- a/sympy/polys/polyoptions.py
++++ b/sympy/polys/polyoptions.py
+@@ -6,8 +6,8 @@
+ _re_realfield = re.compile(r"^(R|RR)(_(\d+))?$")
+ _re_complexfield = re.compile(r"^(C|CC)(_(\d+))?$")
+ _re_finitefield = re.compile(r"^(FF|GF)\((\d+)\)$")
+-_re_polynomial = re.compile(r"^(Z|ZZ|Q|QQ)\[(.+)\]$")
+-_re_fraction = re.compile(r"^(Z|ZZ|Q|QQ)\((.+)\)$")
++_re_polynomial = re.compile(r"^(Z|ZZ|Q|QQ|R|RR|C|CC)\[(.+)\]$")
++_re_fraction = re.compile(r"^(Z|ZZ|Q|QQ|R|RR|C|CC)\((.+)\)$")
+ _re_algebraic = re.compile(r"^(Q|QQ)\<(.+)\>$")
+ 
+ @classmethod
+@@ -116,12 +116,18 @@
+ 
+             if r is not None:
+                 ground, gens = r.groups()
+-
+                 gens = list(map(sympify, gens.split(',')))
+ 
+                 if ground in ['Z', 'ZZ']:
+-                    return sympy.polys.domains.ZZ.poly_ring(*gens)
++                    ground_domain = sympy.polys.domains.ZZ
++                elif ground in ['Q', 'QQ']:
++                    ground_domain = sympy.polys.domains.QQ
++                elif ground in ['R', 'RR']:
++                    ground_domain = sympy.polys.domains.RR
++                elif ground in ['C', 'CC']:
++                    ground_domain = sympy.polys.domains.CC
+                 else:
+-                    return sympy.polys.domains.QQ.poly_ring(*gens)
++                    raise OptionError("Invalid ground domain: %s" % ground) # Should not happen with regex
++                return ground_domain.poly_ring(*gens)
+ 
+             r = cls._re_fraction.match(domain)
+ 
+@@ -132,10 +138,16 @@
+                 gens = list(map(sympify, gens.split(',')))
+ 
+                 if ground in ['Z', 'ZZ']:
+-                    return sympy.polys.domains.ZZ.frac_field(*gens)
++                    ground_domain = sympy.polys.domains.ZZ
++                elif ground in ['Q', 'QQ']:
++                    ground_domain = sympy.polys.domains.QQ
++                elif ground in ['R', 'RR']:
++                    ground_domain = sympy.polys.domains.RR
++                elif ground in ['C', 'CC']:
++                    ground_domain = sympy.polys.domains.CC
+                 else:
+-                    return sympy.polys.domains.QQ.frac_field(*gens)
+-
++                    raise OptionError("Invalid ground domain: %s" % ground) # Should not happen with regex
++                return ground_domain.frac_field(*gens)
+             r = cls._re_algebraic.match(domain)
+ 
+             if r is not None:
+```

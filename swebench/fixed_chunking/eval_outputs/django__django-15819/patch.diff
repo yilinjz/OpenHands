@@ -1,0 +1,78 @@
+```patch
+--- a/django/core/management/commands/inspectdb.py
++++ b/django/core/management/commands/inspectdb.py
+@@ -1,5 +1,6 @@
+ import keyword
+ import re
++from collections import defaultdict
+ 
+ from django.core.management.base import BaseCommand, CommandError
+ from django.db import ConnectionHandler, connections
+@@ -126,6 +127,7 @@
+ 
+                     # Store field data before generating model output
+                     fields_data = []
++                    relations_map = defaultdict(list)  # Map: related_model_repr -> [field_name]
+ 
+                     for i, row in enumerate(description):
+                         column_name = row.name
+@@ -172,6 +174,7 @@
+                                 field_params["to"] = rel_to_repr
+                                 field_params["db_column"] = repr(column_name)
+                                 att_name = self.normalize_col_name(att_name)
++                                relations_map[rel_to_repr].append(att_name)
+                             else:
+                                 # Calling str() on relation object is not useful.
+                                 field_type = "IntegerField"
+@@ -209,6 +212,7 @@
+                             "type": field_type,
+                             "params": field_params,
+                             "notes": field_notes,
++                            "related_model_repr": rel_to_repr if is_relation else None,
+                         }
+                         fields_data.append(current_field_data)
+ 
+@@ -220,10 +224,25 @@
+                         # {'name': 'm2m_field', 'type': 'ManyToManyField', 'params': {'to': "'app.TargetModel'", ...}, 'notes': []}
+                         rel_to_repr = field_info["params"].get("to")
+                         if rel_to_repr:
++                            # Track M2M relation for clash detection
+                             relations_map[rel_to_repr].append(field_info["name"])
++                            field_info["related_model_repr"] = rel_to_repr
++                        else:
++                            field_info["related_model_repr"] = None
+                         fields_data.append(field_info)
+ 
++                    # Add related_name where necessary to resolve clashes
++                    clashed_fields = set()
++                    for related_model_repr, field_names in relations_map.items():
++                        if len(field_names) > 1:
++                            clashed_fields.update(field_names)
++
++                    for field_data in fields_data:
++                        if field_data["name"] in clashed_fields and field_data["type"] in ("ForeignKey", "ManyToManyField"):
++                            if "related_name" not in field_data["params"]:
++                                field_data["params"]["related_name"] = repr(field_data["name"])
++
+                     # Generate model output
+                     model_output = [""]
+                     model_output.append("class %s(models.Model):" % model_name)
+@@ -231,7 +250,7 @@
+                     field_output = []
+                     for field_data in fields_data:
+                         # Generate the field line string
+-                        field_desc = f"{field_data['name']} = models.{field_data['type']}("
++                        field_desc = f"{field_data['name']} = models.{field_data['type']}(" # noqa: B028
+                         params = field_data["params"].copy()
+ 
+                         # Move 'to' argument first for relations
+@@ -244,7 +263,7 @@
+ 
+                         # Add keyword arguments sorted for consistency
+                         if params:
+-                            field_desc += ", ".join(f"{k}={v}" for k, v in params.items())
++                            field_desc += ", ".join(f"{k}={v}" for k, v in sorted(params.items()))
+ 
+                         field_desc += ")"
+ 
+```

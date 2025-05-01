@@ -1,0 +1,23 @@
+```patch
+--- a/lib/matplotlib/colors.py
++++ b/lib/matplotlib/colors.py
+@@ -727,13 +727,13 @@
+             # This is the most common case, so optimize for it.
+             # Note: <= and >= must be used here, not < and >, to make sure
+             # that out-of-range values are assigned the over/under colors.
+-            xa[xa > self.N - 1] = self._i_over
+-            xa[xa < 0] = self._i_under
++            xa[xa > self.N - 1] = xa.dtype.type(self._i_over)
++            xa[xa < 0] = xa.dtype.type(self._i_under)
+         elif self.cmap.colorbar_extend == 'min':
+-            xa[xa < 0] = self._i_under
++            xa[xa < 0] = xa.dtype.type(self._i_under)
+         elif self.cmap.colorbar_extend == 'max':
+-            xa[xa > self.N - 1] = self._i_over
++            xa[xa > self.N - 1] = xa.dtype.type(self._i_over)
+         if mask_bad:
+-            xa[mask_bad] = self._i_bad
++            xa[mask_bad] = xa.dtype.type(self._i_bad)
+         return xa
+
+```

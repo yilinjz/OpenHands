@@ -1,0 +1,26 @@
+```patch
+--- a/sphinx/builders/manpage.py
++++ b/sphinx/builders/manpage.py
+@@ -10,7 +10,7 @@
+     :license: BSD, see LICENSE for details.
+ """
+ 
+-from os import path
++import os
+ from typing import Any, Dict, List, Set, Tuple, Union
+ 
+ from docutils.frontend import OptionParser
+@@ -51,9 +51,11 @@
+ 
+             targetname = '%s.%s' % (name, section)
+             logger.info(darkgreen(targetname) + ' { ', nonl=True)
++            # ensure section directory exists
++            sectiondir = os.path.join(self.outdir, 'man' + str(section))
++            os.makedirs(sectiondir, exist_ok=True)
+             destination = FileOutput(
+-                destination_path=path.join(self.outdir, targetname),
++                destination_path=os.path.join(sectiondir, targetname),
+                 encoding='utf-8')
+ 
+             tree = self.env.get_doctree(docname)
+```

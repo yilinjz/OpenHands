@@ -1,0 +1,32 @@
+```patch
+--- a/sympy/sets/sets.py
++++ b/sympy/sets/sets.py
+@@ -1,5 +1,7 @@
++from sympy.core.singleton import S
+ from sympy.sets.fancysets import Range
+ from sympy.utilities.iterables import sift, ordered
++from sympy.core.compatibility import as_int
+ 
+ 
+ def simplify_intersection(args):
+@@ -14,6 +16,10 @@
+     if not args:
+         return S.UniversalSet
+ 
++    # Remove duplicates before any processing
++    # Use set for uniqueness, then ordered for canonical representation
++    args = tuple(ordered(set(args)))
++
+     for arg in args:
+         if not isinstance(arg, Set):
+             raise TypeError("Input args to Union must be Sets")
+@@ -50,7 +56,7 @@
+ 
+     # ===== Pair-wise Rules =====
+     # Here we depend on rules built into the constituent sets
+-    args = set(args)
++    args = set(args) # Use a set for efficient manipulation in the loop
+     new_args = True
+     while new_args:
+         for s in args:
+```

@@ -1,0 +1,37 @@
+```diff
+--- a/django/db/models/sql/query.py
++++ b/django/db/models/sql/query.py
+@@ -17,7 +17,7 @@
+ from django.db.models.constants import LOOKUP_SEP
+ from django.db.models.deletion import CASCADE, DO_NOTHING, SET_NULL
+ from django.db.models.expressions import (
+-    Case, Col, Exists, ExpressionList, ExpressionWrapper, F, Func, OrderBy,
++    Case, Col, Exists, Expression, ExpressionList, ExpressionWrapper, F, Func, OrderBy,
+     OuterRef, RawSQL, Ref, Star, Subquery, Value, When, Window, WindowFrame,
+ )
+ from django.db.models.fields import Field
+@@ -1128,15 +1128,17 @@
+
+     def check_filterable(self, expression):
+         """Raise an error if expression cannot be used in a WHERE clause."""
+-        if not getattr(expression, 'filterable', True):
++        # Check filterable attribute only if it's an Expression subclass.
++        # Model instances used as filter values should not be checked this way,
++        # nor should simple values like strings or numbers.
++        if isinstance(expression, Expression) and not getattr(expression, 'filterable', True):
+             raise NotSupportedError(
+-                expression.__class__.__name__ + ' is disallowed in the filter '
+-                'clause.'
++                f'{expression.__class__.__name__} is disallowed in the filter clause.'
+             )
+         if hasattr(expression, 'get_source_expressions'):
+             for expr in expression.get_source_expressions():
+-                self.check_filterable(expr)
+-
++                if expr is not expression:  # Avoid infinite recursion.
++                    self.check_filterable(expr)
+ 
+     def build_lookup(self, lookups, lhs, rhs):
+         """
+
+```

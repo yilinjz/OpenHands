@@ -1,0 +1,37 @@
+```patch
+--- a/xarray/core/variable.py
++++ b/xarray/core/variable.py
+@@ -257,14 +257,23 @@
+ 
+     if isinstance(obj, tuple):
+         try:
+-            data = obj[1]
+-            # If the data is already a DataArray, attempt to possibly take its name.
++            # unpack tuple arguments
++            dims = obj[0]
++            data = obj[1]
++            attrs = obj[2] if len(obj) > 2 else None
++            encoding = obj[3] if len(obj) > 3 else None
++
++            if isinstance(data, DataArray):
++                # If data is a DataArray, extract its Variable and update metadata
+             # This allows writing ``xr.Dataset({'a': ('x', da.a)})``
+-            if isinstance(data, DataArray):
+-                if name is None:
+-                    name = data.name
+-            obj = Variable(*obj)
++                variable = data.variable.copy(deep=False)
++                variable._dims = Variable._parse_dimensions(dims)
++                if attrs is not None:
++                    variable.attrs = attrs
++                if encoding is not None:
++                    variable.encoding = encoding
++                variable._validate_dimensions()
++                obj = variable
++            else:
++                # Otherwise, create a new Variable object
++                obj = Variable(dims, data, attrs, encoding)
+         except (TypeError, IndexError):
+             raise ValueError(
+                 "cannot convert tuple to variable unless it is of "
+```

@@ -1,0 +1,30 @@
+```patch
+--- a/django/db/models/sql/compiler.py
++++ b/django/db/models/sql/compiler.py
+@@ -44,19 +44,17 @@
+              # Converts string references to expressions.
+              for expr in self.query.group_by:
+                  if not hasattr(expr, 'as_sql'):
+-                     expressions.append(self.query.resolve_ref(expr))
++                     expr = self.query.resolve_ref(expr)
++                 # If the expression is a Ref to an annotation, use the
++                 # underlying annotation expression for grouping.
++                 if isinstance(expr, Ref) and expr.refs in self.query.annotations:
++                     expressions.append(self.query.annotations[expr.refs])
+                  else:
+                      expressions.append(expr)
+-         # Note that even if the group_by is set, it is only the minimal
+-         # set to group by. So, we need to add cols in select, order_by, and
+-         # having into the select in any case.
+          ref_sources = {
+              expr.source for expr in expressions if isinstance(expr, Ref)
+          }
+          for expr, _, _ in select:
+-             # Skip members of the select clause that are already included
+-             # by reference.
+-             if expr in ref_sources:
+-                 continue
+              cols = expr.get_group_by_cols()
+              for col in cols:
+                  expressions.append(col)
+```

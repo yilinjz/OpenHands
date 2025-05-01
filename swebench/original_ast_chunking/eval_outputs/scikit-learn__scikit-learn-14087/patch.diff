@@ -1,0 +1,95 @@
+```patch
+--- a/sklearn/linear_model/logistic.py
++++ b/sklearn/linear_model/logistic.py
+@@ -2176,32 +2176,47 @@
+                 self.l1_ratio_ = self.l1_ratios_[best_index]
+ 
+         else:
+-            # For multi_class="multinomial", the coefs_paths has shape
+-            # (n_classes, n_folds, n_cs, n_features)
+-            # For multi_class="ovr", the coefs_paths has shape
+-            # (n_folds, n_cs, n_features)
++            # Average the coefficients obtained for the best C parameter(s)
++            # For multi_class="multinomial", coefs_paths has shape
++            # (n_classes, n_folds, n_params, n_features + intercept)
++            # For multi_class="ovr" or binary, coefs_paths has shape
++            # (n_folds, n_params, n_features + intercept)
++            # where n_params = len(Cs) * len(l1_ratios)
++
+             if multi_class == 'multinomial':
+-                # Note: coefs_paths has shape (n_classes, n_folds, n_cs, n_features)
+-                # we must reshape to (n_classes, n_folds, n_cs, n_features)
+-                # for the indexing below. Note that the inner two dimensions are flattened
+-                # already in the result of logistic_regression_path.
+-                w = np.empty((n_classes, n_features + int(self.fit_intercept)))
+-                for i in range(n_classes):
+-                    w[i] = np.mean([coefs_paths[i, f, best_indices[i], :]
+-                                    for f in range(len(folds))], axis=0)
+-            else:
+-                w = np.mean([coefs_paths[:, i, best_indices[i], :]
+-                             for i in range(len(folds))], axis=0)
+-
+-            if self.fit_intercept:
+-                self.coef_ = w[:, :-1]
+-                self.intercept_ = w[:, -1]
+-            else:
+-                self.coef_ = w
+-                self.intercept_ = np.zeros(n_classes)
+-
+-            best_indices_C = best_indices % len(self.Cs_)
+-            self.C_ = self.Cs_[best_indices_C]
+-            if self.l1_ratios_ is not None:
+-                best_indices_l1 = best_indices // len(self.Cs_)
+-                self.l1_ratio_ = self.l1_ratios_[best_indices_l1]
++                # coefs_paths shape: (n_classes, n_folds, n_params, n_features + intercept)
++                # best_indices shape: (1,) - index into n_params
++                best_index = best_indices[0]  # Only one best index for multinomial
++
++                # Average coefficients across folds for the best parameter set
++                # coefs_paths[:, :, best_index, :] has shape (n_classes, n_folds, n_features + intercept)
++                # Mean over folds (axis=1)
++                w_ = np.mean(coefs_paths[:, :, best_index, :], axis=1)
++                # w_ shape: (n_classes, n_features + intercept)
++
++                if self.fit_intercept:
++                    self.coef_ = w_[:, :n_features]  # Shape (n_classes, n_features)
++                    self.intercept_ = w_[:, -1]      # Shape (n_classes,)
++                else:
++                    self.coef_ = w_                  # Shape (n_classes, n_features)
++                    self.intercept_ = np.zeros(n_classes)  # Shape (n_classes,)
++
++                self.C_ = self.Cs_[best_index].reshape(1,)  # Shape (1,)
++                if self.l1_ratios_ is not None:
++                    self.l1_ratio_ = self.l1_ratios_[best_index].reshape(1,)  # Shape (1,)
++
++            else:  # ovr or binary
++                # coefs_paths shape: (n_folds, n_params, n_features + intercept)
++                # best_indices shape: (n_classes,) where n_classes=1 for binary
++                self.coef_ = np.empty((n_classes, n_features))
++                if self.fit_intercept:
++                    self.intercept_ = np.empty(n_classes)
++                self.C_ = np.empty(n_classes)
++                if self.l1_ratios_ is not None:
++                    self.l1_ratio_ = np.empty(n_classes)
++
++                for k in range(n_classes):
++                    best_index_k = best_indices[k]
++                    # Select coefficients for the best param for class k, across all folds
++                    # coefs_paths[:, best_index_k, :] has shape (n_folds, n_features + intercept)
++                    # Mean over folds (axis=0)
++                    w_k = np.mean(coefs_paths[:, best_index_k, :], axis=0)
++                    # w_k shape: (n_features + intercept,)
++
++                    self.coef_[k] = w_k[:n_features]
++                    if self.fit_intercept:
++                        self.intercept_[k] = w_k[-1]
++                    self.C_[k] = self.Cs_[best_index_k]
++                    if self.l1_ratios_ is not None:
++                        self.l1_ratio_[k] = self.l1_ratios_[best_index_k]
++
++                if not self.fit_intercept:
++                    self.intercept_ = np.zeros(n_classes)  # Shape (n_classes,)
+ 
+         self.scores_ = scores
+         self.coefs_paths_ = coefs_paths
+```

@@ -1,0 +1,63 @@
+```patch
+--- a/django/db/migrations/autodetector.py
++++ b/django/db/migrations/autodetector.py
+@@ -761,23 +761,43 @@
+             model_name,
+             dependencies,
+         ) in self._get_altered_foo_together_operations(option_name):
+-            removed_values = old_value.difference(new_value)
++            # Calculate initial differences
++            removed_values = old_value.difference(new_value)
+             added_values = new_value.difference(old_value)
+-            if removed_values == old_value and not new_value:
++
++            effective_removed_values = removed_values
++            effective_added_values = added_values
++
++            # If dealing with index_together, account for values moved to Meta.indexes
++            if option_name == "index_together":
++                renamed = self.renamed_index_together_values.get(
++                    (app_label, model_name), []
++                )
++                # Filter out removed values that were actually renamed to indexes
++                effective_removed_values = {
++                    val for val in removed_values if val not in renamed
++                }
++
++            # If, after filtering, there are no effective changes left, skip generating
++            # any AlterIndexTogether or RemoveIndexTogether operation.
++            if not effective_removed_values and not effective_added_values:
++                continue
++
++            # Check if this change represents a complete removal of all original values
++            # and no new values were added.
++            is_complete_removal = removed_values == old_value and not new_value
++
++            if is_complete_removal:
++                # Generate RemoveFooTogether operation only if there were effective
++                # removals (i.e., not everything was renamed).
++                # Note: effective_added_values must be empty in this case.
++                if effective_removed_values:
++                    # RemovedInDjango51Warning.
++                    self.add_operation(
++                        app_label,
++                        operation_class.removal_operation_class(model_name),
++                        dependencies=dependencies,
++                        beginning=True,
++                    )
++            elif effective_removed_values or effective_added_values:
+                 # RemovedInDjango51Warning.
+-                # Generate RemoveFooTogether operation.
+-                self.add_operation(
+-                    app_label,
+-                    operation_class.removal_operation_class(model_name),
+-                    dependencies=dependencies,
+-                    beginning=True,
+-                )
+-            elif removed_values or added_values:
+-                # RemovedInDjango51Warning.
+-                # Generate AlterFooTogether operation.
+                 self.add_operation(
+                     app_label,
+                     operation_class(model_name, new_value),
+```

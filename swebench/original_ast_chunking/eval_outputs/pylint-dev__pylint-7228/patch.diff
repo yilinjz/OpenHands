@@ -1,0 +1,51 @@
+```patch
+--- a/pylint/config/option.py
++++ b/pylint/config/option.py
+@@ -10,6 +10,7 @@
+ import copy
+ import optparse  # pylint: disable=deprecated-module
+ import os
++import re
+ from collections.abc import Callable
+ from typing import TYPE_CHECKING, Any, Literal
+ 
+@@ -102,20 +103,29 @@
+         if self.type is None:
+             return value
+         if isinstance(value, str):
++            # Special handling for specific types
++            if self.type is bool:
++                try:
++                    return utils.str_to_bool(value)
++                except ValueError as e:
++                    # Raise specific error for bool conversion failure
++                    raise ValueError(
++                        f"Invalid boolean value {value!r} for option '{self.optid}'"
++                    ) from e
++            if self.type is re.compile:
++                try:
++                    # Attempt to compile the regex
++                    return self.type(value)
++                except re.error as e:
++                    # Raise a more specific error for invalid regex syntax
++                    raise ValueError(
++                        f"Invalid regular expression for option '{self.optid}': {value!r}. "
++                        f"Python's 're' module does not support this syntax (e.g., PCRE properties like '\\p{{...}}'). "
++                        f"Original error: {e}"
++                    ) from e
++            if self.type == _parse_rich_type_value:
++                # This type already handles its own potential errors
++                return _parse_rich_type_value(value)
++
++            # General case: attempt to call the type constructor
+             try:
+-                # Special handling for specific types
+-                if self.type is bool:
+-                    return utils.str_to_bool(value)
+-                if self.type == _parse_rich_type_value:
+-                    return _parse_rich_type_value(value)
+-                # General case: call the type constructor
+                 return self.type(value)
+             except (TypeError, ValueError) as e:
+                 # Provide a helpful error message for type conversion issues
+```

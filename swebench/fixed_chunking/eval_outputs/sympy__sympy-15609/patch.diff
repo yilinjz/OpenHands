@@ -1,0 +1,27 @@
+```patch
+--- a/sympy/printing/latex.py
++++ b/sympy/printing/latex.py
+@@ -997,8 +997,19 @@
+             return r"\left(%s\right)" % self._print(expr.args[0])
+         return r"\operatorname{erfc}%s" % tex
+
++    def _print_MatrixElement(self, expr):
++        # Print indices i and j
++        i_str = self._print(expr.i)
++        j_str = self._print(expr.j)
++
++        # Add braces around indices starting with underscore
++        # to prevent double subscript errors e.g. M_{i, _k}
++        if i_str.startswith('_'):
++            i_str = '{%s}' % i_str
++        if j_str.startswith('_'):
++            j_str = '{%s}' % j_str
++
++        return self._print(expr.parent) + '_{%s, %s}' % (i_str, j_str)
+
+-    def _print_MatrixElement(self, expr):
+-        return self._print(expr.parent) + '_{%s, %s}' % (self._print(expr.i), self._print(expr.j))
+     def _print_MatrixSlice(self, expr):
+         def latexslice(x):
+             x = list(x)
+```

@@ -1,0 +1,120 @@
+```patch
+--- a/sympy/matrices/expressions/blockmatrix.py
++++ b/sympy/matrices/expressions/blockmatrix.py
+@@ -1,11 +1,12 @@
+ from __future__ import print_function, division
+ 
+ from sympy import ask, Q
+-from sympy.core import Basic, Add
++from sympy.core import Basic, Add, sympify
+ from sympy.strategies import typed, exhaust, condition, do_one, unpack
+ from sympy.strategies.traverse import bottom_up
+ from sympy.utilities import sift
+ from sympy.utilities.misc import filldedent
++from sympy.core.numbers import Integer # Use SymPy Integer for type checks
+ 
+ from sympy.matrices.expressions.matexpr import MatrixExpr, ZeroMatrix, Identity, MatrixElement
+ from sympy.matrices.expressions.matadd import MatAdd
+@@ -14,7 +15,6 @@
+ from sympy.matrices.expressions.transpose import Transpose
+ from sympy.matrices.expressions.inverse import Inverse
+ from sympy.matrices.expressions.special import GenericZeroMatrix
+-from sympy.matrices.matrices import MatrixBase
+ 
+ 
+ class BlockMatrix(MatrixExpr):
+@@ -173,18 +172,56 @@
+         return self.args[0]
+ 
+     def _entry(self, i, j, **kwargs):
+-        # Find row entry
+-        row_block = 0
+-        for numrows in self.rowblocksizes:
+-            if (i < numrows) != False:
++        i, j = sympify(i), sympify(j)
++
++        # If indices are symbolic (not concrete integers), return unevaluated MatrixElement
++        if not i.is_Integer or not j.is_Integer:
++            # TODO: Add simplification logic? E.g., if i=0 and block (0,0) is ZeroMatrix.
++            # For now, return the abstract element, which is the required fix.
++            return MatrixElement(self, i, j)
++
++        # Indices are concrete integers, convert to Python int for comparisons
++        i_int, j_int = int(i), int(j)
++
++        # Store original SymPy Integer values for potential MatrixElement return
++        # if block sizes are symbolic.
++        i_orig, j_orig = i, j
++
++        # Find the row block index and the relative row index
++        i_current = i_int
++        row_block_idx = -1
++        for idx, numrows in enumerate(self.rowblocksizes):
++            # Check if the block size is symbolic
++            if not numrows.is_Integer:
++                # Cannot determine the block, return unevaluated MatrixElement
++                return MatrixElement(self, i_orig, j_orig)
++
++            numrows_int = int(numrows)
++            # Compare index with block size
++            if i_current < numrows_int:
++                row_block_idx = idx
++                i_relative = i_current # Relative index within the block
+                 break
+             else:
+-                i -= numrows
+-                row_block += 1
+-        # Find col entry
+-        col_block = 0
+-        for numcols in self.colblocksizes:
+-            if (j < numcols) != False:
++                i_current -= numrows_int
++
++        # Check if row index is out of bounds
++        if row_block_idx == -1:
++             # Calculate total rows if possible, otherwise provide less specific message
++             total_rows = Add(*self.rowblocksizes)
++             if total_rows.is_Integer:
++                 raise IndexError("Row index {} out of bounds (total rows = {})".format(i_int, int(total_rows)))
++             else:
++                 raise IndexError("Row index {} possibly out of bounds".format(i_int))
++
++        # Find the column block index and the relative column index
++        j_current = j_int
++        col_block_idx = -1
++        for idx, numcols in enumerate(self.colblocksizes):
++            # Check if the block size is symbolic
++            if not numcols.is_Integer:
++                # Cannot determine the block, return unevaluated MatrixElement
++                return MatrixElement(self, i_orig, j_orig)
++
++            numcols_int = int(numcols)
++            # Compare index with block size
++            if j_current < numcols_int:
++                col_block_idx = idx
++                j_relative = j_current # Relative index within the block
+                 break
+             else:
+-                j -= numcols
+-                col_block += 1
+-        return self.blocks[row_block, col_block][i, j]
++                j_current -= numcols_int
++
++        # Check if column index is out of bounds
++        if col_block_idx == -1:
++             # Calculate total cols if possible
++             total_cols = Add(*self.colblocksizes)
++             if total_cols.is_Integer:
++                 raise IndexError("Column index {} out of bounds (total cols = {})".format(j_int, int(total_cols)))
++             else:
++                 raise IndexError("Column index {} possibly out of bounds".format(j_int))
++
++        # Access the element within the identified block using relative indices
++        target_block = self.blocks[row_block_idx, col_block_idx]
++
++        # Recursively call _entry on the sub-block
++        return target_block._entry(i_relative, j_relative, **kwargs)
+ 
+     @property
+     def is_Identity(self):
+```

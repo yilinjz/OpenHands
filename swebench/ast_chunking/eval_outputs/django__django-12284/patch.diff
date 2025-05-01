@@ -1,0 +1,14 @@
+```diff
+--- a/django/db/models/base.py
++++ b/django/db/models/base.py
+@@ -598,5 +598,8 @@
+                 return getattr(self, field.attname)
+
+         def _get_FIELD_display(self, field):
++            # Ensure we use the field from the instance's class, not potentially
++            # one inherited from an abstract base class and passed via curry.
++            field = self._meta.get_field(field.name)
+             value = getattr(self, field.attname)
+             return force_str(dict(field.flatchoices).get(value, value), strings_only=True)
+
+```

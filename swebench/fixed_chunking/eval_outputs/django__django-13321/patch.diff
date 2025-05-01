@@ -1,0 +1,30 @@
+```patch
+--- a/django/contrib/sessions/backends/base.py
++++ b/django/contrib/sessions/backends/base.py
+@@ -114,10 +114,10 @@
+ 
+     def _legacy_decode(self, session_data):
+         # RemovedInDjango40Warning: pre-Django 3.1 format will be invalid.
+-        encoded_data = base64.b64decode(session_data.encode('ascii'))
+         try:
++            encoded_data = base64.b64decode(session_data.encode('ascii'))
+             # could produce ValueError if there is no ':'
+-            hash, serialized = encoded_data.split(b':', 1)
++            hash_prefix, serialized = encoded_data.split(b':', 1)
+             expected_hash = self._hash(serialized)
+             if not constant_time_compare(hash.decode(), expected_hash):
+                 raise SuspiciousSession("Session data corrupted")
+@@ -125,8 +125,8 @@
+                 return self.serializer().loads(serialized)
+         except Exception as e:
+             # ValueError, SuspiciousOperation, unpickling exceptions. If any of
+-            # these happen, just return an empty dictionary (an empty session).
+-            if isinstance(e, SuspiciousOperation):
++            # these or base64 errors happen, just return an empty dictionary
++            # (an empty session).
++            if isinstance(e, (SuspiciousOperation, binascii.Error)):
+                 logger = logging.getLogger('django.security.%s' % e.__class__.__name__)
+                 logger.warning(str(e))
+             return {}
+
+```

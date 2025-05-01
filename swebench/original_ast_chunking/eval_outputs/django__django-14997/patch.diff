@@ -1,0 +1,182 @@
+```patch
+--- a/django/db/backends/base/schema.py
++++ b/django/db/backends/base/schema.py
+@@ -1,4 +1,11 @@
+ import contextlib
++import sys
++from collections import namedtuple
++
++from django.db.backends.base.base import BaseDatabaseWrapper
++from django.db.models.expressions import Col
++from django.db.models.sql import Query
++from django.utils.functional import cached_property
+ 
+ 
+ class BaseDatabaseSchemaEditor:
+@@ -11,6 +18,39 @@
+     sql_create_unique = "ALTER TABLE %(table)s ADD CONSTRAINT %(name)s UNIQUE (%(columns)s)%(deferrable)s"
+     sql_create_unique_index = "CREATE UNIQUE INDEX %(name)s ON %(table)s (%(columns)s)%(where)s"
+ 
++    # Classes used to generate parts of SQL statements.
++    Table = namedtuple('Table', 'name, quote_name')
++    Column = namedtuple('Column', 'name, quote_name')
++    IndexName = namedtuple('IndexName', 'name, create_index_name')
++    ConstraintName = namedtuple('ConstraintName', 'name, create_constraint_name')
++    ForeignKeyName = namedtuple('ForeignKeyName', 'name, create_fk_name')
++
++    class Statement(namedtuple('Statement', 'template, parts')):
++        def __str__(self):
++            # Prevent modification of provided dicts.
++            parts = {key: value for key, value in self.parts.items()}
++            for name, obj in parts.items():
++                if obj is None:
++                    # Use template default for not provided variables.
++                    parts[name] = self.template.split('%(' + name + ')s')[0].split('%')[-1][-1]
++                elif isinstance(obj, self.Table):
++                    parts[name] = obj.quote_name(obj.name)
++                elif isinstance(obj, self.Column):
++                    parts[name] = obj.quote_name(obj.name)
++                elif isinstance(obj, (self.IndexName, self.ConstraintName, self.ForeignKeyName)):
++                    parts[name] = obj.create_index_name(obj.name)
++                elif isinstance(obj, (list, tuple)):
++                    parts[name] = ', '.join(
++                        part.quote_name(part.name) if isinstance(part, self.Column) else str(part)
++                        for part in obj
++                    )
++            try:
++                return self.template % parts
++            except KeyError as e:
++                raise ValueError(
++                    "Failed to format string: %s\nProvided Invalid value: %s" % (self.template, e)
++                ) from e
++
+     sql_delete_table = "DROP TABLE %(table)s CASCADE"
+     sql_delete_column = "ALTER TABLE %(table)s DROP COLUMN %(column)s CASCADE"
+     sql_alter_column_type = "ALTER TABLE %(table)s ALTER COLUMN %(column)s TYPE %(type)s"
+@@ -34,6 +74,34 @@
+     sql_delete_fk = "ALTER TABLE %(table)s DROP CONSTRAINT %(name)s"
+     sql_delete_primary_key = "ALTER TABLE %(table)s DROP CONSTRAINT %(name)s"
+ 
++    class Expressions:
++        def __init__(self, table_name, expressions, compiler, quote_value, col_suffixes=()):
++            self.table_name = table_name
++            self.expressions = expressions
++            self.compiler = compiler
++            self.quote_value = quote_value
++            self.col_suffixes = col_suffixes
++
++        def __str__(self):
++            sqls = []
++            for expression in self.expressions:
++                if isinstance(expression, str):
++                    # Use pre-rendered SQL expression.
++                    sqls.append(expression)
++                else:
++                    # Compile the expression.
++                    sql, params = self.compiler.compile(expression)
++                    if hasattr(expression, 'get_order_by_sql'):
++                        sql = expression.get_order_by_sql(self.compiler, sql, params, self.col_suffixes)
++                    else:
++                        sql = sql % params
++                    sqls.append(sql)
++            if isinstance(self.table_name, self.Table):
++                table_name = self.table_name.quote_name(self.table_name.name)
++            else:
++                table_name = self.quote_value(self.table_name)
++            return ', '.join(sqls)
++
+     def __init__(self, connection, collect_sql=False, atomic=True):
+         self.connection = connection
+         self.collect_sql = collect_sql
+@@ -160,7 +228,7 @@
+         if name is None:
+             name = IndexName(table, columns, '_uniq', create_unique_name)
+         else:
+-            name = self.quote_name(name)
++            name = ConstraintName(name, self.quote_name)
+         if condition or include or opclasses or expressions:
+             sql = self.sql_create_unique_index
+         else:
+@@ -207,7 +275,7 @@
+         if condition or include or opclasses or expressions:
+             sql = self.sql_delete_index
+         else:
+-            sql = self.sql_delete_unique
++            sql = self.sql_delete_unique % {'name': self.quote_name(name)}
+         return self._delete_constraint_sql(sql, model, name)
+ 
+     def _check_sql(self, name, check):
+--- a/django/db/backends/sqlite3/schema.py
++++ b/django/db/backends/sqlite3/schema.py
+@@ -1,10 +1,11 @@
+ import copy
+ import re
+ from contextlib import contextmanager
++from typing import Any, Dict, List, Optional, Tuple, Union
+ 
+ from django.db.backends.base.schema import BaseDatabaseSchemaEditor, Table
+-from django.db.backends.ddl_references import IndexName, Statement, Table
+-from django.db.models.sql import Query
++from django.db.backends.base.schema import Expressions
++from django.db.models.sql import Query
+ from django.db.transaction import atomic
+ from django.db.utils import DatabaseError, IntegrityError, NotSupportedError
+ 
+@@ -298,6 +299,56 @@
+             # ...
+         )
+ 
++    def _create_unique_sql(
++        self, model, fields, name=None, condition=None, deferrable=None,
++        include=None, opclasses=None, expressions=None,
++    ):
++        if (
++            (
++                deferrable and
++                not self.connection.features.supports_deferrable_unique_constraints
++            ) or
++            (condition and not self.connection.features.supports_partial_indexes) or
++            (include and not self.connection.features.supports_covering_indexes) or
++            (expressions and not self.connection.features.supports_expression_indexes)
++        ):
++            return None
++
++        def create_unique_name(*args, **kwargs):
++            return self.quote_name(self._create_index_name(*args, **kwargs))
++
++        compiler = Query(model, alias_cols=False).get_compiler(connection=self.connection)
++        table = model._meta.db_table
++        columns_list = [field.column for field in fields]
++        if name is None:
++            name = self.IndexName(table, columns_list, '_uniq', create_unique_name)
++        else:
++            name = self.ConstraintName(name, self.quote_name)
++
++        if columns_list:
++            columns = self._index_columns(table, columns_list, col_suffixes=(), opclasses=opclasses)
++        else:
++            # Ensure expressions are compiled individually for SQLite.
++            index_expressions = []
++            for expression in expressions:
++                expression_sql, params = compiler.compile(expression)
++                index_expressions.append(expression_sql % params)
++            columns = Expressions(table, index_expressions, compiler, self.quote_value)
++
++        if condition or include or opclasses or expressions:
++            sql = self.sql_create_unique_index
++        else:
++            sql = self.sql_create_unique
++
++        return self.Statement(
++            sql,
++            table=self.Table(table, self.quote_name),
++            name=name,
++            columns=columns,
++            condition=self._index_condition_sql(condition),
++            deferrable=self._deferrable_constraint_sql(deferrable),
++            include=self._index_include_sql(model, include),
++        )
+ 
+     def _alter_column_null_sql(self, model, old_field, new_field):
+         """
+```

@@ -1,0 +1,14 @@
+```patch
+--- a/django/contrib/contenttypes/models.py
++++ b/django/contrib/contenttypes/models.py
+@@ -142,7 +142,8 @@
+ 
+             # If cache miss, query the database.
+             try:
+-                ct = self.get_queryset().get(
++                # Ensure the query uses the correct database hint from the manager.
++                ct = self.get_queryset().using(db).get(
+                     app_label=opts.app_label, model=opts.model_name
+                 )
+             except self.model.DoesNotExist:
+```

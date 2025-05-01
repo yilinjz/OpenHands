@@ -1,0 +1,21 @@
+```patch
+--- a/src/_pytest/tmpdir.py
++++ b/src/_pytest/tmpdir.py
+@@ -110,6 +110,7 @@
+ 
+     def getbasetemp(self) -> Path:
+         """Return base temporary directory."""
++        import re
+         if self._basetemp is not None:
+             return self._basetemp
+ 
+@@ -121,6 +122,8 @@
+             from_env = os.environ.get("PYTEST_DEBUG_TEMPROOT")
+             temproot = Path(from_env or tempfile.gettempdir()).resolve()
+             user = get_user() or "unknown"
++            # Sanitize user name for path creation (similar to how node names are sanitized)
++            user = re.sub(r"[\W]", "_", user)
+             # use a sub-directory in the temproot to speed-up
+             # make_numbered_dir() call
+             rootdir = temproot.joinpath(f"pytest-of-{user}")
+```

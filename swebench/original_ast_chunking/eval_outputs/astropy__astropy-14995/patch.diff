@@ -1,0 +1,20 @@
+```patch
+--- a/astropy/nddata/mixins/ndarithmetic.py
++++ b/astropy/nddata/mixins/ndarithmetic.py
+@@ -38,9 +38,12 @@
+         elif operand is None:
+             return deepcopy(self.mask)
+         else:
+-            # Now lets calculate the resulting mask (operation enforces copy)
+-            return handle_mask(self.mask, operand.mask, **kwds)
++            # Case where self.mask is not None and operand is not None
++            if operand.mask is None:
++                # Only self.mask exists
++                return deepcopy(self.mask)
++            else:
++                # Both masks exist, calculate the resulting mask
++                return handle_mask(self.mask, operand.mask, **kwds)
+ 
+     def _arithmetic_uncertainty(
+         self, operation, operand, result, uncertainty_correlation, **kwds
+```

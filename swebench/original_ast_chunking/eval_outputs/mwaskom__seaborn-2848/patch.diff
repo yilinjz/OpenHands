@@ -1,0 +1,18 @@
+```patch
+--- a/seaborn/axisgrid.py
++++ b/seaborn/axisgrid.py
+@@ -466,6 +466,12 @@
+             else:
+                 data = data[plot_vars]
+ 
++        # Filter the data based on hue_order, if provided.
++        # This replicates pre-0.11 behavior where passing a partial
++        # hue_order would subset the data, preventing errors downstream
++        # when not all hue levels are present.
++        if hue is not None and hue_order is not None:
++            data = data[data[self.hue_var].isin(self.hue_names)]
++
+         # Handle missing data
+         if dropna:
+             data = data.dropna()
+```

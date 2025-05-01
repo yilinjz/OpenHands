@@ -1,0 +1,28 @@
+```diff
+--- a/lib/matplotlib/offsetbox.py
++++ b/lib/matplotlib/offsetbox.py
+@@ -1565,10 +1565,18 @@
+ 
+     def disconnect(self):
+         """Disconnect the mouse events."""
+-        for cid in self._cids:
+-            self.canvas.mpl_disconnect(cid)
+-        self._cids = []
+-        self.got_artist = False
++        try:
++            canvas = self.canvas
++            if canvas is None:
++                # Should not happen based on property definition, but check defensively.
++                raise AttributeError("Canvas derived from ref_artist is None")
++        except AttributeError:
++            # If canvas cannot be accessed (e.g., ref_artist removed),
++            # simply clear the CIDs without trying to disconnect.
++            pass
++        else:
++            for cid in self._cids:
++                canvas.mpl_disconnect(cid)
++        finally:
++            # Always clear CIDs and reset flag, regardless of success.
++            self._cids = []
++            self.got_artist = False
+```

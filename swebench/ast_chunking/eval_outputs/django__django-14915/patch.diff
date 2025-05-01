@@ -1,0 +1,15 @@
+```diff
+--- a/django/forms/models.py
++++ b/django/forms/models.py
+@@ -1168,6 +1168,9 @@
+     def __str__(self):
+         return str(self.value)
+ 
++    def __hash__(self):
++        return hash(self.value)
++
+     def __eq__(self, other):
+         if isinstance(other, ModelChoiceIteratorValue):
+             other = other.value
+
+```

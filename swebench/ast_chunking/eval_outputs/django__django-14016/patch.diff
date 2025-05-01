@@ -1,0 +1,32 @@
+```diff
+--- a/django/db/models/query_utils.py
++++ b/django/db/models/query_utils.py
+@@ -17,13 +17,23 @@
+         if not isinstance(other, Q):
+             raise TypeError(other)
+
+-        # If the other Q() is empty, ignore it and just use `self`.
++        # If the other Q object is empty, ignore it and return a copy of self.
+         if not other:
+-            return copy.deepcopy(self)
+-        # Or if this Q is empty, ignore it and just use `other`.
++            # Recreate the Q object to avoid modifying the original object
++            # when the new Q object is combined or mutated later.
++            obj = type(self)(
++                *self.children, _connector=self.connector, _negated=self.negated
++            )
++            return obj
++        # Or if this Q object is empty, ignore it and return a copy of other.
+         elif not self:
+-            return copy.deepcopy(other)
++            # Recreate the Q object to avoid modifying the original object
++            # when the new Q object is combined or mutated later.
++            obj = type(self)(
++                *other.children, _connector=other.connector, _negated=other.negated
++            )
++            return obj
+
+         obj = type(self)()
+         obj.connector = conn
+
+```

@@ -1,0 +1,47 @@
+```patch
+--- a/pylint/lint/expand_modules.py
++++ b/pylint/lint/expand_modules.py
+@@ -13,10 +13,13 @@
+                     modutils.modpath_from_file(something, path=additional_search_path)
+                 )
+             except ImportError:
++                # If modpath_from_file fails (e.g., for directories that are not packages
++                # or when a file exists like 'a/a.py' confusing resolution for 'a'),
++                # use the basename as a fallback module name.
+                 modname = os.path.splitext(basename)[0]
++
++            # Determine the primary filepath associated with 'something'
+             if os.path.isdir(something):
+-                filepath = os.path.join(something, "__init__.py")
++                filepath = something # Directory path itself
+             else:
+-                filepath = something
++                filepath = something # File path
+         else:
+             # suppose it's a module or package
+             modname = something
+@@ -44,8 +47,11 @@
+             is_namespace = modutils.is_namespace(spec)
+             is_directory = modutils.is_directory(spec)
+         if not is_namespace:
++            # If 'something' resolved to a specific file (not a directory/namespace),
++            # add it to the result list. This handles cases like `pylint path/to/file.py`.
++            # We check os.path.isfile() because filepath might still be a directory path if file_info_from_modpath failed earlier.
++            if os.path.isfile(filepath):
+                 result.append(
+                     {
+                         "path": filepath,
+@@ -59,9 +65,10 @@
+             not (modname.endswith(".__init__") or modname == "__init__")
+             and os.path.basename(filepath) == "__init__.py"
+         )
+-        if has_init or is_namespace or is_directory:
++        # Scan inside if it's a namespace or any directory represented by 'something'
++        if is_namespace or is_directory:
+             for subfilepath in modutils.get_module_files(
+-                os.path.dirname(filepath), ignore_list, list_all=is_namespace
++                filepath, ignore_list, list_all=is_namespace # Scan the directory identified by filepath
+             ):
+                 if filepath == subfilepath:
+                     continue
+```

@@ -1,0 +1,21 @@
+```patch
+--- a/sphinx/environment/__init__.py
++++ b/sphinx/environment/__init__.py
+@@ -550,10 +550,16 @@
+         if title_nodes := document.findall(nodes.title):
+             titlenode = title_nodes[0]
+ 
++            # Check for problematic nodes within the title that might interfere
++            # with title processing or ID generation, especially if they are
++            # the first element after potential rst_prolog content.
++            # If the first child is not Text, try to extract text more robustly.
+             # Try to find the "title" of the document from the title node. For
+             # documents without any explicit section heading, the title will be
+             # the document name.
+-            if isinstance(titlenode[0], nodes.Text):
++            # Note: titlenode[0] can fail if the title is empty. Check children.
++            # Also check if the first child is Text, otherwise use astext().
++            if titlenode.children and isinstance(titlenode[0], nodes.Text):
+                 title = titlenode.astext()
+             else:
+                 # complex title -- use first text

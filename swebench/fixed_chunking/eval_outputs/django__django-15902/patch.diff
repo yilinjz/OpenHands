@@ -1,0 +1,38 @@
+```patch
+--- a/django/forms/formsets.py
++++ b/django/forms/formsets.py
+@@ -1,12 +1,12 @@
+ from django import forms
+ from django.core.exceptions import ValidationError
+-from django.forms.renderers import get_default_renderer
+ from django.forms.utils import ErrorList, RenderableFormMixin
+ from django.forms.widgets import HiddenInput, NumberInput
+ from django.utils.functional import cached_property
+ from django.utils.inspect import func_supports_parameter
+ from django.utils.safestring import mark_safe
+ from django.utils.translation import gettext as _
++from django.utils.translation import gettext_lazy
+ from django.utils.translation import ngettext_lazy
+ 
+ __all__ = ("BaseFormSet", "formset_factory", "all_valid")
+@@ -28,6 +28,19 @@
+         cleaned_data.setdefault(INITIAL_FORM_COUNT, 0)
+         return cleaned_data
+ 
++    def render(self, template_name=None, context=None, renderer=None):
++        """
++        Render the management form.
++
++        This method intentionally overrides RenderableMixin.render() to avoid
++        issuing a deprecation warning when the default template is used,
++        as the specific template is irrelevant for ManagementForm.
++        """
++        renderer = renderer or self.renderer
++        template = template_name or self.template_name
++        context = context or self.get_context()
++        # Skip the default.html deprecation warning check.
++        return mark_safe(renderer.render(template, context))
+ 
+ class BaseFormSet(RenderableFormMixin):
+     """
+```

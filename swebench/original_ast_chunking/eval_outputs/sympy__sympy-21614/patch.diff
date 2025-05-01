@@ -1,0 +1,29 @@
+```patch
+--- a/sympy/core/function.py
++++ b/sympy/core/function.py
+@@ -24,7 +24,7 @@
+ from sympy.core.logic import fuzzy_bool, fuzzy_and, fuzzy_not
+ from sympy.core.numbers import Integer, oo, pi
+ from sympy.core.relational import Eq, Ne
+-from sympy.core.kind import Kind, NumberKind, UndefinedKind
++from sympy.core.kind import NumberKind
+ from sympy.core.sympify import sympify, _sympify, SympifyError
+ from sympy.core.compatibility import iterable, is_sequence, ordered, default_sort_key
+ from sympy.core.evaluate import global_evaluate
+@@ -1754,6 +1754,15 @@
+         return self.expr.free_symbols | set().union(*[v.free_symbols for v in self.variables])
+ 
+     @property
++    def _kind(self):
++        """
++        Determine the kind of the derivative result.
++
++        The kind of the derivative is the same as the kind of the
++        expression being differentiated.
++        """
++        return self.expr.kind
++
+     def _eval_is_commutative(self):
+         return self.expr.is_commutative
+ 
+```

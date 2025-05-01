@@ -1,0 +1,12 @@
+```patch
+--- a/src/_pytest/assertion/rewrite.py
++++ b/src/_pytest/assertion/rewrite.py
+@@ -757,4 +757,6 @@
+         Checks for a module docstring containing the magic comment.
+         """
+         if not isinstance(docstring, str):
++            # Don't try rewriting if the module docstring is not a string
++            # (e.g. module starts with `1`)
+             return False
+         return "PYTEST_DONT_REWRITE" in docstring
+```

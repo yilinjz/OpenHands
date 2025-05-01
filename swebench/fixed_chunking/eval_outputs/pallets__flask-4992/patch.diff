@@ -1,0 +1,86 @@
+```patch
+--- a/src/flask/config.py
++++ b/src/flask/config.py
+@@ -11,12 +11,15 @@
+ 10             absolute path or relative to the config root path.
+ 11         :param load: A callable that takes a file handle and returns a
+ 12             mapping of loaded data from the file.
+-13         :type load: ``Callable[[Reader], Mapping]`` where ``Reader``
+-14             implements a ``read`` method.
++13         :type load: ``Callable[[IO], Mapping]`` where ``IO`` is the file
++14             handle opened with ``mode``.
+ 15         :param silent: Ignore the file if it doesn't exist.
+-16         :return: ``True`` if the file was loaded successfully.
++16         :param mode: The mode to open the file with. Defaults to ``"r"``
++17             (text mode). Use ``"rb"`` for binary mode.
++18         :return: ``True`` if the file was loaded successfully.
+ 19 
+-20         .. versionadded:: 2.0
++21         .. versionadded:: 2.0
++22         .. versionchanged:: 2.3
++23            Added the ``mode`` parameter.
+ 24         """
+ 25         filename = os.path.join(self.root_path, filename)
+ 26 
+ 27         try:
+-28             with open(filename) as f:
++29             with open(filename, mode=mode) as f:
+ 30                 obj = load(f)
+ 31         except OSError as e:
+ 32             if silent and e.errno in (errno.ENOENT, errno.EISDIR):
+@@ -45,12 +48,22 @@
+ 41         .. code-block:: python
+ 42 
+ 43             import json
+-44             app.config.from_file("config.json", load=json.load)
++44             # load json file
++45             app.config.from_file("config.json", load=json.load)
+ 46 
+ 47             import toml
++48             # load toml file requires pip install toml
+ 49             app.config.from_file("config.toml", load=toml.load)
+ 50 
++51             # load toml file with the stdlib requires python >= 3.11
++52             try:
++53                 import tomllib
++54             except ImportError:
++55                 # Help users install feedback
++56                 raise RuntimeError("Please install tomllib or use Python 3.11+")
++57 
++58             app.config.from_file("config.toml", load=tomllib.load, mode="rb")
++59 
+ 60         :param filename: The path to the data file. This can be an
+ 61             absolute path or relative to the config root path.
+ 62         :param load: A callable that takes a file handle and returns a
+@@ -65,7 +78,8 @@
+         self,
+         filename: str,
+         load: t.Callable[[t.IO[t.Any]], t.Mapping],
+-        silent: bool = False,
++        silent: bool = False,
++        mode: str = "r",
+     ) -> bool:
+         """Update the values in the config from a file that is loaded
+         using the ``load`` parameter. The loaded data is passed to the
+@@ -74,12 +88,22 @@
+         .. code-block:: python
+ 
+             import json
++            # load json file
+             app.config.from_file("config.json", load=json.load)
+ 
+             import toml
++            # load toml file requires pip install toml
+             app.config.from_file("config.toml", load=toml.load)
+ 
++            # load toml file with the stdlib requires python >= 3.11
++            try:
++                import tomllib
++            except ImportError:
++                # Help users install feedback
++                raise RuntimeError("Please install tomllib or use Python 3.11+")
++
++            app.config.from_file("config.toml", load=tomllib.load, mode="rb")
++
+         :param filename: The path to the data file. This can be an
+```

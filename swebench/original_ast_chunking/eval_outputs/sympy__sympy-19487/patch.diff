@@ -1,0 +1,38 @@
+```patch
+--- a/sympy/functions/elementary/complexes.py
++++ b/sympy/functions/elementary/complexes.py
+@@ -1009,6 +1009,32 @@
+                 # e.g. sqrt(1-sqrt(2)) --x-->  to I*sqrt(sqrt(2) - 1)
+                 return S.ImaginaryUnit
+
++    def _eval_rewrite_as_Abs(self, arg, **kwargs):
++        """Rewrite sign(x) as x/Abs(x).
++
++        This rewriting is based on the definition sign(z) = z / Abs(z)
++        for non-zero complex numbers z. Note that for z = 0, sign(0) is 0,
++        whereas 0 / Abs(0) is undefined (nan).
++
++        Examples
++        ========
++
++        >>> from sympy import Symbol, sign, Abs, S, I
++        >>> x = Symbol('x')
++        >>> y = Symbol('y', positive=True)
++        >>> sign(x).rewrite(Abs)
++        x/Abs(x)
++        >>> sign(y).rewrite(Abs) # sign(y) is 1
++        y/Abs(y)
++        >>> sign(y*I).rewrite(Abs) # sign(y*I) is I
++        I*y/Abs(I*y)
++        >>> sign(0).rewrite(Abs) # sign(0) is 0, rewrite is not called
++        0
++        >>> (x/Abs(x)).subs(x, 0) # The rewritten form is nan at x=0
++        nan
++
++        """
++        return arg / Abs(arg)
++
+     def _eval_is_integer(self):
+         if self.args[0].is_integer or self.args[0].is_extended_real:
+             return True
+```

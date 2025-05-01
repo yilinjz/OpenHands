@@ -1,0 +1,25 @@
+```patch
+--- a/pylint/config/utils.py
++++ b/pylint/config/utils.py
+@@ -6,7 +6,6 @@
+ import argparse
+ import configparser
+ import os
+-import re
+ import shlex
+ from collections.abc import Sequence
+ from pathlib import Path
+@@ -102,7 +101,9 @@
+     elif opt_type == "yn":
+         kwargs["type"] = _csv_validator(yn_validator)
+         kwargs["metavar"] = "<y or n>"
+-    elif opt_type == "regexp":
+-        kwargs["type"] = re.compile
++    elif opt_type == "regexp":
++        # Do not use re.compile here as it does not support all features
++        # that the regex module supports, like \p{...}
++        kwargs["type"] = str
+         kwargs["metavar"] = "<regexp>"
+     elif opt_type == "csv":
+         kwargs["type"] = _csv
+```

@@ -1,0 +1,54 @@
+2025-05-01 20:05:28,582 - INFO - Creating container for sympy__sympy-18087...
+2025-05-01 20:05:28,620 - INFO - Container for sympy__sympy-18087 created: 2dc1d041cf33749d991cae753e90ab640d62dc4fc789d3f4d128a333c0613f5e
+2025-05-01 20:05:29,159 - INFO - Container for sympy__sympy-18087 started: 2dc1d041cf33749d991cae753e90ab640d62dc4fc789d3f4d128a333c0613f5e
+2025-05-01 20:05:29,160 - INFO - Intermediate patch for sympy__sympy-18087 written to logs/run_evaluation/20250501_195119/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/sympy__sympy-18087/patch.diff, now applying to container...
+2025-05-01 20:05:29,505 - INFO - Failed to apply patch to container: git apply --verbose
+2025-05-01 20:05:29,598 - INFO - Failed to apply patch to container: git apply --verbose --reject
+2025-05-01 20:05:29,685 - INFO - >>>>> Applied Patch:
+patching file sympy/simplify/trigsimp.py
+Reversed (or previously applied) patch detected!  Assuming -R.
+Hunk #1 succeeded at 500 with fuzz 3.
+
+2025-05-01 20:05:30,442 - INFO - Git diff before:
+diff --git a/sympy/simplify/trigsimp.py b/sympy/simplify/trigsimp.py
+index 7ca05f0304..0fe405eec3 100644
+--- a/sympy/simplify/trigsimp.py
++++ b/sympy/simplify/trigsimp.py
+@@ -500,6 +500,11 @@ def traverse(e):
+         'fu': (lambda x: fu(x, **opts)),
+         'matching': (lambda x: futrig(x)),
+         'groebner': (lambda x: groebnersimp(x, **opts)),
++        # pattern, result, function, wild
++        # e.g. sqrt(1 - b**2) -> cos(c) where b = sin(c)
++        (sqrt(1 - b**2), cos(c), sin(c), b),
++        (sqrt(1 + b**2), cosh(c), sinh(c), b),
++        (sqrt(b**2 - 1), sinh(c), cosh(c), b),
+         'combined': (lambda x: futrig(groebnersimp(x,
+                                polynomial=True, hints=[2, tan]))),
+         'old': lambda x: trigsimp_old(x, **opts),
+2025-05-01 20:05:30,442 - INFO - Eval script for sympy__sympy-18087 written to logs/run_evaluation/20250501_195119/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/sympy__sympy-18087/eval.sh; copying to container...
+2025-05-01 20:05:34,862 - INFO - Test runtime: 4.35 seconds
+2025-05-01 20:05:34,862 - INFO - Test output for sympy__sympy-18087 written to logs/run_evaluation/20250501_195119/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/sympy__sympy-18087/test_output.txt
+2025-05-01 20:05:34,988 - INFO - Git diff after:
+diff --git a/sympy/simplify/trigsimp.py b/sympy/simplify/trigsimp.py
+index 7ca05f0304..0fe405eec3 100644
+--- a/sympy/simplify/trigsimp.py
++++ b/sympy/simplify/trigsimp.py
+@@ -500,6 +500,11 @@ def traverse(e):
+         'fu': (lambda x: fu(x, **opts)),
+         'matching': (lambda x: futrig(x)),
+         'groebner': (lambda x: groebnersimp(x, **opts)),
++        # pattern, result, function, wild
++        # e.g. sqrt(1 - b**2) -> cos(c) where b = sin(c)
++        (sqrt(1 - b**2), cos(c), sin(c), b),
++        (sqrt(1 + b**2), cosh(c), sinh(c), b),
++        (sqrt(b**2 - 1), sinh(c), cosh(c), b),
+         'combined': (lambda x: futrig(groebnersimp(x,
+                                polynomial=True, hints=[2, tan]))),
+         'old': lambda x: trigsimp_old(x, **opts),
+2025-05-01 20:05:34,988 - INFO - Grading answer for sympy__sympy-18087...
+2025-05-01 20:05:34,988 - INFO - report: {'sympy__sympy-18087': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_Factors', 'test_fu']}, 'PASS_TO_PASS': {'success': [], 'failure': ['test_decompose_power', 'test_Term', 'test_gcd_terms', 'test_factor_terms', 'test_xreplace', 'test_factor_nc', 'test_issue_6360', 'test_issue_7903', 'test_issue_8263', 'test_monotonic_sign', 'test_TR1', 'test_TR2', 'test_TR2i', 'test_TR3', 'test__TR56', 'test_TR5', 'test_TR6', 'test_TR7', 'test_TR8', 'test_TR9', 'test_TR10', 'test_TR10i', 'test_TR11', 'test_TR12', 'test_TR13', 'test_L', 'test_objective', 'test_process_common_addends', 'test_trig_split', 'test_TRmorrie', 'test_TRpower', 'test_hyper_as_trig', 'test_TR12i', 'test_TR14', 'test_TR15_16_17']}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-18087: resolved: False
+2025-05-01 20:05:34,989 - INFO - Attempting to stop container sweb.eval.sympy__sympy-18087.20250501_195119...
+2025-05-01 20:05:50,291 - INFO - Attempting to remove container sweb.eval.sympy__sympy-18087.20250501_195119...
+2025-05-01 20:05:50,318 - INFO - Container sweb.eval.sympy__sympy-18087.20250501_195119 removed.

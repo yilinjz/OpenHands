@@ -1,0 +1,32 @@
+```patch
+--- a/sympy/simplify/cse_main.py
++++ b/sympy/simplify/cse_main.py
+@@ -19,6 +19,7 @@
+ 18     """
+ 19     from sympy.matrices.expressions import MatrixExpr, MatrixSymbol, MatMul, MatAdd
+ 20     from sympy.polys.rootoftools import RootOf
++21     from sympy.matrices.expressions.matexpr import MatrixElement
+ 21
+ 22     if opt_subs is None:
+ 23         opt_subs = dict()
+@@ -48,12 +49,14 @@
+ 47         else:
+ 48             if expr in seen_subexp:
+ 49                 for ign in ignore:
+-50                     if ign in expr.free_symbols:
+-51                         break
+-52                 else:
+-53                     to_eliminate.add(expr)
+-54                     return
++50                     # If ignore symbol found, don't eliminate and return
++51                     if ign in expr.free_symbols:
++52                         return
++53                 # Don't eliminate MatrixSymbols or MatrixElements themselves
++54                 if not isinstance(expr, (MatrixSymbol, MatrixElement)):
++55                     to_eliminate.add(expr)
++56                 # Always return if seen, to avoid re-traversing
++57                 return
+ 55
+ 56             seen_subexp.add(expr)
+ 57
+```

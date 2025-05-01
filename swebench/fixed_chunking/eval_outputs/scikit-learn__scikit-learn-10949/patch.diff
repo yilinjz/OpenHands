@@ -1,0 +1,17 @@
+```patch
+--- a/sklearn/utils/validation.py
++++ b/sklearn/utils/validation.py
+@@ -218,6 +218,12 @@
+         # make sure we actually converted to numeric:
+         if dtype_numeric and array.dtype.kind == "O":
+             array = array.astype(np.float64)
++        if warn_on_dtype and dtype_orig is not None and dtype_orig.kind == 'O' \
++                and np.issubdtype(array.dtype, np.floating):
++            warnings.warn("Data with input dtype %s was converted to %s%s." %
++                          (dtype_orig, array.dtype, context),
++                          DataConversionWarning)
++
+         if not allow_nd and array.ndim >= 3:
+             raise ValueError("Found array with dim %d. %s expected <= 2."
+                              % (array.ndim, estimator_name))
+```

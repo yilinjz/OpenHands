@@ -1,0 +1,66 @@
+```diff
+--- a/django/db/migrations/serializer.py
++++ b/django/db/migrations/serializer.py
+@@ -3,7 +3,7 @@
+ import datetime
+ import decimal
+ import enum
+-import functools
++import functools  # NOQA: F401
+ import math
+ import os
+ import pathlib
+@@ -18,6 +18,10 @@
+ from django.utils.functional import LazyObject, Promise
+ from django.utils.version import get_docs_version
+ 
++# Before Python 3.11, enum._decompose was not public.
++_has_decompose = hasattr(enum, "_decompose")
++
++
+ 
+ class BaseSerializer:
+     def __init__(self, value):
+@@ -95,11 +99,33 @@
+         return repr(self.value), set(imports)
+ 
+ 
+-class EnumSerializer(BaseSerializer):
++class EnumSerializer(BaseSerializer):
++    """Serialize enum members to themselves."""
++
+     def serialize(self):
+         enum_class = type(self.value)
+         module = enum_class.__module__
+         imports = {f"import {module}"}
+-        return f"{module}.{enum_class.__name__}.{self.value.name}", imports
++        member_name = getattr(self.value, "name", None)
++
++        # Check if it's a direct member first.
++        if member_name is not None and getattr(enum_class, member_name, None) is self.value:
++            return f"{module}.{enum_class.__name__}.{member_name}", imports
++
++        # Handle Flags using _decompose if available (Python >= 3.6).
++        if _has_decompose and isinstance(self.value, enum.Flag):
++            try:
++                members, uncovered_value = enum._decompose(enum_class, self.value.value)
++                # Check if all bits correspond to defined flags.
++                if uncovered_value == 0:
++                    member_strings = [
++                        f"{module}.{enum_class.__name__}.{m.name}" for m in members
++                    ]
++                    # Handle the zero flag or combine members.
++                    return f"{module}.{enum_class.__name__}(0)" if not member_strings else " | ".join(member_strings), imports
++            except ValueError:
++                # Value cannot be decomposed.
++                pass
++
++        # Fallback: Represent by value using the constructor ClassName(value).
++        value_repr, value_imports = serializer_factory(self.value.value).serialize()
++        imports.update(value_imports)
++        return f"{module}.{enum_class.__name__}({value_repr})", imports
+ 
+ 
+ class FieldSerializer(BaseSerializer):
+
+```

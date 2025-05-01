@@ -1,0 +1,21 @@
+```patch
+--- a/lib/matplotlib/axis.py
++++ b/lib/matplotlib/axis.py
+@@ -1921,6 +1921,16 @@
+         list of `.Tick`\s
+             The `.Tick` instances.
+         """
++        if kwargs:
++            # Validate kwargs are valid Text properties, even if labels is None,
++            # consistent with the behavior of set_ticklabels.
++            # Use a dummy Text object to check properties.
++            dummy_text = mtext.Text()
++            for k in kwargs:
++                if not dummy_text.is_setter(k):
++                    # Error message copied from setp.
++                    raise AttributeError(f'{type(dummy_text).__name__!r} object '
++                                         f'has no property {k!r}')
+         # Clear previous ticklabels to avoid stale state.
+         self.set_ticklabels([], minor=minor)
+         # _set_tick_locations returns the Ticks created by the locator.
+```

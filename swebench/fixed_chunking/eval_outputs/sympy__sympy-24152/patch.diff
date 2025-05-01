@@ -1,0 +1,38 @@
+```patch
+--- a/sympy/physics/quantum/tensorproduct.py
++++ b/sympy/physics/quantum/tensorproduct.py
+@@ -1,16 +1,18 @@
+ from sympy import Expr, Add, Mul, Pow, sympify, Matrix, Symbol
+ from sympy.core.compatibility import u, is_sequence
+ from sympy.core.decorators import _sympifyit
++from sympy.core.mul import Mul
+ from sympy.matrices import matrix_tensor_product
+ from sympy.printing.pretty.stringpict import prettyForm
+ 
+ from sympy.physics.quantum.dagger import Dagger
+ from sympy.physics.quantum.operator import Operator, OuterProduct
+ from sympy.physics.quantum.state import KetBase, BraBase, StateBase, Ket, Bra
+-from sympy.physics.quantum.qexpr import QExpr
++from sympy.physics.quantum.qexpr import QExpr, _qsympify_sequence
+ from sympy.physics.quantum.matrixutils import numpy_ndarray, scipy_sparse_matrix
+ from sympy.physics.quantum.trace import Tr
+ from sympy.physics.quantum.represent import represent
++
+ 
+ # Needed for partial trace
+ from sympy.physics.quantum.density import Density
+@@ -100,9 +102,10 @@
+             if isinstance(args[i], Add):
+                 for aa in args[i].args:
+                     tp = TensorProduct(*args[:i] + (aa,) + args[i + 1:])
+-                    if isinstance(tp, TensorProduct):
+-                        tp = tp._eval_expand_tensorproduct()
+-                    add_args.append(tp)
++                    c_part, nc_part = tp.args_cnc()
++                    if len(nc_part)==1 and isinstance(nc_part[0], TensorProduct):
++                        nc_part = (nc_part[0]._eval_expand_tensorproduct(), )
++                    add_args.append(Mul(*c_part)*Mul(*nc_part))
+                 break
+ 
+         if add_args:
+```

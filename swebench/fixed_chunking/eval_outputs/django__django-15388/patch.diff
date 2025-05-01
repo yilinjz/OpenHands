@@ -1,0 +1,23 @@
+```patch
+--- a/django/utils/autoreload.py
++++ b/django/utils/autoreload.py
+@@ -257,11 +257,17 @@
+         self.watched_paths.clear()
+
+         # Watch template directories.
++        # Avoid watching BASE_DIR directly, as watching the entire project root
++        # for template changes is inefficient and can cause issues. Python files
++        # in BASE_DIR are already watched separately.
++        base_dir = Path(settings.BASE_DIR) if hasattr(settings, "BASE_DIR") else None
+         for directory in get_template_directories():
+-            self.watch_dir(directory, "**/*.html")
++            if not (base_dir and Path(directory) == base_dir):
++                self.watch_dir(directory, "**/*.html")
+         # Watch locale directories.
+         for directory in get_locale_directories():
+             self.watch_dir(directory, "**/*.mo")
++
+         # Watch Python modules.
+         for file in chain(
+             iter_all_python_module_files(), iter_django_module_files()
+```

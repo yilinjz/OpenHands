@@ -1,0 +1,41 @@
+```patch
+--- a/sympy/matrices/expressions/blockmatrix.py
++++ b/sympy/matrices/expressions/blockmatrix.py
+@@ -110,6 +110,8 @@
+ 
+ 
+ def bc_matmul(expr):
++    from sympy.matrices.expressions.matexpr import ZeroMatrix
++    from sympy import sympify
+     if isinstance(expr, MatPow):
+         if expr.args[1].is_Integer:
+             factor, matrices = (1, [expr.args[0]]*expr.args[1])
+@@ -124,7 +126,24 @@
+     while (i+1 < len(matrices)):
+         A, B = matrices[i:i+2]
+         if isinstance(A, BlockMatrix) and isinstance(B, BlockMatrix):
+-            matrices[i] = A._blockmul(B)
++            # Calculate the product
++            prod = A._blockmul(B)
++
++            # Ensure that scalar Zero blocks are replaced by ZeroMatrix
++            # This prevents errors in subsequent multiplications where
++            # block sizes are needed (e.g., accessing .rows/.cols on blocks)
++            # The simplification to scalar Zero happens because BlockMatrix
++            # uses ImmutableDenseMatrix internally, which simplifies ZeroMatrix.
++            if isinstance(prod, BlockMatrix):
++                new_blocks_list = prod.blocks.tolist() # Get blocks as list of lists
++                rows, cols = prod.blockshape
++                A_row_sizes = A.rowblocksizes
++                B_col_sizes = B.colblocksizes
++                for r in range(rows):
++                    for c in range(cols):
++                        if new_blocks_list[r][c] == 0: # Check for scalar Zero
++                            new_blocks_list[r][c] = ZeroMatrix(sympify(A_row_sizes[r]), sympify(B_col_sizes[c]))
++                matrices[i] = BlockMatrix(new_blocks_list) # Recreate with ZeroMatrix blocks
++            else:
++                matrices[i] = prod # Use original product if not BlockMatrix
+             matrices.pop(i+1)
+         elif isinstance(A, BlockMatrix):
+             matrices[i] = A._blockmul(BlockMatrix([[B]]))
+```

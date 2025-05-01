@@ -1,0 +1,26 @@
+```patch
+--- a/sympy/polys/sqfreetools.py
++++ b/sympy/polys/sqfreetools.py
+@@ -100,6 +100,10 @@
+     # Wang/Trager modification of Yun's algorithm.
+     # See https://doi.org/10.1145%2F355722.355729 and Zippel, Factorization chapter.
+     # Algorithm:
++    # f = F_1 * F_2**2 * F_3**3 * ... * F_k**k
++    # The algorithm computes F_1, F_2, ..., F_k where each F_i is square-free
++    # and contains the product of all irreducible factors of f that have multiplicity i.
++    # The result is [(F_1, 1), (F_2, 2), ..., (F_k, k)].
+     # F = sqf_part(f)
+     # G = f / F
+     # i = 1
+@@ -127,6 +131,10 @@
+         h = dup_quo(F, g, K)    # h = F_i
+ 
+         if all or dup_degree(h) > 0:
++            # h is the product of all irreducible factors with multiplicity i.
++            # It should NOT be factored further at this stage.
++            # E.g., if f = (x-2)**3 * (x-3)**3, then for i=3,
++            # h should be (x-2)*(x-3) = x**2 - 5*x + 6.
+             result.append((h, i))
+ 
+         if dup_degree(g) < 0: # Check if g is constant (degree < 0 for DMP) or zero poly
+```

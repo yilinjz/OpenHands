@@ -1,0 +1,49 @@
+```patch
+--- a/django/contrib/admin/utils.py
++++ b/django/contrib/admin/utils.py
+@@ -1,6 +1,8 @@
+ import datetime
+ import decimal
++import json
+ 
++from django import forms
+ from django.conf import settings
+ from django.contrib.admin.views.main import IS_POPUP_VAR, TO_FIELD_VAR
+ from django.core.exceptions import FieldDoesNotExist, ObjectDoesNotExist
+@@ -10,7 +12,7 @@
+ from django.urls import NoReverseMatch, reverse
+ from django.utils import formats, timezone
+ from django.utils.html import format_html, format_html_join, conditional_escape
+-from django.utils.safestring import mark_safe
++from django.utils.safestring import mark_safe, SafeData
+ from django.utils.text import capfirst
+ from django.utils.translation import gettext as _, ngettext
+ 
+@@ -106,6 +108,25 @@
+         return formats.number_format(value)
+     elif isinstance(field, models.URLField) and value:
+         return format_html('<a href="{0}">{0}</a>', value)
++    elif isinstance(field, models.JSONField) and value is not None:
++        try:
++            # Use the form field's prepare_value for proper JSON serialization
++            # and configured encoder.
++            form_field = field.formfield()
++            json_str = form_field.prepare_value(value)
++            # prepare_value returns a string, potentially InvalidJSONInput.
++            # If it's valid JSON string, parse and dump with indent=2.
++            # If it's InvalidJSONInput, display as is.
++            if isinstance(json_str, forms.InvalidJSONInput):
++                display_value = json_str
++            else:
++                parsed_value = json.loads(json_str)
++                display_value = json.dumps(parsed_value, indent=2, cls=field.encoder)
++            # Wrap in <pre> for formatting.
++            return format_html('<pre>{}</pre>', conditional_escape(display_value))
++        except (json.JSONDecodeError, TypeError):
++            # Value cannot be serialized. Display the raw string representation.
++            return conditional_escape(str(value))
+     elif isinstance(field, ManyToManyField) and isinstance(value, (list, tuple)):
+         return ', '.join(str(v) for v in value)
+     else:
+
+```

@@ -1,0 +1,20 @@
+```patch
+--- a/sympy/matrices/dense.py
++++ b/sympy/matrices/dense.py
+@@ -160,10 +160,11 @@
+         if self.rows != other.rows:
+             raise ShapeError("`self` and `other` must have the same number of rows.")
+
+-        new_mat = []
++        new_mat = []
++        old_mat = self._mat
+         for i in range(self.rows):
+-            new_mat.extend(self._mat[i*self.cols: i*self.cols + pos])
+-            new_mat.extend(other._mat[i*other.cols: (i+1)*other.cols])
+-            new_mat.extend(self._mat[i*self.cols + pos: (i+1)*self.cols])
++            new_mat.extend(old_mat[i*self.cols: i*self.cols + pos])
++            new_mat.extend(other._mat[i*other.cols: i*other.cols + other.cols])
++            new_mat.extend(old_mat[i*self.cols + pos: i*self.cols + self.cols])
+
+         return self._new(self.rows, self.cols + other.cols, new_mat)
+```

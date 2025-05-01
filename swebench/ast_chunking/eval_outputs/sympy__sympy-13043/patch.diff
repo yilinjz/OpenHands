@@ -1,0 +1,20 @@
+```patch
+--- a/sympy/integrals/intpoly.py
++++ b/sympy/integrals/intpoly.py
+@@ -31,7 +31,7 @@
+             degrees = [(sum(degree_list(monom, *symbols)), monom)
+                        for monom in expr.args]
+             if separate:
+-                return [monom[1] for monom in degrees]
++                return sorted([monom[1] for monom in degrees], key=hash)
+             else:
+                 for monom in degrees:
+                     degree, term = monom
+@@ -56,6 +56,6 @@
+         poly_dict[0] = expr
+ 
+     if separate:
+-        return list(poly_dict.values())
++        return sorted(poly_dict.values(), key=hash)
+     return poly_dict
++```

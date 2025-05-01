@@ -1,0 +1,17 @@
+```patch
+--- a/sympy/simplify/trigsimp.py
++++ b/sympy/simplify/trigsimp.py
+@@ -77,11 +77,11 @@
+     if newexpr.has(HyperbolicFunction):
+         e, f = hyper_as_trig(newexpr)
+         newexpr = f(TR2i(e))
+-    if newexpr.has(TrigonometricFunction):
+-        newexpr = TR2i(newexpr)
++    elif newexpr.has(TrigonometricFunction):
++        rewritten = TR2i(newexpr)
++        if count_ops(rewritten) < count_ops(newexpr):
++            newexpr = rewritten
+
+     # can we ever generate an I where there was none previously?
+     if not (newexpr.has(I) and not expr.has(I)):
+```

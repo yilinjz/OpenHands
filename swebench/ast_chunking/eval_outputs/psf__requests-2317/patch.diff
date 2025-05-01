@@ -1,0 +1,31 @@
+```diff
+--- a/requests/sessions.py
++++ b/requests/sessions.py
+@@ -16,7 +16,7 @@
+ from .hooks import default_hooks
+ from .structures import CaseInsensitiveDict
+ from .compat import (cookielib, urlparse, urlunparse, urljoin, urlsplit,
+-                     quote, unquote, builtin_str, CaseInsensitiveDict)
++                     quote, unquote, builtin_str, CaseInsensitiveDict, bytes)
+ 
+ from .utils import (requote_uri, get_environ_proxies, get_netrc_auth,
+                     should_bypass_proxies, get_auth_from_url, to_key_val_list,
+@@ -414,10 +414,13 @@
+             If Tuple, ('cert', 'key') pair.
+         """
+         # Create the Request.
+-        method = builtin_str(method)
++        # Ensure method is a string. Correctly handle bytes in Python 3.
++        if isinstance(method, bytes):
++            # Decode using ASCII; HTTP methods should be ASCII safe
++            method = method.decode('ascii')
++        # Ensure method is represented as a native string and uppercase.
++        method = builtin_str(method).upper()
+         req = Request(
+-            method = method.upper(),
++            method = method,
+             url = url,
+             headers = headers,
+             files = files,
+
+```

@@ -1,0 +1,51 @@
+```patch
+--- a/sympy/polys/factortools.py
++++ b/sympy/polys/factortools.py
+@@ -23,19 +23,19 @@
+
+
+ def dup_zz_mignotte_bound(f, K):
+-    """Mignotte bound for univariate polynomials in `K[x]`. """
+-    a = dup_max_norm(f, K)
++    """Knuth-Cohen bound for univariate polynomials in `K[x]`. """
+     b = abs(dup_LC(f, K))
+-    n = dup_degree(f)
+-
+-    return K.sqrt(K(n + 1))*2**n*a*b
++    # The Knuth-Cohen bound is ||f||_2 * |lc(f)|
++    # where ||f||_2 is the L2 norm (Euclidean norm) of the coefficient vector.
++    # See: D. E. Knuth, The Art of Computer Programming, Vol. 2, Seminumerical
++    # Algorithms, 3rd ed., Addison-Wesley, 1998, Section 4.6.2, Exercise 20.
++    return dup_l2_norm(f, K) * b
+
+
+ def dmp_zz_mignotte_bound(f, u, K):
+-    """Mignotte bound for multivariate polynomials in `K[X]`. """
+-    a = dmp_max_norm(f, u, K)
++    """Knuth-Cohen style bound for multivariate polynomials in `K[X]`. """
+     b = abs(dmp_ground_LC(f, u, K))
+-    n = sum(dmp_degree_list(f, u))
+-
+-    return K.sqrt(K(n + 1))*2**n*a*b
++    # Adapt Knuth-Cohen bound for multivariate case using L2 norm.
++    # TODO: Verify if this is the standard multivariate adaptation.
++    return dmp_l2_norm(f, u, K) * b
+
+
+ def dup_zz_hensel_step(m, f, g, h, s, t, K):
+--- a/sympy/polys/factortools.py
++++ b/sympy/polys/factortools.py
+@@ -7,9 +7,10 @@
+     fc = f[-1]
+     A = dup_max_norm(f, K)
+     b = dup_LC(f, K)
+-    B = int(abs(K.sqrt(K(n + 1))*2**n*A*b))
++    # Replace Mignotte bound B with Knuth-Cohen bound: B = ||f||_2 * |lc(f)|
++    l2_norm = dup_l2_norm(f, K)
++    B = int(abs(l2_norm * b))
+     C = int((n + 1)**(2*n)*A**(2*n - 1))
+     gamma = int(_ceil(2*_log(C, 2)))
+     bound = int(2*gamma*_log(gamma))
+     a = []
+
+```

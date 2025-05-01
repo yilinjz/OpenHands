@@ -1,0 +1,34 @@
+```patch
+--- a/sympy/printing/latex.py
++++ b/sympy/printing/latex.py
+@@ -408,13 +408,6 @@
+                     den_neg_pow = den_neg_pow + \
+                         r" %s " % latex_mul_symbol + \
+                         self._print(item**(-1))
+-            elif item.is_Pow and item.base is S.Exp1 and \
+-                 item.exp.is_Mul and item.exp.args[0].is_Rational and \
+-                 item.exp.args[0].p < 0:
+-                 # Handle exp(-c*x)
+-                 den.append(S.Exp1**(-item.exp))
+-                 den_exp.append(S.One)
+-
+             else:
+                 if item.is_Order:
+                     num_ord.append(item)
+@@ -439,14 +432,6 @@
+         # Check for distribution
+         dist = any(isinstance(arg, Add) for arg in numargs) and \
+             len(numargs) > 1 and self._settings['mode'] != 'inline'
+-
+-        if dist:
+-            tex = self._print_Add(expr.expand(), order=self._settings['order'])
+-            return tex
+-
+-        # If we are in fraction power mode, then we need to make sure that
+-        # the base of powers in the denominator are not Add instances.
+-        # Otherwise, they won't be parenthesized correctly.
+
+         # Convert numbers to LaTeX strings
+         numstr = []
+
+```

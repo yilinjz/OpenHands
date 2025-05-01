@@ -1,0 +1,26 @@
+```patch
+--- a/lib/matplotlib/widgets.py
++++ b/lib/matplotlib/widgets.py
+@@ -1436,11 +1436,15 @@
+ 
+         self.valtext.set_text(self._format((vmin, vmax)))
+ 
+-        if self.drawon:
+-            self.ax.figure.canvas.draw_idle()
+-        self.val = (vmin, vmax)
++        # Update internal state *before* observers and drawing, matching SliderBase.
++        new_val = (vmin, vmax)
++        self.val = new_val
++
+         if self.eventson:
+-            self._observers.process("changed", (vmin, vmax))
++            self._observers.process("changed", new_val)
++
++        if self.drawon:  # Draw after observers.
++            # Check if axes is still part of a figure; callback may have deleted it.
++            if self.ax.figure is not None and self.ax.figure.canvas is not None:
++                self.ax.figure.canvas.draw_idle()
+ 
+     def on_changed(self, func):
+         """
+```

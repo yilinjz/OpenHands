@@ -1,0 +1,54 @@
+```patch
+--- a/sympy/printing/pretty/pretty.py
++++ b/sympy/printing/pretty/pretty.py
+@@ -817,21 +817,34 @@
+         return self._print(B.blocks)
+
+     def _print_MatAdd(self, expr):
++        # Avoid importing S (sympify) here if possible, especially for parsing
++        from sympy import MatMul
++
+         s = None
+         for item in expr.args:
+-            pform = self._print(item)
++            term_negative = False
++            term_to_print = item
++
++            # Use as_coeff_mmul to safely extract coefficient and matrix part
++            # item.as_coeff_mmul() -> (coeff, matrix_expr)
++            coeff, M = item.as_coeff_mmul()
++
++            # Check if the coefficient is negative. coeff is a SymPy object.
++            if coeff.is_negative:
++                term_negative = True
++                # Prepare the term to be printed without the negative sign
++                if coeff == -1:
++                    term_to_print = M
++                else:
++                    # Create a new MatMul with the positive coefficient
++                    term_to_print = MatMul(-coeff, M, evaluate=False)
++
++            # Print the term (potentially without the negative sign)
++            pform = self._print(term_to_print)
++
+             if s is None:
+-                s = pform     # First element
++                # First term
++                if term_negative:
++                    s = prettyForm(*stringPict.next(prettyForm('-'), pform))
++                else:
++                    s = pform
+             else:
+-                if S(item.args[0]).is_negative:
+-                    s = prettyForm(*stringPict.next(s, ' '))
+-                    pform = self._print(item)
++                # Subsequent terms
++                op = " - " if term_negative else " + "
++                s = prettyForm(*stringPict.next(s, op, pform))
+-                else:
+-                    s = prettyForm(*stringPict.next(s, ' + '))
+-                s = prettyForm(*stringPict.next(s, pform))
+
+         return s
+
+```

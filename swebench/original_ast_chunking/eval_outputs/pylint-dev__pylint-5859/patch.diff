@@ -1,0 +1,33 @@
+```patch
+--- a/pylint/checkers/misc.py
++++ b/pylint/checkers/misc.py
+@@ -42,15 +42,23 @@
+     def open(self):
+         super().open()
+ 
+-        notes = "|".join(re.escape(note) for note in self.config.notes)
++        # Build the notes regex part, applying \b only to notes ending with alphanumeric characters
++        individual_note_patterns = []
++        for note in self.config.notes:
++            escaped_note = re.escape(note)
++            # Add word boundary (\b) only if the note ends with a word character.
++            # This prevents issues with notes made purely of punctuation, like '???'
++            if note and (note[-1].isalnum() or note[-1] == "_"):
++                individual_note_patterns.append(escaped_note + r"\b")
++            else:
++                individual_note_patterns.append(escaped_note)
++        notes_part = "|".join(individual_note_patterns)
++
+         if self.config.notes_rgx:
+-            regex_string = rf"#\s*({notes}|{self.config.notes_rgx})\b"
++            # Combine specific notes and the custom regex. Boundaries for notes_part are handled above.
++            # Users providing notes_rgx are expected to handle boundaries within their regex.
++            regex_string = rf"#\s*({notes_part}|{self.config.notes_rgx})"
+         else:
+-            regex_string = rf"#\s*({notes})\b"
++            # Use only the specific notes part with boundaries handled per-note.
++            regex_string = rf"#\s*({notes_part})"
+ 
+         self._fixme_pattern = re.compile(regex_string, re.I)
+ 
+```

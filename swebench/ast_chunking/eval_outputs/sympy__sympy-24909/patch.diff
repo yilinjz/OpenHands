@@ -1,0 +1,52 @@
+```diff
+--- a/sympy/physics/units/prefixes.py
++++ b/sympy/physics/units/prefixes.py
+@@ -67,20 +67,27 @@
+             return "Prefix(%r, %r, %r, %r)" % (
+                 str(self.name), str(self.abbrev), self._exponent, self.base)
+
+-    def __mul__(self, other):
+-        from sympy.physics.units import Quantity
+-        if not isinstance(other, (Quantity, Prefix)):
+-            return super().__mul__(other)
+-
+-        fact = self.scale_factor * other.scale_factor
+-
+-        if fact == 1:
+-            return 1
+-        elif isinstance(other, Prefix):
+-            # simplify prefix
+-            for p in PREFIXES:
+-                if PREFIXES[p].scale_factor == fact:
+-                    return PREFIXES[p]
+-            return fact
+-
+-        return self.scale_factor * other
++    def __mul__(self, other):
++        from sympy.physics.units import Quantity
++        if not isinstance(other, (Quantity, Prefix)):
++            # Multiply prefix's scale factor by the other object (number, symbol, etc.)
++            return self.scale_factor * other
++
++        # Handle Prefix * Quantity
++        if isinstance(other, Quantity):
++            # Delegate to Quantity's __rmul__ which is designed to handle Prefix * Quantity
++            # and produce a Quantity object with the prefix correctly applied.
++            # This ensures milli * W returns the milli-watt Quantity.
++            return other.__rmul__(self)
++
++        # Handle Prefix * Prefix (other must be a Prefix here)
++        fact = self.scale_factor * other.scale_factor
++
++        if fact == 1:
++            # Use Integer(1) for consistency with SymPy types
++            from sympy.core.numbers import Integer
++            return Integer(1)
++
++        # Try to find a standard prefix for the combined factor
++        for p_obj in PREFIXES.values():
++            if p_obj.scale_factor == fact:
++                return p_obj
++        # Return the numerical factor if no standard prefix matches
++        return fact
+```

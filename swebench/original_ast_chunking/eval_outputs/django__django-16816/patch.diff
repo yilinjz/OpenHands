@@ -1,0 +1,182 @@
+```patch
+--- a/django/contrib/admin/checks.py
++++ b/django/contrib/admin/checks.py
+@@ -1,6 +1,9 @@
+ from itertools import chain
+ 
+ from django.core.checks import Error, Tags, Warning, register
++from django.db.models.fields.reverse_related import (
++    ManyToManyRel, ManyToOneRel, OneToOneRel,
++)
+ from django.db.models.query import QuerySet
+ from django.forms.models import BaseModelFormSet
+ from django.test.client import RequestFactory
+@@ -554,6 +557,22 @@
+             )
+             return [msg]
+ 
++        # NEW CHECK: Disallow simple reverse relations unless overridden by a
++        # method/property on the model or admin. label_for_field() cannot
++        # resolve these automatically.
++        if isinstance(field, (OneToOneRel, ManyToOneRel, ManyToManyRel)) and (
++            "__" not in field_name
++        ):
++            # Check if a method/property with the same name exists on the ModelAdmin
++            # or Model, which would take precedence and be valid.
++            if not (hasattr(cls, field_name) or hasattr(model, field_name)):
++                return [
++                    Error(
++                        f"'{cls.__name__}.list_display[{field_index}]' refers to "
++                        f"'{field_name}', a reverse relation. This is not supported "
++                        f"directly. Provide a method on '{cls.__name__}' or "
++                        f"'{model.__name__}' that resolves the relation.",
++                        obj=cls,
++                        id="admin.E108",
++                    )
++                ]
++
+         # If the field is a callable which takes arguments, it's not
+         # supported in list_display.
+         if callable(field) and not getattr(field, "admin_order_field", False):
+@@ -590,7 +609,7 @@
+         ):
+             return [
+                 Error(
+-                    f"'{cls.__name__}.list_display[{field_index}]' refers to "
++                    f"'{cls.__name__}.list_display[{field_index}]' refers to "
+                     f"'{field_name}', which is not a callable, an attribute of "
+                     f"'{cls.__name__}', or an attribute or method on "
+                     f"'{model.__name__}'.",
+--- a/tests/admin_checks/tests.py
++++ b/tests/admin_checks/tests.py
+@@ -1,6 +1,7 @@
+ from unittest import mock
+ 
+ from django.contrib import admin
++from django.contrib.admin import ModelAdmin, StackedInline, TabularInline
+ from django.contrib.admin.checks import ModelAdminChecks
+ from django.contrib.admin.decorators import register as admin_register
+ from django.contrib.admin.options import FORMFIELD_FOR_DBFIELD_DEFAULTS
+@@ -10,7 +11,7 @@
+ from django.core.checks import Error, Warning
+ from django.db import models
+ from django.forms import CharField, ModelForm
+-from django.test import SimpleTestCase, override_settings
++from django.test import SimpleTestCase, ignore_warnings, override_settings
+ from django.test.utils import isolate_apps
+ from django.urls import reverse
+ 
+@@ -18,7 +19,7 @@
+     Album, Artist, Book, EmptyModelAdmin, HiddenModelAdmin, Song, ValidationTestModel,
+ )
+ from .admin import (
+-    AlbumAdmin, ArtistAdmin, BookAdmin, SongAdmin, ValidationTestModelAdmin,
++    AlbumAdmin, ArtistAdmin, BookAdmin, SongAdmin, ValidationTestModelAdmin, site,
+ )
+ 
+ 
+@@ -1091,3 +1092,103 @@
+             id="admin.E116",
+         )]
+         self.assertEqual(errors, expected_errors)
++
++
++@isolate_apps("admin_checks", attr_name="apps")
++class ListDisplayReverseRelationCheckTests(SimpleTestCase):
++    @classmethod
++    def setUpClass(cls):
++        class Question(models.Model):
++            question_text = models.CharField(max_length=200)
++
++            class Meta:
++                app_label = "admin_checks"
++
++        # Avoid defining the model admin with @admin.register() decorator to avoid
++        # registering it in the default admin site.
++        cls.QuestionAdmin = type(
++            "QuestionAdmin",
++            (ModelAdmin,),
++            {
++                "__module__": ModelAdmin.__module__,
++                "list_display": ["choice"],
++            },
++        )
++
++        class Choice(models.Model):
++            question = models.ForeignKey(Question, models.CASCADE)
++            choice_text = models.CharField(max_length=200)
++
++            class Meta:
++                app_label = "admin_checks"
++
++        class Author(models.Model):
++            name = models.CharField(max_length=100)
++
++            class Meta:
++                app_label = "admin_checks"
++
++        cls.AuthorAdmin = type(
++            "AuthorAdmin",
++            (ModelAdmin,),
++            {
++                "__module__": ModelAdmin.__module__,
++                "list_display": ["book_set"],
++            },
++        )
++
++        class Book(models.Model):
++            title = models.CharField(max_length=100)
++            authors = models.ManyToManyField(Author)
++
++            class Meta:
++                app_label = "admin_checks"
++
++        super().setUpClass()
++
++    def test_list_display_reverse_fk_relation_error(self):
++        """
++        E108 is raised when list_display refers to a reverse FK relation name.
++        """
++        errors = self.QuestionAdmin(self.apps.get_model("admin_checks", "Question"), site).check()
++        expected_errors = [
++            Error(
++                "'QuestionAdmin.list_display[0]' refers to 'choice', a reverse "
++                "relation. This is not supported directly. Provide a method on "
++                "'QuestionAdmin' or 'Question' that resolves the relation.",
++                obj=self.QuestionAdmin,
++                id="admin.E108",
++            )
++        ]
++        self.assertEqual(errors, expected_errors)
++
++    def test_list_display_reverse_m2m_relation_error(self):
++        """
++        E108 is raised when list_display refers to a reverse M2M relation name.
++        """
++        errors = self.AuthorAdmin(self.apps.get_model("admin_checks", "Author"), site).check()
++        expected_errors = [
++            Error(
++                "'AuthorAdmin.list_display[0]' refers to 'book_set', a reverse "
++                "relation. This is not supported directly. Provide a method on "
++                "'AuthorAdmin' or 'Author' that resolves the relation.",
++                obj=self.AuthorAdmin,
++                id="admin.E108",
++            )
++        ]
++        self.assertEqual(errors, expected_errors)
++
++    def test_list_display_reverse_relation_with_method_ok(self):
++        """
++        No error is raised if a method exists on the ModelAdmin that masks
++        the reverse relation.
++        """
++
++        class QuestionAdminWithMethod(self.QuestionAdmin):
++            def choice(self, obj):  # Method overrides reverse relation lookup
++                return "Method"
++
++        errors = QuestionAdminWithMethod(
++            self.apps.get_model("admin_checks", "Question"), site
++        ).check()
++        self.assertEqual(errors, [])
+```

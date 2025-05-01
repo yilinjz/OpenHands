@@ -1,0 +1,31 @@
+```patch
+--- a/sphinx/ext/autodoc/typehints.py
++++ b/sphinx/ext/autodoc/typehints.py
+@@ -41,13 +41,21 @@
+         if param.annotation is Parameter.empty:
+             continue
+ 
+-        if param.name in field_locations:
+-            lineno = field_locations[param.name]
+-            field_marker = ':param %s:' % param.name
++        # Determine the expected parameter name/key and marker in the docstring
++        if param.kind == Parameter.VAR_POSITIONAL:
++            field_key = '*' + param.name
++            field_marker = ':param *%s:' % param.name
++        elif param.kind == Parameter.VAR_KEYWORD:
++            field_key = '**' + param.name
++            field_marker = ':param **%s:' % param.name
++        else:
++            field_key = param.name
++            field_marker = ':param %s:' % param.name
++
++        if field_key in field_locations:
++            lineno = field_locations[field_key]
+ 
+             # check the field marker is valid
+-            # N.B. this is needed to avoid merging typehints into parameters
+-            # description
+             if find_field(lines, lineno, field_marker):
+                 # determine the type field marker
+                 field_type = ':type %s:' % param.name
+```

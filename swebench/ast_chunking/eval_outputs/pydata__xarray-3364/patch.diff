@@ -1,0 +1,22 @@
+```patch
+--- a/xarray/core/concat.py
++++ b/xarray/core/concat.py
+@@ -139,15 +139,9 @@
+     result_vars = {}
+     if variables_to_merge:
+         to_merge = {var: [] for var in variables_to_merge}
+-
+         for ds in datasets:
+-            absent_merge_vars = variables_to_merge - set(ds.variables)
+-            if absent_merge_vars:
+-                raise ValueError(
+-                    "variables %r are present in some datasets but not others. "
+-                    % absent_merge_vars
+-                )
+-
++            # if a variable is not in this dataset, it should have been added
++            # by the align function with the fill_value
+             for var in variables_to_merge:
+                 to_merge[var].append(ds.variables[var])
+ 
+```

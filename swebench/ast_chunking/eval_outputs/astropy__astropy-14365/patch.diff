@@ -1,0 +1,14 @@
+```diff
+--- a/astropy/io/ascii/qdp.py
++++ b/astropy/io/ascii/qdp.py
+@@ -61,7 +61,7 @@
+     ValueError: Unrecognized QDP line...
+     """
+     _decimal_re = r"[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?"
+-    _command_re = r"READ [TS]ERR(\s+[0-9]+)+"
++    _command_re = r"(?i)READ [TS]ERR(\s+[0-9]+)+"
+ 
+     sep = delimiter
+     if delimiter is None:
+
+```

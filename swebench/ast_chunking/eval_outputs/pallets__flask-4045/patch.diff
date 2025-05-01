@@ -1,0 +1,14 @@
+```diff
+--- a/src/flask/blueprints.py
++++ b/src/flask/blueprints.py
+@@ -25,6 +25,8 @@
+             root_path=root_path,
+         )
+         self.name = name
++        if "." in self.name:
++            raise ValueError("Blueprint name cannot contain dots.")
+         self.url_prefix = url_prefix
+         self.subdomain = subdomain
+         self.deferred_functions: t.List[DeferredSetupFunction] = []
+
+```

@@ -1,0 +1,95 @@
+```diff
+--- a/sympy/geometry/util.py
++++ b/sympy/geometry/util.py
+@@ -1,15 +1,16 @@
+ from __future__ import print_function, division
+
+-from sympy.core import S, C, sympify, Symbol
++from sympy.core import S, C, sympify
+ from sympy.core.compatibility import is_sequence
+ from sympy.core.containers import Tuple
++from sympy.core.function import Function, AppliedUndef, Derivative
+ from sympy.core.numbers import Float, Rational, oo, I
++from sympy.core.relational import Eq
++from sympy.core.symbol import Symbol
+ from sympy.functions import acos, atan, cos, sin, sqrt, tan
+ from sympy.polys import DomainError, Poly, RootOf
+ from sympy.polys.polytools import factor
+ from sympy.simplify import simplify
+-from sympy import solve
+ from sympy.utilities import all_combinations, combinations
+ from sympy.utils import filldedent
+
+@@ -39,25 +40,61 @@
+     sympy.core.function.diff: explicitly differentiates wrt symbols
+
+     """
++    # Need solve for differentiation
++    from sympy import solve
++
++    # Handle Eq input by converting it to an expression
++    if isinstance(eq, Eq):
++        eq = eq.lhs - eq.rhs
++
++    # Determine dependent variables (dep) and the main one (y0)
+     if is_sequence(y):
+         dep = set(y)
+-        y = y[0]
+-    elif isinstance(y, Symbol):
++        y0 = y[0]
++    else:
+         dep = {y}
+-    else:
+-        raise ValueError("expecting x-dependent symbol(s) but got: %s" % y)
++        y0 = y
+
+-    f = dict([(s, Function(
+-        s.name)(x)) for s in eq.free_symbols if s != x and s in dep])
+-    dydx = Function(y.name)(x).diff(x)
+-    eq = eq.subs(f)
+-    derivs = {}
+-    for i in range(n):
+-        yp = solve(eq.diff(x), dydx)[0].subs(derivs)
+-        if i == n - 1:
+-            return yp.subs([(v, k) for k, v in f.items()])
+-        derivs[dydx] = yp
+-        eq = dydx - yp
+-        dydx = dydx.diff(x)
++    # Validate the main dependent variable y0
++    if not isinstance(y0, (Symbol, AppliedUndef)):
++         raise TypeError("expecting y as Symbol or AppliedUndef, not %s" % type(y0))
++
++    # Check if y0 is a function like f(x) and validate its argument
++    y0_is_func = isinstance(y0, AppliedUndef)
++    if y0_is_func and y0.args != (x,):
++        raise ValueError("Function %s must depend only on %s" % (y0, x))
++
++    # Create function substitutions: s -> s(x) for symbols in dep
++    funcs = {}
++    for s in dep:
++        if isinstance(s, Symbol):
++            funcs[s] = Function(s.name)(x)
++        elif isinstance(s, AppliedUndef):
++             # If s is f(x), ensure it depends only on x
++             if s.args != (x,):
++                 raise ValueError("Function %s must depend only on %s" % (s, x))
++        else:
++             raise TypeError("Dependent variable must be Symbol or AppliedUndef, got %s" % type(s))
++
++    # Substitute symbols with their function forms in the equation
++    eq_func = eq.subs(funcs)
++
++    # Iteratively compute derivatives
++    derivs = {} # Stores {Derivative(y(x), x, k): value} or {Derivative(f(x), x, k): value}
++    current_eq = eq_func
++    for i in range(1, n + 1):
++        # Define the derivative of order i we are solving for
++        if y0_is_func: # y0 is f(x)
++            dydx_i = Derivative(y0, x, i, evaluate=False)
++        else: # y0 is Symbol y
++            # Need the function form y(x) for differentiation.
++            # Handle case where y0 might not have been in funcs if not a free symbol initially.
++            y0_func = funcs.get(y0, Function(y0.name)(x))
++            dydx_i = Derivative(y0_func, x, i, evaluate=False)
++
++        # Differentiate the current equation wrt x

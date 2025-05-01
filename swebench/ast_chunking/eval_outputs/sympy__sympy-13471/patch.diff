@@ -1,0 +1,16 @@
+```patch
+--- a/sympy/core/numbers.py
++++ b/sympy/core/numbers.py
+@@ -1042,7 +1042,10 @@
+             # an mpf tuple
+             sign, man, exp, bc = num
+             num = list(num)
+-            num[1] = long(num[1], 16)
++            # Strip 'L' suffix if present (from Python 2 pickles)
++            if num[1].endswith('L'):
++                num[1] = num[1][:-1]
++            num[1] = int(num[1], 16) # Use int directly, handles large integers in Py3
+             num = tuple(num)
+             _mpf_ = num
+             is_integer = not exp
+```

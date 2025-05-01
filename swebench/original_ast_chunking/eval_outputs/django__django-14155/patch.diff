@@ -1,0 +1,28 @@
+```patch
+--- a/django/urls/resolvers.py
++++ b/django/urls/resolvers.py
+@@ -46,13 +46,18 @@
+         self.namespaces = [x for x in namespaces if x] if namespaces else []
+         self.namespace = ':'.join(self.namespaces)
+ 
+-        if not hasattr(func, '__name__'):
+-            # A class-based view
+-            self._func_path = func.__class__.__module__ + '.' + func.__class__.__name__
++        func_for_repr = func
++        if isinstance(func_for_repr, functools.partial):
++            func_for_repr = func_for_repr.func
++
++        if not hasattr(func_for_repr, '__name__'):
++            # A class-based view or callable object.
++            self._func_path = func_for_repr.__class__.__module__ + '.' + func_for_repr.__class__.__name__
+         else:
+-            # A function-based view
+-            self._func_path = func.__module__ + '.' + func.__name__
++            # A function-based view. Use __qualname__ for nested functions.
++            self._func_path = func_for_repr.__module__ + '.' + func_for_repr.__qualname__
+ 
++        # Used for the view_name if url_name is not set.
+         view_path = url_name or self._func_path
+         self.view_name = ':'.join(self.namespaces + [view_path])
+ 
+```

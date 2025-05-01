@@ -1,0 +1,18 @@
+```patch
+--- a/sklearn/model_selection/_split.py
++++ b/sklearn/model_selection/_split.py
+@@ -1013,6 +1013,13 @@
+                          **self.cvargs)
+         return cv.get_n_splits(X, y, groups) * self.n_repeats
+ 
++    def __repr__(self):
++        # We need to define the __repr__ here since BaseEstimator's __repr__
++        # does not work as we do not pass the parameters to the constructor.
++        return ('{}(n_splits={}, n_repeats={}, random_state={})'
++                .format(self.__class__.__name__,
++                        self.cvargs['n_splits'],
++                        self.n_repeats, self.random_state))
+ 
+ class RepeatedKFold(_RepeatedSplits):
+     """Repeated K-Fold cross validator.
+```

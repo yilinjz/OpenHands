@@ -1,0 +1,123 @@
+```patch
+--- a/requests/adapters.py
++++ b/requests/adapters.py
+@@ -5,12 +5,14 @@
+ """
+
+ from .models import Response
+-from .exceptions import (ConnectionError, ConnectTimeout, ReadTimeout, SSLError,
+-                         ProxyError, RetryError, InvalidSchema, InvalidURL)
++from .exceptions import (ConnectionError, ConnectTimeout, ReadTimeout, SSLError, ProxyError,
++                         RetryError, InvalidSchema, InvalidURL, InvalidHeader,
++                         ChunkedEncodingError, ContentDecodingError, StreamConsumedError,
++                         RequestException, Timeout) # Added ContentDecodingError, Timeout
+ from .packages.urllib3.exceptions import (MaxRetryError, NewConnectionError,
+                                           ConnectTimeoutError, SubjectAltNameWarning,
+-                                          SystemTimeWarning)
+-from .packages.urllib3.exceptions import SSLError as _SSLError
++                                          SystemTimeWarning, TimeoutError as _TimeoutError, # Added TimeoutError
++                                          DecodeError as _DecodeError) # Added DecodeError
++from .packages.urllib3.exceptions import SSLError as _SSLError
+ from .packages.urllib3.exceptions import ProxyError as _ProxyError
+ from .packages.urllib3.exceptions import ReadTimeoutError
+ from .packages.urllib3.exceptions import ResponseError
+@@ -509,40 +511,54 @@
+                 raise InvalidSchema("No connection adapters were found for '%s'" % url)
+
+             # Send the request.
+-            try:
++            # Send the request and catch specific urllib3 exceptions
++            try:
+                 resp = conn.urlopen(
+                     method=request.method,
+                     url=url,
+                     body=request.body,
+                     headers=request.headers,
+                     redirect=False,
+-                    assert_same_host=False,
++                    assert_same_host=not proxies,
+                     preload_content=False,
+                     decode_content=False,
+                     retries=self.max_retries,
+                     timeout=timeout
+                 )
+
+-            except MaxRetryError as e:
++            # Specific Timeouts first
++            except ConnectTimeoutError as e:
++                raise ConnectTimeout(e, request=request)
++
++            except ReadTimeoutError as e:
++                raise ReadTimeout(e, request=request)
++
++            # urllib3 base TimeoutError (might capture other timeout scenarios like proxy timeouts)
++            except _TimeoutError as e:
++                raise Timeout(e, request=request) # Map to requests base Timeout
++
++            # SSL Error
++            except _SSLError as e:
++                raise SSLError(e, request=request)
++
++            # Proxy Error
++            except _ProxyError as e:
++                raise ProxyError(e, request=request)
++
++            # Decode Error (may happen during streaming, but catch here too)
++            except _DecodeError as e:
++                raise ContentDecodingError(e, request=request)
++
++            # Connection Errors (NewConnectionError / MaxRetryError)
++            except (NewConnectionError, MaxRetryError) as e:
++                # Check reason within MaxRetryError first
+                 if isinstance(e, MaxRetryError):
++                    # Check for specific wrapped exceptions
+                     if isinstance(e.reason, ConnectTimeoutError):
+                         # TODO: Remove this in 3.0.0: see #2111 & #2401
+                         if not isinstance(e.reason, ReadTimeoutError):
+                             raise ConnectTimeout(e, request=request)
++                    if isinstance(e.reason, ReadTimeoutError):
++                        raise ReadTimeout(e, request=request)
++                    if isinstance(e.reason, _TimeoutError): # Generic timeout reason
++                        raise Timeout(e, request=request)
+                     if isinstance(e.reason, _SSLError):
+                         # This branch is Platform-specific See #1991.
+                         raise SSLError(e, request=request)
+-
+                     if isinstance(e.reason, ResponseError):
+                         raise RetryError(e, request=request)
+
++                    # Fallback for MaxRetryError with unknown reason
+                     raise ConnectionError(e, request=request)
+-
+-            except (_ProxyError, _SSLError) as e:
+-                # This branch is Platform-specific See #1991.
+-                if isinstance(e, _ProxyError):
++                # Handle NewConnectionError directly or MaxRetryError reasons not caught above
++                elif isinstance(e, _ProxyError): # Direct ProxyError check
+                     raise ProxyError(e, request=request)
+-                elif isinstance(e, _SSLError):
++                elif isinstance(e, _SSLError): # Direct SSLError check
+                     raise SSLError(e, request=request)
+-
++                # Fallback for NewConnectionError or unhandled MaxRetryError reasons
+                 raise ConnectionError(e, request=request)
+
++            # Catch any remaining urllib3 HTTP errors that weren't specific types
++            except urllib3.exceptions.HTTPError as e:
++                 raise RequestException(e, request=request) # General fallback
+
+         except ClosedPoolError:
+             # This scenario happens when we try to reuse a closed connection.
+--- a/requests/exceptions.py
++++ b/requests/exceptions.py
+@@ -87,7 +87,7 @@
+ class ChunkedEncodingError(RequestException):
+     """The server declared chunked encoding but sent an invalid chunk."""
+
+-
+-class ContentDecodingError(RequestException, BaseHTTPError):
++class ContentDecodingError(RequestException):
+     """Failed to decode response content"""
+
+
+```

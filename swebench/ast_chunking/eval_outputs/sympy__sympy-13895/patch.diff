@@ -1,0 +1,14 @@
+```patch
+--- a/sympy/simplify/simplify.py
++++ b/sympy/simplify/simplify.py
+@@ -750,7 +750,7 @@
+     # x*(1 + y) -> x + x*y (this is handled by cancel Processes below)
+     expr = bottom_up(expr, lambda x: Mul._keep_coeff(x, Factors(x).normal(expr)[0]))
+
+-    expr = powsimp(expr, deep=True, force=True)
++    expr = powsimp(expr, deep=True, force=False)
+
+     if expr.has(Abs):
+         expr = signsimp(expr)
+
+```

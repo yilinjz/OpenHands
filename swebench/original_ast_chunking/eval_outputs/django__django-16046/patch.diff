@@ -1,0 +1,14 @@
+```patch
+--- a/django/utils/numberformat.py
++++ b/django/utils/numberformat.py
+@@ -68,7 +68,8 @@
+ 
+     # Format the number according to the locale configuration.
+     sign = ""
+-    if str_number[0] == "-":
++    # Check if str_number is non-empty before accessing index 0.
++    if str_number and str_number[0] == "-":
+         sign = "-"
+         str_number = str_number[1:]
+     if "." in str_number:
+```

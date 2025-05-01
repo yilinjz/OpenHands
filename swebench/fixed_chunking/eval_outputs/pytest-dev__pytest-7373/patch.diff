@@ -1,0 +1,133 @@
+```patch
+--- a/src/_pytest/mark/evaluate.py
++++ b/src/_pytest/mark/evaluate.py
+@@ -5,12 +5,9 @@
+ from typing import TYPE_CHECKING
+ from typing import Type
+ from typing import Union
+-from weakref import WeakKeyDictionary
+ 
+ from _pytest.compat import TYPE_CHECKING
+ from _pytest.config import Config
+-from _pytest.config import ExitCode
+-from _pytest.config.exceptions import UsageError
+ from _pytest.outcomes import Skipped
+ from _pytest.outcomes import XFailed
+ 
+@@ -22,50 +19,12 @@
+     from _pytest.nodes import Item
+ 
+ 
+-# Cache for evaluated skipif/xfail expressions. Config objects are stored by weak
+-# reference to ensure they don't stick around unnecessarily. A config object is
+-# used as a cache key to support evaluating expressions in the context of different
+-# pytest runs (which might have different values for variables like pytestconfig).
+-# We can't use Item objects as keys since they are recreated for each run.
+-_eval_cache: "WeakKeyDictionary[Config, Dict[str, object]]" = WeakKeyDictionary()
+-
+-
+ class MarkEvalExc(Exception):
+-    """ exception used to wrap evaluation errors - for internal use only"""
++    """Exception used to wrap evaluation errors - for internal use only."""
+ 
+     def __init__(self, expr: str, exc: Exception) -> None:
+-        Exception.__init__(self, expr, exc)
++        super().__init__(expr, exc)
+         self.expr = expr
+         self.exc = exc
+-
+-
+-def cached_eval(
+-    config: Optional[Config], expr: str, d: Dict[str, object], funcargs: Dict[str, object]
+-) -> object:
+-    """Evaluate expr in the context of d, funcargs, config using a cache."""
+-    if config is not None and config.option.disable_warnings:
+-        # We assume that the expression will be evaluated multiple times,
+-        # so we can't rely on the warning registry. Just evaluate it
+-        # directly.
+-        return eval(expr, d, funcargs)
+-
+-    if config not in _eval_cache:
+-        _eval_cache[config] = {}
+-    cache = _eval_cache[config]
+-
+-    try:
+-        return cache[expr]
+-    except KeyError:
+-        import warnings
+-
+-        with warnings.catch_warnings():
+-            # Ignore warnings during eval. Otherwise warnings might provide
+-            # hints regarding the skip/xfail condition, which is confusing.
+-            warnings.simplefilter("ignore")
+-            try:
+-                cache[expr] = res = eval(expr, d, funcargs)
+-            except Exception as exc:
+-                cache[expr] = res = MarkEvalExc(expr, exc)
+-        return res
+ 
+ 
+ class MarkEvaluator:
+@@ -103,41 +62,32 @@
+             if isinstance(self.mark.args[0], str):
+                 expr = self.mark.args[0]
+                 if self.item is not None:
+-                    # "funcargs" are only available during test execution time.
+-                    d = {"config": self.item.config}
+-                    d.update(self.item.obj.__globals__)  # type: ignore[attr-defined]
+-                    result = cached_eval(
+-                        self.item.config, expr, d, self.item.funcargs
+-                    )
++                    # Item is available, we are in runtest.
++                    d = {"config": self.item.config}  # type: Dict[str, object]
++                    d.update(self.item.obj.__globals__)
++                    funcargs = self.item.funcargs
+                 else:
++                    # Item is not available, we are in collection.
+                     d = self._get_globals()
+                     funcargs = {}
+ 
+-                if self.item is not None and self.item.config.option.disable_warnings:
+-                    # We assume that the expression will be evaluated multiple times,
+-                    # so we can't rely on the warning registry. Just evaluate it
+-                    # directly.
+-                    result = eval(expr, d, funcargs)
+-                else:
+-                    # TODO: This is internal, maybe move to MarkEvaluator?
+-                    from _pytest.warning_types import PytestWarning
+-
+-                    result = cached_eval(None, expr, d, funcargs)
+-
+-                if isinstance(result, MarkEvalExc):
+-                    raise result
+-
+-                # Re-evaluate for truthiness to handle numpy arrays, etc.
+-                return bool(result)
++                # Eval the expression.
++                try:
++                    import warnings
++                    with warnings.catch_warnings():
++                        # Ignore warnings during eval. Otherwise warnings might provide
++                        # hints regarding the skip/xfail condition, which is confusing.
++                        warnings.simplefilter("ignore")
++                        result = eval(expr, d, funcargs)
++                except Exception as exc:
++                    # Wrap the exception and raise MarkEvalExc.
++                    # The .istrue() method will handle it correctly.
++                    markeval_exc = MarkEvalExc(self.getexplanation(), exc)
++                    raise markeval_exc from exc
++                else:
++                    # Re-evaluate for truthiness to handle numpy arrays, etc.
++                    return bool(result)
+ 
+             else:
+                 # Condition is a boolean.
+                 return bool(self.mark.args[0])
+         return True
+-
+-    def _get_globals(self) -> Dict[str, object]:
+-        if self.item is None:
+-            # Mark is module level, nothing we can do.
+-            return {"config": None}
+-        return self.item.obj.__globals__  # type: ignore[attr-defined]
+```

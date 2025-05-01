@@ -1,0 +1,54 @@
+```diff
+--- a/astropy/wcs/wcs.py
++++ b/astropy/wcs/wcs.py
+@@ -11,14 +11,18 @@
+                 raise ValueError(
+                     "Coordinate arrays are not broadcastable to each other")
+
+-            xy = np.hstack([x.reshape((x.size, 1)) for x in axes])
+-
+-            if ra_dec_order and sky == 'input':
+-                xy = self._denormalize_sky(xy)
+-            output = func(xy, origin)
++            # If the input arrays are empty, return empty arrays
++            # matching the expected output shape. Note that self.naxis is
++            # the number of output axes, which may not be the same as the
++            # number of input axes.
++            if axes[0].size == 0:
++                output = np.empty((0, self.naxis), dtype=np.float64)
++            else:
++                xy = np.hstack([x.reshape((x.size, 1)) for x in axes])
++                if ra_dec_order and sky == 'input':
++                    xy = self._denormalize_sky(xy)
++                output = func(xy, origin)
++
+             if ra_dec_order and sky == 'output':
+                 output = self._normalize_sky(output)
+-                return (output[:, 0].reshape(axes[0].shape),
+-                        output[:, 1].reshape(axes[0].shape))
++                if self.naxis == 2:  # Special case for ra/dec order output
++                    return (output[:, 0].reshape(axes[0].shape),
++                            output[:, 1].reshape(axes[0].shape))
+             return [output[:, i].reshape(axes[0].shape)
+                     for i in range(output.shape[1])]
+
+@@ -29,10 +33,14 @@
+                 raise ValueError(
+                     "When providing two arguments, the array must be "
+                     "of shape (N, {0})".format(self.naxis))
+-            if ra_dec_order and sky == 'input':
+-                xy = self._denormalize_sky(xy)
+-            result = func(xy, origin)
++            # If the input array is empty, return an empty array
++            # matching the expected output shape
++            if xy.shape[0] == 0:
++                result = np.empty((0, self.naxis), dtype=np.float64)
++            else:
++                if ra_dec_order and sky == 'input':
++                    xy = self._denormalize_sky(xy)
++                result = func(xy, origin)
+             if ra_dec_order and sky == 'output':
+                 result = self._normalize_sky(result)
+             return result
+
+```

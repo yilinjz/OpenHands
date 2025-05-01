@@ -1,0 +1,73 @@
+```patch
+--- a/django/core/management/commands/sqlmigrate.py
++++ b/django/core/management/commands/sqlmigrate.py
+@@ -99,7 +99,8 @@
+                 statements = schema_editor.collected_sql
+ 
+             # Output
+-            if options['output_transaction'] and migration.atomic:
++            # Only output SQL transactions if the migration is atomic and the
++            # backend supports transactional DDL.
++            if options['output_transaction'] and migration.atomic and connection.features.can_rollback_ddl:
+                 self.stdout.write(
+                     self.style.SQL_KEYWORD(connection.ops.start_transaction_sql()),
+                     ending='\n',
+@@ -114,7 +115,7 @@
+                     self.stdout.write(statement, ending='\n')
+                 else:
+                     self.stdout.write(statement, ending='\n')
+-            if options['output_transaction'] and migration.atomic:
++            if options['output_transaction'] and migration.atomic and connection.features.can_rollback_ddl:
+                 self.stdout.write(
+                     self.style.SQL_KEYWORD(connection.ops.end_transaction_sql()),
+                     ending='\n',
+--- a/tests/migrations/test_commands.py
++++ b/tests/migrations/test_commands.py
+@@ -1,5 +1,6 @@
+ import io
+ import os
++from unittest import mock
+ 
+ from django.core.management import CommandError, call_command
+ from django.db import connection, migrations, models
+@@ -8,7 +9,8 @@
+ from django.db.migrations.questioner import NonInteractiveMigrationQuestioner
+ from django.db.migrations.recorder import MigrationRecorder
+ from django.test import TransactionTestCase, override_settings, modify_settings
+-from django.test.utils import captured_stdout
++from django.test.utils import captured_stdout, skipUnlessDBFeature
++
+ from django.utils.version import get_docs_version
+ 
+ from .models import SimpleModel, UnicodeModel
+@@ -272,6 +274,29 @@
+         # Ensure the CREATE TABLE statement is present
+         self.assertIn(self.create_table_sql, output)
+ 
++    # The test effectively checks that sqlmigrate doesn't wrap atomic
++    # migrations in transactions on databases that don't support transactional
++    # DDL. That feature is explicitly required for the test assertions.
++    @skipUnlessDBFeature('can_rollback_ddl')
++    def test_sqlmigrate_atomic_no_transactional_ddl(self):
++        """
++        sqlmigrate doesn't wrap atomic migrations in a transaction if the
++        database doesn't support transactional DDL.
++        """
++        # Ensure the default migrations are used (atomic)
++        with override_settings(MIGRATION_MODULES={'migrations': 'migrations.test_migrations'}):
++            out = io.StringIO()
++            # Mock can_rollback_ddl to False for the sqlmigrate command execution
++            with mock.patch.object(connection.features, 'can_rollback_ddl', False):
++                call_command('sqlmigrate', 'migrations', '0001', stdout=out)
++            output = out.getvalue()
++            # Check that transaction statements are NOT present
++            start_transaction_sql = connection.ops.start_transaction_sql()
++            if start_transaction_sql:
++                self.assertNotIn(start_transaction_sql, output)
++            self.assertNotIn(connection.ops.end_transaction_sql(), output)
++            # Ensure the CREATE TABLE statement is still present
++            self.assertIn(self.create_table_sql, output)
+ 
+     def test_sqlmigrate_plan(self):
+         """
+```

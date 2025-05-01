@@ -1,0 +1,42 @@
+```patch
+--- a/sympy/printing/mathml.py
++++ b/sympy/printing/mathml.py
+@@ -63,6 +63,15 @@
+         dom_element.appendChild(self.dom.createTextNode(str(p)))
+         return dom_element
+ 
++    def _print_Indexed(self, e):
++        # Content MathML: <apply><selector/><ci>base</ci><ci>idx1</ci>...</apply>
++        x = self.dom.createElement('apply')
++        x.appendChild(self.dom.createElement('selector'))
++        x.appendChild(self._print(e.base))
++        for idx in e.indices:
++            x.appendChild(self._print(idx))
++        return x
++
+ 
+ class MathMLPresentationPrinter(MathMLPrinterBase):
+     """Prints an expression to Presentation MathML
+@@ -698,6 +707,21 @@
+                 x.appendChild(self._print(lim[0]))
+         return x
+ 
++    def _print_Indexed(self, e):
++        # Presentation MathML: <msub><mi>base</mi><mrow>idx1, idx2</mrow></msub>
++        x = self.dom.createElement('msub')
++        x.appendChild(self._print(e.base))
++        mrow = self.dom.createElement('mrow')
++        for i, idx in enumerate(e.indices):
++            mrow.appendChild(self._print(idx))
++            if i < len(e.indices) - 1:
++                mo = self.dom.createElement('mo')
++                # separating comma
++                mo.appendChild(self.dom.createTextNode(','))
++                mrow.appendChild(mo)
++        x.appendChild(mrow)
++        return x
++
+     def _print_Sum(self, e):
+         # Uses unicode summation symbol
+         x = self.dom.createElement('mrow')
+```

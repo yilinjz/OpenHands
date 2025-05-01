@@ -1,0 +1,22 @@
+```patch
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -45,6 +45,14 @@
+         """
+         return str(self.value_from_object(obj))
+ 
++    # Note regarding Issue #27800 (get_FOO_display inheritance):
++    # The issue where get_FOO_display() doesn't work correctly for choices
++    # inherited and extended in a child model (e.g., returning the raw value
++    # instead of the display value for choices added in the child) is typically
++    # caused by the timing of field processing and method generation during
++    # model metaclass (`ModelBase`) execution in `django/db/models/base.py`.
++    # The `Field` logic itself (like `flatchoices` below) correctly uses the
++    # `choices` associated with the field instance. The fix resides in `base.py`
++    # (as fixed in Django 2.0) to ensure the child's field definition fully
++    # replaces the parent's before `contribute_to_class` generates the display method.
+     def _get_flatchoices(self):
+         """Flattened version of choices tuple."""
+         if self.choices is None:
+
+```

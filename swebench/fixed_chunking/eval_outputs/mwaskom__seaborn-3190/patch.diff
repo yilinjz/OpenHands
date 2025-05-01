@@ -1,0 +1,23 @@
+```patch
+--- a/seaborn/_core/properties.py
++++ b/seaborn/_core/properties.py
+@@ -71,8 +71,16 @@
+ 
+     def default_scale(self, data: Series) -> Scale:
+         """Given data, initialize appropriate scale class."""
+-        # TODO check data type and return Nominal() when appropriate
+-        return Continuous()
++        # Return Nominal scale for boolean, object, or categorical data
++        if (
++            data.dtype == bool
++            or pd.api.types.is_categorical_dtype(data)
++            or pd.api.types.is_object_dtype(data)
++            or pd.api.types.is_string_dtype(data)
++        ):
++            return Nominal()
++        # Default to Continuous for other types (presumably numeric)
++        return Continuous()
+ 
+     def infer_scale(self, arg: Any, data: Series) -> Scale:
+         """Given data and a scaling argument, initialize appropriate scale class."""
+```

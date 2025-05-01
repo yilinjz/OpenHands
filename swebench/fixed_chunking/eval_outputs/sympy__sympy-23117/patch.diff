@@ -1,0 +1,23 @@
+```patch
+--- a/sympy/tensor/array/ndim_array.py
++++ b/sympy/tensor/array/ndim_array.py
+@@ -31,14 +31,17 @@
+     @classmethod
+     def _scan_iterable_shape(cls, iterable):
+         def f(pointer):
++            # Check if element is scalar:
+             if not isinstance(pointer, Iterable):
+                 return [pointer], ()
+ 
++            # Check if sub-iterable is empty:
++            if not pointer:
++                # Represents a dimension of size 0.
++                # E.g. [] gets shape (0,), [[]] gets shape (1, 0), [[], []] gets shape (2, 0).
++                return [], (0,)
++
+             result = []
+             elems, shapes = zip(*[f(i) for i in pointer])
+             if len(set(shapes)) != 1:
+                 raise ValueError("could not determine shape unambiguously")
+             for i in elems:
+```

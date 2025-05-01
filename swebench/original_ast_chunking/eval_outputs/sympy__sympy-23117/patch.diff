@@ -1,0 +1,25 @@
+```patch
+--- a/sympy/tensor/array/ndim_array.py
++++ b/sympy/tensor/array/ndim_array.py
+@@ -114,12 +114,17 @@
+         from sympy.core.compatibility import is_sequence
+ 
+         def f(pointer):
++            # Check if it's a scalar element first:
+             if not is_sequence(pointer):
+                 return (), pointer
+ 
++            # Handle empty sequence:
++            if not pointer:
++                # Represents a dimension of size 0.
++                return (0,), []
++
+             # Recursively scan dimensions.
+-            elems, shapes = zip(*[f(i) for i in pointer])
+-
++            results = [f(i) for i in pointer]
++            elems, shapes = zip(*results)
+ 
+             # Check if all elements have the same shape, take the first shape:
+             if len(set(shapes)) > 1:
+```

@@ -1,0 +1,70 @@
+```patch
+--- a/django/views/debug.py
++++ b/django/views/debug.py
+@@ -1,5 +1,10 @@
++import collections.abc
+ import re
+ from functools import wraps
++
++from django.conf import settings
++from django.utils.datastructures import MultiValueDict
++from django.utils.regex_helper import _lazy_re_compile
+ 
+ # Import settings at module level for backwards compatibility (#27920)
+ try:
+@@ -10,6 +15,15 @@
+ except ImportError:
+     pass
+ 
++# Minimal implementation of LoggingConfigurable to allow standalone use of Django's debug view.
++class LoggingConfigurable:
++    pass
++
++
++class CallableSettingWrapper:
++    def __init__(self, callable_setting):
++        self._wrapped = callable_setting
++
+ 
+ class SafeExceptionReporterFilter:
+     """
+@@ -22,22 +36,25 @@
+     def cleanse_setting(self, key, value):
+         """
+         Cleanse an individual setting key/value of sensitive content. If the
+-        value is a dictionary, recursively cleanse the keys in that dictionary.
++        value is a dictionary or list/tuple, recursively cleanse the keys/items
++        in it.
+         """
+         try:
+-            if self.hidden_settings.search(key):
+-                cleansed = self.cleansed_substitute
+-            elif isinstance(value, dict):
+-                cleansed = {k: self.cleanse_setting(k, v) for k, v in value.items()}
+-            else:
+-                cleansed = value
++            # Check if the key contains patterns that should be hidden.
++            # Key is None for values in lists/tuples.
++            is_sensitive_key = key is not None and self.hidden_settings.search(key)
+         except TypeError:
+-            # If the key isn't regex-able, just return as-is.
++            # Cannot regex-check the key, assume not sensitive.
++            is_sensitive_key = False
++
++        if is_sensitive_key:
++            cleansed = self.cleansed_substitute
++        elif isinstance(value, dict):
++            cleansed = {k: self.cleanse_setting(k, v) for k, v in value.items()}
++        elif isinstance(value, list):
++            cleansed = [self.cleanse_setting(None, item) for item in value]
++        elif isinstance(value, tuple):
++            cleansed = tuple(self.cleanse_setting(None, item) for item in value)
++        else:
+             cleansed = value
+-
+-        if callable(cleansed):
++        if callable(cleansed) and not isinstance(cleansed, type):
+             cleansed = CallableSettingWrapper(cleansed)
+ 
+         return cleansed
+```

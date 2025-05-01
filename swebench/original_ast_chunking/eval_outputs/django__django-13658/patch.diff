@@ -1,0 +1,19 @@
+```patch
+--- a/django/core/management/__init__.py
++++ b/django/core/management/__init__.py
+@@ -10,7 +10,12 @@
+ 11         # These options could affect the commands that are available, so they
+ 12         # must be processed early.
+ 13         parser = CommandParser(usage='%(prog)s subcommand [options] [args]', add_help=False, allow_abbrev=False)
+-14         parser.add_argument('--settings')
++14         parser = CommandParser(
++15             prog=self.prog_name,
++16             usage='%(prog)s subcommand [options] [args]',
++17             add_help=False,
++18             allow_abbrev=False,
++19         )
++20         parser.add_argument('--settings')
+ 15         parser.add_argument('--pythonpath')
+ 16         parser.add_argument('args', nargs='*')  # catch-all
+ 17         try:
+```

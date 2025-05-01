@@ -1,0 +1,54 @@
+2025-05-01 20:02:12,380 - INFO - Creating container for scikit-learn__scikit-learn-13497...
+2025-05-01 20:02:12,417 - INFO - Container for scikit-learn__scikit-learn-13497 created: e81234e1dec6677b138866517e7842136e2ddbac5661d7454f9cef4d713d9324
+2025-05-01 20:02:12,938 - INFO - Container for scikit-learn__scikit-learn-13497 started: e81234e1dec6677b138866517e7842136e2ddbac5661d7454f9cef4d713d9324
+2025-05-01 20:02:12,939 - INFO - Intermediate patch for scikit-learn__scikit-learn-13497 written to logs/run_evaluation/20250501_195119/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/scikit-learn__scikit-learn-13497/patch.diff, now applying to container...
+2025-05-01 20:02:13,182 - INFO - >>>>> Applied Patch:
+Checking patch sklearn/feature_selection/mutual_info_.py...
+Hunk #1 succeeded at 246 (offset 196 lines).
+Applied patch sklearn/feature_selection/mutual_info_.py cleanly.
+
+2025-05-01 20:02:13,675 - INFO - Git diff before:
+diff --git a/sklearn/feature_selection/mutual_info_.py b/sklearn/feature_selection/mutual_info_.py
+index d5d1b7fb5..98e2e40cc 100644
+--- a/sklearn/feature_selection/mutual_info_.py
++++ b/sklearn/feature_selection/mutual_info_.py
+@@ -247,9 +247,10 @@ def _estimate_mi(X, y, discrete_features='auto', discrete_target=False,
+     X, y = check_X_y(X, y, accept_sparse='csc', y_numeric=not discrete_target)
+     n_samples, n_features = X.shape
+ 
+-    if discrete_features == 'auto':
++    # Determine the discrete mask
++    if isinstance(discrete_features, str) and discrete_features == 'auto':
+         discrete_features = issparse(X)
+-
++    # Now discrete_features is bool or array-like
+     if isinstance(discrete_features, bool):
+         discrete_mask = np.empty(n_features, dtype=bool)
+         discrete_mask.fill(discrete_features)
+2025-05-01 20:02:13,677 - INFO - Eval script for scikit-learn__scikit-learn-13497 written to logs/run_evaluation/20250501_195119/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/scikit-learn__scikit-learn-13497/eval.sh; copying to container...
+2025-05-01 20:02:20,827 - INFO - Test runtime: 7.04 seconds
+2025-05-01 20:02:20,827 - INFO - Test output for scikit-learn__scikit-learn-13497 written to logs/run_evaluation/20250501_195119/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/scikit-learn__scikit-learn-13497/test_output.txt
+2025-05-01 20:02:20,890 - INFO - Git diff after:
+diff --git a/sklearn/feature_selection/mutual_info_.py b/sklearn/feature_selection/mutual_info_.py
+index d5d1b7fb5..98e2e40cc 100644
+--- a/sklearn/feature_selection/mutual_info_.py
++++ b/sklearn/feature_selection/mutual_info_.py
+@@ -247,9 +247,10 @@ def _estimate_mi(X, y, discrete_features='auto', discrete_target=False,
+     X, y = check_X_y(X, y, accept_sparse='csc', y_numeric=not discrete_target)
+     n_samples, n_features = X.shape
+ 
+-    if discrete_features == 'auto':
++    # Determine the discrete mask
++    if isinstance(discrete_features, str) and discrete_features == 'auto':
+         discrete_features = issparse(X)
+-
++    # Now discrete_features is bool or array-like
+     if isinstance(discrete_features, bool):
+         discrete_mask = np.empty(n_features, dtype=bool)
+         discrete_mask.fill(discrete_features)
+2025-05-01 20:02:20,890 - INFO - Grading answer for scikit-learn__scikit-learn-13497...
+2025-05-01 20:02:20,892 - INFO - report: {'scikit-learn__scikit-learn-13497': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['sklearn/feature_selection/tests/test_mutual_info.py::test_mutual_info_options']}, 'PASS_TO_PASS': {'success': ['sklearn/feature_selection/tests/test_mutual_info.py::test_compute_mi_dd', 'sklearn/feature_selection/tests/test_mutual_info.py::test_compute_mi_cc', 'sklearn/feature_selection/tests/test_mutual_info.py::test_compute_mi_cd', 'sklearn/feature_selection/tests/test_mutual_info.py::test_compute_mi_cd_unique_label', 'sklearn/feature_selection/tests/test_mutual_info.py::test_mutual_info_classif_discrete', 'sklearn/feature_selection/tests/test_mutual_info.py::test_mutual_info_regression', 'sklearn/feature_selection/tests/test_mutual_info.py::test_mutual_info_classif_mixed'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for scikit-learn__scikit-learn-13497: resolved: False
+2025-05-01 20:02:20,893 - INFO - Attempting to stop container sweb.eval.scikit-learn__scikit-learn-13497.20250501_195119...
+2025-05-01 20:02:36,218 - INFO - Attempting to remove container sweb.eval.scikit-learn__scikit-learn-13497.20250501_195119...
+2025-05-01 20:02:36,237 - INFO - Container sweb.eval.scikit-learn__scikit-learn-13497.20250501_195119 removed.

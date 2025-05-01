@@ -1,0 +1,56 @@
+```patch
+--- a/django/urls/resolvers.py
++++ b/django/urls/resolvers.py
+@@ -31,12 +31,19 @@
+ 
+ class ResolverMatch:
+     def __init__(self, func, args, kwargs, url_name=None, app_names=None, namespaces=None, route=None, tried=None):
+-        self.func = func
+-        self.args = args
+-        self.kwargs = kwargs
++        # Unwrap functools.partial() objects.
++        if isinstance(func, functools.partial):
++            self.func = func.func
++            self.args = func.args + args
++            self.kwargs = {**func.keywords, **kwargs}
++        else:
++            self.func = func
++            self.args = args
++            self.kwargs = kwargs
++
+         self.url_name = url_name
+         self.route = route
+-        self.tried = tried
++        self.tried = tried  # Contains patterns which were tried but didn't match.
+ 
+         # If a URLRegexResolver doesn't have a namespace or app_name, it passes
+         # in an empty value.
+@@ -46,13 +53,21 @@
+         self.namespaces = [x for x in namespaces if x] if namespaces else []
+         self.namespace = ':'.join(self.namespaces)
+ 
+-        if not hasattr(func, '__name__'):
++        # Calculate the representation of the function object. This is used
++        # several times, so compute it once.
++        func = self.func  # Use the potentially unwrapped func.
++        if not hasattr(func, '__name__'):
+             # A class-based view
+             self._func_path = func.__class__.__module__ + '.' + func.__class__.__name__
++        elif inspect.isfunction(func):
++            # A function-based view
++            self._func_path = func.__module__ + '.' + func.__qualname__
+         else:
+-            # A function-based view
+-            self._func_path = func.__module__ + '.' + func.__qualname__
++            # A callable object
++            self._func_path = func.__module__ + '.' + func.__class__.__name__ + '.__call__'
+ 
++    def __repr__(self):
++        return (
++            f"<{self.__class__.__name__} {self._func_path} args={self.args!r} kwargs={self.kwargs!r} "
++            f"url_name={self.url_name!r} app_name={self.app_name!r} namespace={self.namespace!r}>"
++        )
+
+ class Resolver404(Exception):
+     pass
+```

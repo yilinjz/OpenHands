@@ -1,0 +1,24 @@
+```diff
+--- a/src/_pytest/_code/code.py
++++ b/src/_pytest/_code/code.py
+@@ -247,16 +247,14 @@
+         return self._excinfo == other._excinfo
+
+     def __str__(self):
++        """Return the string representation of the underlying exception."""
+         try:
+             s = str(self.value)
+         except (KeyboardInterrupt, SystemExit):
+             raise
+         except:  # noqa
+-            s = "<[{} raised in repr()]>".format(
++            s = "<[{} raised in str()]>".format(
+                 getattr(self.value, "__class__", "unknown")
+             )
+-        if self._striptext:
+-            s = s.replace(self._striptext, "")
+         return s
+
+     def __repr__(self):
+
+```

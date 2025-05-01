@@ -1,0 +1,23 @@
+```patch
+--- a/xarray/core/variable.py
++++ b/xarray/core/variable.py
+@@ -16,6 +16,7 @@
+ from . import dtypes, indexing
+ from .arithmetic import CoercibleMapping
+ from .common import AbstractArray, AbstractVariable, DataWithCoords
++from .dataarray import DataArray
+ from .formatting import (
+     diff_array_repr,
+     diff_attrs_repr,
+@@ -216,6 +217,9 @@
+                 pass
+             elif isinstance(data, Variable):
+                 # Load variable data into memory TBC by DataArray.load()
++                return data.data
++            elif isinstance(data, DataArray):
++                # Load variable data into memory TBC by DataArray.load()
+                 return data.data
+             elif isinstance(data, np.ma.MaskedArray):
+                 # convert to numpy array with NaN
+
+```

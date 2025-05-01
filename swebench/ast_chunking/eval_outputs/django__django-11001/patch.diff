@@ -1,0 +1,16 @@
+```diff
+--- a/django/db/models/sql/compiler.py
++++ b/django/db/models/sql/compiler.py
+@@ -217,7 +217,10 @@
+             # is refactored into expressions, then we can check each part as we
+             # generate it.
+             without_ordering = self.ordering_parts.search(sql).group(1)
++            # Normalize multiline SQL strings by replacing newlines with spaces
++            # before searching for the ORDER BY clause (#26581).
++            sql_oneline = ' '.join(sql.splitlines())
++            without_ordering = self.ordering_parts.search(sql_oneline).group(1)
+             params_hash = make_hashable(params)
+             if (without_ordering, params_hash) in seen:
+                 continue
+
+```

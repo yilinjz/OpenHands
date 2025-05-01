@@ -1,0 +1,23 @@
+```patch
+--- a/sympy/concrete/summations.py
++++ b/sympy/concrete/summations.py
+@@ -415,7 +415,7 @@
+             # Sum(f(k)*KroneckerDelta(symbol, k), (symbol, a, b)) = f(k) * Sum(KroneckerDelta(symbol, k), (symbol, a, b))
+             # Sum(KroneckerDelta(symbol, k), (symbol, a, b)) = 1 if a <= k <= b else 0
+             new_expr = f * Piecewise((1, And(k >= a, k <= b)), (0, True))
+-            return new_expr.subs(d, 1)
++            return new_expr
+
+         # If the function depends on the summation variable
+         # Sum(f(symbol)*KroneckerDelta(symbol, k), (symbol, a, b)) = f(k)
+@@ -425,7 +425,7 @@
+         new_expr = f.subs(symbol, k)
+         # The result is valid only if k is within the summation bounds
+         # Regarding the new assumptions see issue #6599
+-        return Piecewise((new_expr.subs(d, 1), And(k >= a, k <= b)), (0, True))
++        return Piecewise((new_expr, And(k >= a, k <= b)), (0, True))
+
+     return None
+
+
+```

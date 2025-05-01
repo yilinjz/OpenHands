@@ -1,0 +1,32 @@
+```diff
+--- a/django/db/migrations/operations/models.py
++++ b/django/db/migrations/operations/models.py
+@@ -45,14 +45,17 @@
+         self.database_forwards(app_label, schema_editor, from_state, to_state)
+ 
+     def references_field(self, model_name, name, app_label):
+-        return (
+-            self.references_model(model_name, app_label) and
+-            (
+-                self.order_with_respect_to is None or
+-                name == self.order_with_respect_to
+-            )
+-        )
++        # Check if the operation targets the specified model
++        if not self.references_model(model_name, app_label):
++            return False
++
++        # Check if the field being queried is the ForeignKey field
++        if name == self.order_with_respect_to:
++            return True
++
++        # Check if the field being queried is the implicit '_order' field
++        if name == '_order':
++            return True
++
++        return False
+ 
+     def describe(self):
+         return "Set order_with_respect_to on %s to %s" % (self.name, self.order_with_respect_to)
+
+```

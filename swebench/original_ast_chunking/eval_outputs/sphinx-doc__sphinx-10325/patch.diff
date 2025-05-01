@@ -1,0 +1,52 @@
+```patch
+--- a/sphinx/ext/autodoc/__init__.py
++++ b/sphinx/ext/autodoc/__init__.py
+@@ -1,6 +1,6 @@
+ """Sphinx autodoc extension."""
+ 
+-from typing import Any, Dict, List, Optional, Sequence, Tuple
++from typing import Any, Dict, List, Optional, Sequence, Tuple, Union, cast
+ 
+ from docutils import nodes
+ from docutils.statemachine import StringList
+@@ -10,7 +10,7 @@
+ from sphinx.config import Config
+ from sphinx.environment import BuildEnvironment
+ from sphinx.ext.autodoc.directive import DocumenterBridge, Options
+-from sphinx.ext.autodoc.importer import import_module, import_object
++from sphinx.ext.autodoc.importer import import_module, import_object, get_class_members
+ from sphinx.ext.autodoc.mock import mock
+ from sphinx.locale import _, __
+ from sphinx.pycode.ast import parse as parse_pycode
+@@ -20,7 +20,7 @@
+ from sphinx.util import inspect, logging, rst, typing
+ from sphinx.util.docstrings import prepare_docstring
+ from sphinx.util.inspect import safe_getattr
+-from sphinx.util.typing import OptionSpec, PycodeInfo, stringify_annotation
++from sphinx.util.typing import OptionSpec, PycodeInfo, stringify_annotation, NoneType
+ 
+ if False:
+     # For type annotation
+@@ -30,7 +30,7 @@
+ 
+ logger = logging.getLogger(__name__)
+ 
+-# A list of Documenter classes passed to automodule directive
++# A list of Documenter classes passed to automodule directive.
+ members_option = partial(option, convert=string_to_list)
+ 
+ 
+@@ -40,7 +40,7 @@
+     return True
+ 
+ 
+-# An option represents inherited_members is specified or not.
++# An option represents inherited_members is specified or not, or a list of classes.
+ inherited_members_option = directives.unchanged  # type: ignore
+ 
+ 
+@@ -102,7 +102,7 @@
+ 
+     option_spec: OptionSpec = {
+         'members': members_option, 'undoc-members': bool_option,
+-        

@@ -1,0 +1,20 @@
+```patch
+--- a/lib/mpl_toolkits/mplot3d/art3d.py
++++ b/lib/mpl_toolkits/mplot3d/art3d.py
+@@ -633,12 +633,12 @@
+         self.stale = True
+
+     def get_facecolors(self):
+-        return self._facecolors2d
++        # Return the 3D colors, not the projected 2D colors.
++        return super().get_facecolors()
+     get_facecolor = get_facecolors
+
+     def get_edgecolors(self):
+-        return self._edgecolors2d
++        # Return the 3D colors, not the projected 2D colors.
++        return super().get_edgecolors()
+     get_edgecolor = get_edgecolors
+
+     def do_3d_projection(self, renderer):
+```

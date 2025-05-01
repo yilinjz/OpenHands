@@ -1,0 +1,32 @@
+```patch
+--- a/src/_pytest/config/argparsing.py
++++ b/src/_pytest/config/argparsing.py
+@@ -181,6 +181,7 @@
+     )
+     parser.addoption(
+         "--collect-only",
++        "-C",
+         "--co",
+         action="store_true",
+         help="only collect tests, don't execute them.",
+--- a/testing/test_main.py
++++ b/testing/test_main.py
+@@ -240,6 +240,16 @@
+     assert "test_nothing" not in result.stdout.str()
+ 
+ 
++def test_collect_only_short_option(pytester):
++    """Test that the short option '-C' works for --collect-only"""
++    pytester.makepyfile("def test_func(): pass")
++    result_long = pytester.runpytest_subprocess("--collect-only")
++    result_short = pytester.runpytest_subprocess("-C")
++
++    assert result_long.ret == 0
++    assert result_short.ret == 0
++    assert result_long.stdout.lines == result_short.stdout.lines
++
++
+ def test_collect_only_with_different_exit_codes(pytester):
+     """Test that --collect-only propagates the exit code from
+     pytest_collection_finish."""
+```

@@ -1,0 +1,27 @@
+```patch
+--- a/sympy/utilities/lambdify.py
++++ b/sympy/utilities/lambdify.py
+@@ -769,10 +769,16 @@
+ ###############################################################################
+
+ def _recursive_to_string(converter, expr):
+-    if isinstance(expr, (list, tuple)):
+-        return type(expr).__name__ + '(' + ', '.join(
+-            _recursive_to_string(converter, e) for e in expr) + ')'
++    # Handle iterables recursively
++    if isinstance(expr, tuple):
++        if not expr:
++            return '()'
++        elif len(expr) == 1:
++            # Need trailing comma for single element tuple
++            return '(%s,)' % _recursive_to_string(converter, expr[0])
++        else:
++            return '(%s)' % ', '.join(
++                _recursive_to_string(converter, e) for e in expr)
++    elif isinstance(expr, list):
++        return '[%s]' % ', '.join(
++            _recursive_to_string(converter, e) for e in expr)
+     elif isinstance(expr, dict):
+         keys = [_recursive_to_string(converter, k) for k in expr.keys()]
+         values = [_recursive_to_string(converter, v) for v in expr.values()]
+```

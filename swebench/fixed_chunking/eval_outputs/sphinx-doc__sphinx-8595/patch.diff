@@ -1,0 +1,27 @@
+```patch
+--- a/sphinx/ext/autodoc/__init__.py
++++ b/sphinx/ext/autodoc/__init__.py
+@@ -1,10 +1,17 @@
+             else:
+-                for member in members.values():
+-                    if member.__name__ not in self.__all__:
+-                        member.skipped = True
+-
+-                return False, list(members.values())
++                # If __all__ is empty, return an empty list
++                if not self.__all__:
++                    return False, []
++
++                # Filter members based on __all__
++                ret = []
++                for name in self.__all__:
++                    if name in members:
++                        ret.append(members[name])
++                    else:
++                        # Optional: issue warning for missing members in __all__?
++                        # logger.warning(...)
++                return False, ret
+         else:
+             memberlist = self.options.members or []
+             ret = []
+```

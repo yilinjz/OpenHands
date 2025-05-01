@@ -1,0 +1,62 @@
+```patch
+--- a/requests/models.py
++++ b/requests/models.py
+@@ -19,6 +19,7 @@
+ """
+ 
+ import datetime
++import socket
+ import json
+ import logging
+ import sys
+@@ -31,7 +32,7 @@
+ from .exceptions import (
+     ConnectionError, HTTPError, MissingSchema, InvalidSchema, InvalidURL,
+     ChunkedEncodingError, ContentDecodingError)
+-from .packages.urllib3.exceptions import DecodeError, ReadTimeoutError
++from .packages.urllib3.exceptions import DecodeError, ReadTimeoutError, ProtocolError
+ from .packages.urllib3.filepost import encode_multipart_formdata
+ from .packages.urllib3.util import is_fp_closed
+ from .auth import HTTPBasicAuth
+@@ -623,20 +624,28 @@
+         """
+ 
+         def generate():
+-            # Special case for zero chunk size.
+-            if chunk_size == 0:
+-                result = self.raw.read(decode_content=True)
+-            else:
+-                # Standard file-like object.
+-                while True:
+-                    chunk = self.raw.read(chunk_size, decode_content=True)
+-                    if not chunk:
+-                        break
+-                    yield chunk
++            # Check if self.raw exists and has a read method.
++            if hasattr(self.raw, 'read'):
++                try:
++                    # Special case for zero chunk size.
++                    if chunk_size == 0:
++                        result = self.raw.read(decode_content=True)
++                        if result:
++                            yield result
++                    else:
++                        # Standard file-like object.
++                        while True:
++                            chunk = self.raw.read(chunk_size, decode_content=True)
++                            if not chunk:
++                                break
++                            yield chunk
++                except (ProtocolError, socket.error) as e:
++                    raise ConnectionError(e)
++                except DecodeError as e:
++                    raise ContentDecodingError(e)
++                except ReadTimeoutError as e:
++                    raise ConnectionError(e)
++                except AttributeError:
++                    # This may happen if the connection is closed already.
++                    pass
+ 
+             self._content_consumed = True
+ 
+```

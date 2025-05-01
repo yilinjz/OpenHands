@@ -1,0 +1,15 @@
+```patch
+--- a/django/db/models/sql/query.py
++++ b/django/db/models/sql/query.py
+@@ -54,6 +54,10 @@
+ 
+         self.check_filterable(value)
+ 
++        # Check for __isnull lookup with non-boolean value
++        if lookups[-1] == 'isnull' and not isinstance(value, bool):
++            raise ValueError("The __isnull lookup must be either True or False.")
++
+         clause = self.where_class()
+         if reffed_expression:
+             condition = self.build_lookup(lookups, reffed_expression, value)
+```

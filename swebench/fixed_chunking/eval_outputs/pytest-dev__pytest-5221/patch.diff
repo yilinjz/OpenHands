@@ -1,0 +1,48 @@
+```patch
+--- a/src/_pytest/python.py
++++ b/src/_pytest/python.py
+@@ -49,6 +49,7 @@
+                     curdir.bestrelpath(loc),
+                     fixturedef.argname,
+                     fixturedef,
++                    fixturedef.scope,
+                 )
+             )
+ 
+@@ -61,7 +62,7 @@
+         tw.sep("-", "fixtures")
+         if not available:
+             tw.line("no fixtures discovered")
+-            return 0
++            return
+ 
+         available.sort()
+         current_fixture_type = None
+@@ -70,7 +71,7 @@
+         fixture_doc = {}
+         fixture_loc = {}
+ 
+-        for baseid, module, bestrel, argname, fixturedef in available:
++        for baseid, module, bestrel, argname, fixturedef, scope in available:
+             if current_fixture_type != bestrel:
+                 if not verbose:
+                     tw.line()
+@@ -82,7 +83,7 @@
+                 fixture_doc[argname] = fixturedef.func.__doc__
+                 fixture_loc[argname] = bestrel
+             else:
+-                msg = "{} (defined in {})".format(argname, fixture_loc[argname])
++                msg = "{} [{}] (defined in {})".format(argname, scope, fixture_loc[argname])
+                 tw.line(msg)
+                 if verbose > 1:
+                     doc = fixturedef.func.__doc__
+@@ -91,7 +92,7 @@
+                         tw.line("    {}".format(line))
+                     tw.line()
+             else:
+-                tw.write(argname)
++                tw.write("{} [{}]".format(argname, scope))
+                 doc = fixturedef.func.__doc__
+                 if doc:
+                     lines = doc.splitlines()
+```

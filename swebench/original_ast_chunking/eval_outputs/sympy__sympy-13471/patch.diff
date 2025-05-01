@@ -1,0 +1,19 @@
+```patch
+--- a/sympy/core/numbers.py
++++ b/sympy/core/numbers.py
+@@ -1039,8 +1039,12 @@
+         # We therefore convert the hex representation of `man` back to long
+         # if it is a string.
+         if isinstance(num[1], string_types):
++            # Strip 'L' suffix if present before converting from hex
++            # This is needed for compatibility with Python 2 pickles
++            hex_mantissa = num[1]
++            if hex_mantissa.endswith('L'):
++                 hex_mantissa = hex_mantissa[:-1]
+             num = list(num)
+-            num[1] = long(num[1], 16)
++            num[1] = int(hex_mantissa, 16)
+             num = tuple(num)
+ 
+         # special cases
+```

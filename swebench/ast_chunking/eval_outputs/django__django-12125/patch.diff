@@ -1,0 +1,19 @@
+```diff
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -166,7 +166,11 @@
+             keywords[name] = value
+
+         # Work out path. The base class is Field, assume models.Field.
+-        path = "%s.%s" % (self.__class__.__module__, self.__class__.__name__)
++        # Use qualname for inner classes. If __qualname__ is not available
++        # (Python < 3.3), fallback to __name__.
++        klass = self.__class__
++        module = klass.__module__
++        name = getattr(klass, '__qualname__', klass.__name__)
++        path = "%s.%s" % (module, name)
+         # If it's a core field, use "models." shortcut.
+         if path.startswith('django.db.models.fields.'):
+             path = path.replace('django.db.models.fields.', 'django.db.models.', 1)
+
+```

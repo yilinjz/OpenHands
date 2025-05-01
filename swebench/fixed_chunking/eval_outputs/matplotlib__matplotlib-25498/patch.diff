@@ -1,0 +1,17 @@
+```patch
+--- a/lib/matplotlib/colorbar.py
++++ b/lib/matplotlib/colorbar.py
+@@ -28,6 +28,11 @@
+         self.cmap = mappable.cmap
+         if mappable.norm != self.norm:
+             self.norm = mappable.norm
++            # If the norm has changed, ensure the new norm is updated
++            # with data limits from the mappable, in case the user just
++            # assigned a new norm instance to the mappable without scaling it.
++            # We use autoscale_None to avoid overriding limits already set
++            # on the norm instance.
++            self.mappable.autoscale_None()
+             self._reset_locator_formatter_scale()
+ 
+         self._draw_all()
+```

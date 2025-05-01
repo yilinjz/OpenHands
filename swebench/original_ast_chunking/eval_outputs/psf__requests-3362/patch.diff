@@ -1,0 +1,49 @@
+```patch
+--- a/requests/utils.py
++++ b/requests/utils.py
+@@ -1,5 +1,6 @@
+ import codecs
+ import re
++import cgi
+ import warnings
+ 
+ from .compat import quote, str, unquote, urlparse, bytes, basestring, is_py3
+@@ -40,16 +41,31 @@
+ def stream_decode_response_unicode(iterator, r):
+     """Stream decodes a iterator."""
+ 
+-    if r.encoding is None:
++    encoding = r.encoding
++
++    if encoding is None:
++        # Fallback: Guess encoding from content-type if not specified in headers.
++        content_type = r.headers.get('content-type')
++        if content_type:
++            try:
++                # Use cgi.parse_header (similar to get_encoding_from_headers)
++                # but without returning early if charset is found (we already know it's not).
++                ct_val, params = cgi.parse_header(content_type)
++                # Check common text types
++                if ct_val == 'application/json':
++                    # RFC 7159: "JSON text SHALL be encoded in UTF-8, UTF-16, or UTF-32."
++                    # Defaulting to UTF-8 is reasonable.
++                    encoding = 'utf-8'
++                elif ct_val.startswith('text/'):
++                    # RFC 2616: "The default charset is ISO-8859-1" for text/*.
++                    encoding = 'iso-8859-1'
++                # Note: We don't guess using chardet here to avoid buffering.
++            except Exception:
++                # Ignore parsing errors in content-type
++                pass
++
++    if encoding is None:
+         for item in iterator:
+             yield item
+         return
+ 
+-    decoder = codecs.getincrementaldecoder(r.encoding)(errors='replace')
++    decoder = codecs.getincrementaldecoder(encoding)(errors='replace')
+     for chunk in iterator:
+         rv = decoder.decode(chunk)
+         if rv:
+```

@@ -1,0 +1,14 @@
+```patch
+--- a/django/utils/autoreload.py
++++ b/django/utils/autoreload.py
+@@ -243,7 +243,7 @@
+             sys_file_paths.append(origin)
+ 
+     results = set()
+-    for filename in itertools.chain(sys_file_paths, extra_files):
++    for filename in itertools.chain(sys_file_paths, extra_files, [sys.argv[0]]):
+         if not filename:
+             continue
+         path = pathlib.Path(filename)
+
+```

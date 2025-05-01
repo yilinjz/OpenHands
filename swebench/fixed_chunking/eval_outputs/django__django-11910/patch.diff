@@ -1,0 +1,69 @@
+```patch
+--- a/django/db/migrations/operations/fields.py
++++ b/django/db/migrations/operations/fields.py
+@@ -1,6 +1,8 @@
+ from django.core.exceptions import FieldDoesNotExist
+ from django.db.models.fields import NOT_PROVIDED
++from django.db.models.fields.related import (
++    ForeignObjectRel, ManyToManyField, OneToOneField,
++)
+ from django.utils.functional import cached_property
+
+ from .base import Operation
+@@ -137,6 +139,7 @@
+             raise FieldDoesNotExist(
+                 "%s.%s has no field named '%s'" % (app_label, self.model_name, self.old_name)
+             )
++        was_primary_key = old_field_instance.primary_key
+
+         # Rename the field
+         model_state = state.models[app_label, self.model_name_lower]
+@@ -182,6 +185,45 @@
+         if options.get('ordering') == ['-' + self.old_name]:
+             options['ordering'] = ['-' + self.new_name]
+
++        # Update referring ForeignKey/OneToOneFields fields state.
++        target_model_ref_str = '%s.%s' % (app_label, self.model_name_lower)
++        for (other_app_label, other_model_name), other_model_state in state.models.items():
++            current_other_fields = list(other_model_state.fields)
++            fields_changed = False
++            new_other_fields = []
++            for field_name, field in current_other_fields:
++                field_to_add = field
++                if (
++                    hasattr(field, 'remote_field') and field.remote_field and
++                    not isinstance(field.remote_field, ForeignObjectRel) and
++                    not isinstance(field, ManyToManyField)
++                ):
++                    # Resolve the remote model reference string/class.
++                    remote_model_key_str = None
++                    if isinstance(field.remote_field.model, str):
++                        remote_model_key_str = field.remote_field.model.lower()
++                        if '.' not in remote_model_key_str:
++                            remote_model_key_str = '%s.%s' % (other_app_label, remote_model_key_str)
++                    else:
++                        remote_model_key_str = '%s.%s' % (
++                            field.remote_field.model._meta.app_label,
++                            field.remote_field.model._meta.model_name.lower(),
++                        )
++                    # Check if related model matches the model where the field
++                    # was renamed.
++                    if remote_model_key_str == target_model_ref_str:
++                        current_to_field = field.remote_field.field_name
++                        target_field_matches = (
++                            current_to_field == self.old_name or
++                            (current_to_field is None and was_primary_key)
++                        )
++                        if target_field_matches:
++                            cloned_field = field.clone()
++                            cloned_field.remote_field.field_name = self.new_name
++                            field_to_add = cloned_field
++                            fields_changed = True
++                new_other_fields.append((field_name, field_to_add))
++            if fields_changed:
++                other_model_state.fields = new_other_fields
++
+     def database_forwards(self, app_label, schema_editor, from_state, to_state):
+         to_model = to_state.apps.get_model(app_label, self.model_name)
+         if self.allow_migrate_model(schema_editor.connection.alias, to_model):
+```

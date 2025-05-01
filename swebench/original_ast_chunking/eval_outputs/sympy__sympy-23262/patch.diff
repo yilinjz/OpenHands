@@ -1,0 +1,21 @@
+```patch
+--- a/sympy/printing/lambdarepr.py
++++ b/sympy/printing/lambdarepr.py
+@@ -100,10 +100,11 @@
+         return self._print(expr.rewrite(Piecewise))
+ 
+     def _print_Tuple(self, expr):
+-        # Handling non-trivial tuples requires calling lambdarepr on the arguments.
+-        # As this function may be used inside lambdarepr, this requires a circular
+-        # import.
+         from sympy.utilities.lambdify import lambdarepr
+-        return '(%s)' % ', '.join(lambdarepr(arg) for arg in expr)
++        if len(expr) == 1:
++            # Need trailing comma for single element tuple
++            return '(%s,)' % lambdarepr(expr[0])
++        else:
++            return '(%s)' % ', '.join(lambdarepr(arg) for arg in expr)
+ 
+     def _print_BooleanTrue(self, expr):
+         return "True"
+```

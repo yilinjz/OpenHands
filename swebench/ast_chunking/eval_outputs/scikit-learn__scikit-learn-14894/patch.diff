@@ -1,0 +1,30 @@
+```patch
+--- a/sklearn/svm/base.py
++++ b/sklearn/svm/base.py
+@@ -305,11 +305,18 @@
+         else:  # regression
+             n_class = 1
+
+-        dual_coef_indices = np.tile(np.arange(n_SV), n_class)
+-        dual_coef_indptr = np.arange(0, dual_coef_indices.size + 1,
+-                                     dual_coef_indices.size / n_class)
++        # dual_coef_data comes from libsvm_sparse_train
++
++        if n_SV == 0:
++            # No support vectors, result is empty matrix (shape n_class x 0)
++            dual_coef_indices = np.array([], dtype=np.int32)
++            dual_coef_indptr = np.zeros(n_class + 1, dtype=np.int32)
++        else:
++            # Construct indices and indptr for non-empty support vectors
++            dual_coef_indices = np.tile(np.arange(n_SV, dtype=np.int32), n_class)
++            # indptr is cumulative sum of row nnz, each row has n_SV entries
++            dual_coef_indptr = np.arange(0, n_class * n_SV + 1, step=n_SV,
++                                         dtype=np.int32)
++
+         self.dual_coef_ = sp.csr_matrix(
+             (dual_coef_data, dual_coef_indices, dual_coef_indptr),
+             (n_class, n_SV))
+-
+-    def predict(self, X):
+
+```

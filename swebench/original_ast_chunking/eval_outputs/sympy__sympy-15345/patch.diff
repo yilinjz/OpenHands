@@ -1,0 +1,28 @@
+```patch
+--- a/sympy/printing/mathematica.py
++++ b/sympy/printing/mathematica.py
+@@ -10,7 +10,7 @@
+ from sympy.core.compatibility import default_sort_key, range
+ from sympy.core.function import UndefinedFunction
+ from sympy.sets.sets import Interval
+-from sympy.logic.boolalg import true, false
++from sympy.logic.boolalg import true, false, Not, And, Or, Xor
+ 
+ from mpmath.libmp import prec_to_dps
+ 
+@@ -103,6 +103,14 @@
+     def _print_MatrixElement(self, expr):
+         return self._print(expr.parent) + "[[%s, %s]]" % (self._print(expr.i + 1), self._print(expr.j + 1))
+ 
++    def _print_Max(self, expr):
++        """Mathematica code printer for Max."""
++        return "Max[%s]" % self.stringify(expr.args, ", ")
++
++    def _print_Min(self, expr):
++        """Mathematica code printer for Min."""
++        return "Min[%s]" % self.stringify(expr.args, ", ")
++
+     def _print_Rational(self, expr):
+         p, q = int(expr.p), int(expr.q)
+         return '%d/%d' % (p, q)
+```

@@ -1,0 +1,52 @@
+2025-04-30 20:24:25,794 - INFO - Creating container for sympy__sympy-17655...
+2025-04-30 20:24:25,824 - INFO - Container for sympy__sympy-17655 created: fd835997998b927bf599d236c2fca498414eb4d390736d7316791d0bde2ba048
+2025-04-30 20:24:26,097 - INFO - Container for sympy__sympy-17655 started: fd835997998b927bf599d236c2fca498414eb4d390736d7316791d0bde2ba048
+2025-04-30 20:24:26,098 - INFO - Intermediate patch for sympy__sympy-17655 written to logs/run_evaluation/20250430_200121/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/sympy__sympy-17655/patch.diff, now applying to container...
+2025-04-30 20:24:26,217 - INFO - >>>>> Applied Patch:
+Checking patch sympy/geometry/point.py...
+Hunk #1 succeeded at 278 (offset 186 lines).
+Applied patch sympy/geometry/point.py cleanly.
+
+2025-04-30 20:24:26,904 - INFO - Git diff before:
+diff --git a/sympy/geometry/point.py b/sympy/geometry/point.py
+index 7c978c47be..780cf4a62f 100644
+--- a/sympy/geometry/point.py
++++ b/sympy/geometry/point.py
+@@ -278,6 +278,11 @@ def __mul__(self, factor):
+         coords = [simplify(x*factor) for x in self.args]
+         return Point(coords, evaluate=False)
+ 
++    def __rmul__(self, factor):
++        """Multiply point's coordinates by a factor."""
++        # This allows Point * factor and factor * Point
++        return self.__mul__(factor)
++
+     def __neg__(self):
+         """Negate the point."""
+         coords = [-x for x in self.args]
+2025-04-30 20:24:26,904 - INFO - Eval script for sympy__sympy-17655 written to logs/run_evaluation/20250430_200121/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/sympy__sympy-17655/eval.sh; copying to container...
+2025-04-30 20:24:59,476 - INFO - Test runtime: 32.51 seconds
+2025-04-30 20:24:59,477 - INFO - Test output for sympy__sympy-17655 written to logs/run_evaluation/20250430_200121/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/sympy__sympy-17655/test_output.txt
+2025-04-30 20:24:59,541 - INFO - Git diff after:
+diff --git a/sympy/geometry/point.py b/sympy/geometry/point.py
+index 7c978c47be..780cf4a62f 100644
+--- a/sympy/geometry/point.py
++++ b/sympy/geometry/point.py
+@@ -278,6 +278,11 @@ def __mul__(self, factor):
+         coords = [simplify(x*factor) for x in self.args]
+         return Point(coords, evaluate=False)
+ 
++    def __rmul__(self, factor):
++        """Multiply point's coordinates by a factor."""
++        # This allows Point * factor and factor * Point
++        return self.__mul__(factor)
++
+     def __neg__(self):
+         """Negate the point."""
+         coords = [-x for x in self.args]
+2025-04-30 20:24:59,541 - INFO - Grading answer for sympy__sympy-17655...
+2025-04-30 20:24:59,542 - INFO - report: {'sympy__sympy-17655': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_point', 'test_point3D'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_Point2D', 'test_issue_9214', 'test_issue_11617', 'test_transform', 'test_concyclic_doctest_bug', 'test_arguments', 'test_unit', 'test_dot', 'test__normalize_dimension'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-17655: resolved: True
+2025-04-30 20:24:59,542 - INFO - Attempting to stop container sweb.eval.sympy__sympy-17655.20250430_200121...
+2025-04-30 20:25:14,771 - INFO - Attempting to remove container sweb.eval.sympy__sympy-17655.20250430_200121...
+2025-04-30 20:25:14,799 - INFO - Container sweb.eval.sympy__sympy-17655.20250430_200121 removed.

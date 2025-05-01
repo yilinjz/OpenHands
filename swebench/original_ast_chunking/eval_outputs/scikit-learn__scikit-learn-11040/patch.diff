@@ -1,0 +1,64 @@
+```patch
+--- a/sklearn/neighbors/approximate.py
++++ b/sklearn/neighbors/approximate.py
+@@ -1,5 +1,7 @@
+ """Approximate nearest neighbors retrieval"""
+ # Author: Maheshakya Wijewardena <maheshakya.10@cse.mrt.ac.lk>
++import numbers
++
+ import numpy as np
+ from scipy.sparse import csr_matrix
+ 
+@@ -29,6 +31,14 @@
+ 
+         if n_neighbors is None:
+             n_neighbors = self.n_neighbors
++
++        if not isinstance(n_neighbors, numbers.Integral):
++            raise TypeError(
++                "n_neighbors does not take %s value, enter integer value" %
++                type(n_neighbors))
++
++        if n_neighbors <= 0:
++            raise ValueError("Expected n_neighbors > 0. Got %d" % n_neighbors)
+ 
+         X = check_array(X, accept_sparse='csr')
+ 
+--- a/sklearn/neighbors/base.py
++++ b/sklearn/neighbors/base.py
+@@ -1,3 +1,4 @@
++import numbers
+ from abc import ABCMeta, abstractmethod
+ from warnings import warn
+ 
+@@ -27,6 +28,14 @@
+         if n_neighbors is None:
+             n_neighbors = self.n_neighbors
+ 
++        if not isinstance(n_neighbors, numbers.Integral):
++            raise TypeError(
++                "n_neighbors does not take %s value, enter integer value" %
++                type(n_neighbors))
++
++        if n_neighbors <= 0:
++            raise ValueError("Expected n_neighbors > 0. Got %d" % n_neighbors)
++
+         if X is not None:
+             query_is_train = False
+             X = check_array(X, accept_sparse='csr')
+@@ -74,6 +83,14 @@
+                  p=2, metric_params=None, n_jobs=1):
+ 
+         self.n_neighbors = n_neighbors
++        if self.n_neighbors is not None:
++            if not isinstance(self.n_neighbors, numbers.Integral):
++                raise TypeError(
++                    "n_neighbors does not take %s value, enter integer value"
++                    % type(self.n_neighbors))
++            if self.n_neighbors <= 0:
++                raise ValueError(
++                    "Expected n_neighbors > 0. Got %d" % self.n_neighbors)
+         self.radius = radius
+         self.algorithm = algorithm
+         self.leaf_size = leaf_size
+```

@@ -1,0 +1,77 @@
+```diff
+--- a/sphinx/domains/python/__init__.py
++++ b/sphinx/domains/python/__init__.py
+@@ -28,11 +28,13 @@
+ from docutils.statemachine import StringList
+
+ import sphinx
++import importlib
+ import inspect
+ import re
++import types
+ from sphinx import addnodes
+ from sphinx.application import Sphinx
+ from sphinx.builders import Builder
+@@ -48,7 +50,7 @@
+ from sphinx.locale import _, __
+ from sphinx.roles import XRefRole
+ from sphinx.util import logging
+-from sphinx.util.inspect import signature_from_str
++from sphinx.util.inspect import safe_getattr, signature_from_str
+ from sphinx.util.nodes import make_refnode
+ from sphinx.util.typing import restify
+
+@@ -100,10 +102,42 @@
+
+ def _parse_annotation(annotation: str, env: BuildEnvironment) -> List[nodes.Node]:
+     """Parse a type annotation string and return a list of nodes."""
++    # Determine the role of the annotation target. Default to 'class'.
++    role = 'class'
++    try:
++        # Try to resolve the annotation string to an object to determine its type.
++        # This requires the annotation to be a fully qualified name.
++        # Strip optional leading ~ used for suppressing module/class name in output
++        if annotation.startswith('~'):
++            annotation_target = annotation[1:]
++        else:
++            annotation_target = annotation
++
++        if '.' in annotation_target:
++            module_name, obj_name = annotation_target.rsplit('.', 1)
++            try:
++                module = importlib.import_module(module_name)
++                # Use safe_getattr to avoid exceptions for missing attributes
++                obj = safe_getattr(module, obj_name, None)
++                if obj is not None:
++                    # Check for special cases like struct.Struct which is a factory function
++                    if module_name == 'struct' and obj_name == 'Struct':
++                        role = 'func'
++                    # Check if it's a function, builtin function/method
++                    elif inspect.isfunction(obj) or isinstance(obj, types.BuiltinFunctionType) or isinstance(obj, types.BuiltinMethodType):
++                        role = 'func'
++                    elif inspect.isclass(obj):
++                        role = 'class'
++                    # Note: Could add more checks here (e.g., for data members -> 'data')
++                    # If not class or function, keep default role 'class' for now.
++            except ImportError:
++                # Module not found, keep default role
++                pass
++        # else: Annotation is a simple name (e.g., 'int', 'str', or a local class).
++        #       Resolution is context-dependent. Keep default role 'class'.
++    except Exception as e:
++        # Log exceptions during resolution?
++        logger.debug('[autodoc] Failed to resolve annotation %r: %s', annotation, e)
++        # Fallback to default role 'class' on any error
++        pass
++
+     try:
+-        # TODO: parse annotation recursively
+-        # refs: https://github.com/sphinx-doc/sphinx/issues/6213
+-        return restify(annotation)
++        # Pass the determined (or default) role to restify
++        return restify(annotation, role=role)
+     except ValueError as e:
+         logger.warning(__('unparseable annotation %r: %s'), annotation, e)
+         node = nodes.literal(annotation, annotation, classes=['invalid-annotation'])
+
+```

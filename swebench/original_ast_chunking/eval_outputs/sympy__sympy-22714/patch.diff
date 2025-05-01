@@ -1,0 +1,16 @@
+```patch
+--- a/sympy/geometry/point.py
++++ b/sympy/geometry/point.py
+@@ -44,7 +44,10 @@
+                          'warn' or 'ignore'.'''))
+          if any(coords[dim:]):
+              raise ValueError('Nonzero coordinates cannot be removed.')
+-         if any(a.is_number and im(a) for a in coords):
++         # The check must compare im(a) != 0 to work correctly when
++         # evaluate=False is active, otherwise unevaluated im(a) might
++         # be truthy.
++         if any(a.is_number and (im(a) != 0) for a in coords):
+              raise ValueError('Imaginary coordinates are not permitted.')
+          if not all(isinstance(a, Expr) for a in coords):
+              raise TypeError('Coordinates must be valid SymPy expressions.')
+```

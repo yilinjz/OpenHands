@@ -1,0 +1,48 @@
+```patch
+--- a/src/_pytest/skipping.py
++++ b/src/_pytest/skipping.py
+@@ -224,8 +224,19 @@
+ def pytest_runtest_makereport(item: Item, call: CallInfo[None]):
+     outcome = yield
+     rep = outcome.get_result()
+-    xfailed = item._store.get(xfailed_key, None)
++    xfailed = item._store.get(xfailed_key, None)
++
++    # Fix location reporting for @pytest.mark.skip/skipif.
++    # This needs to happen before the --runxfail check early-exits.
++    if (
++        item._store.get(skipped_by_mark_key, False)  # Check if skipped by mark
++        and rep.skipped
++        and type(rep.longrepr) is tuple
++    ):
++        _, _, reason = rep.longrepr
++        filename, line = item.reportinfo()[:2]
++        assert line is not None
++        rep.longrepr = str(filename), line + 1, reason
++
+     # unittest special case, see setting of unexpectedsuccess_key
+-    if unexpectedsuccess_key in item._store and rep.when == "call":
++    if unexpectedsuccess_key in item._store and rep.when == "call":
+         reason = item._store[unexpectedsuccess_key]
+         if reason:
+             rep.longrepr = "Unexpected success: {}".format(reason)
+@@ -256,18 +267,6 @@
+             else:
+                 rep.outcome = "passed"
+                 rep.wasxfail = xfailed.reason
+-    elif (
+-        item._store.get(skipped_by_mark_key, True)
+-        and rep.skipped
+-        and type(rep.longrepr) is tuple
+-    ):
+-        # skipped by mark.skipif; change the location of the failure
+-        # to point to the item definition, otherwise it will display
+-        # the location of where the skip exception was raised within pytest
+-        _, _, reason = rep.longrepr
+-        filename, line = item.reportinfo()[:2]
+-        assert line is not None
+-        rep.longrepr = str(filename), line + 1, reason
+ 
+ 
+ def pytest_report_teststatus(report: BaseReport) -> Optional[Tuple[str, str, str]]:
+```

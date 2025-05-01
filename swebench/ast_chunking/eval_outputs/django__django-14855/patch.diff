@@ -1,0 +1,27 @@
+```diff
+--- a/django/contrib/admin/helpers.py
++++ b/django/contrib/admin/helpers.py
+@@ -240,15 +240,17 @@
+                 elif isinstance(f.remote_field, models.ManyToOneRel) and value is not None:
+                     # Handle ForeignKey or OneToOneField.
+                     remote_obj = f.remote_field.model._base_manager.get(pk=value)
+-                    view_name = 'admin:%s_%s_change' % (
++                    admin_site = self.model_admin.admin_site
++                    view_name = '%s:%s_%s_change' % (
++                        admin_site.name,
+                         f.remote_field.model._meta.app_label,
+                         f.remote_field.model._meta.model_name,
+                     )
+                     try:
+-                        url = reverse(view_name, args=[quote(remote_obj.pk)])
++                        url = reverse(view_name, args=[quote(remote_obj.pk)], current_app=admin_site.name)
+                         result_repr = format_html(
+                             '<a href="{}"{}>{}</a>',
+                             url,
+-                            mark_safe(f' data-popup-opener="{quote(remote_obj.pk)}"') if model_admin.is_popup(request=None) else '',
++                            mark_safe(f' data-popup-opener="{quote(remote_obj.pk)}"') if model_admin.is_popup() else '',
+                             remote_obj,
+                         )
+                     except NoReverseMatch:
+
+```

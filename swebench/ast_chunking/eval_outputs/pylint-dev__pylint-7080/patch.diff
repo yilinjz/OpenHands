@@ -1,0 +1,30 @@
+```diff
+--- a/pylint/lint/pylinter.py
++++ b/pylint/lint/pylinter.py
+@@ -23,6 +23,7 @@
+ import itertools
+ import logging
+ import optparse  # pylint: disable=deprecated-module
++import os
+ import platform
+ import sys
+ import tokenize
+@@ -900,8 +901,14 @@
+         self, filepath: str, base_name: str, mod_name: Optional[str] = None
+     ) -> bool:
+         """Check if the file should be ignored."""
+-        # Ignore based on the file path
+-        if utils.is_ignored_by_regex(filepath, self.config.ignore_paths):
++        # Ignore based on the file path: Use path relative to CWD for pattern matching
++        # This allows patterns like '^src/...' to work correctly even if an absolute path is passed.
++        try:
++            relative_filepath = os.path.relpath(filepath)
++        except ValueError:
++            # Fallback for different drives on Windows or other errors
++            relative_filepath = filepath
++        if utils.is_ignored_by_regex(relative_filepath, self.config.ignore_paths):
+             return True
+ 
+         # Ignore based on the base name
+
+```

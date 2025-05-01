@@ -1,0 +1,45 @@
+```patch
+--- a/django/dispatch/dispatcher.py
++++ b/django/dispatch/dispatcher.py
+@@ -1,4 +1,8 @@
++import logging
+ import weakref
++from functools import partial
++
++from django.utils.deprecation import RemovedInDjango51Warning
+ 
+ # A very simple dispatcher implementation, supporting only weak references to
+ # receivers. To implement something more complex, you'll need to subclass
+@@ -10,6 +14,8 @@
+ # A marker for caching
+ NO_RECEIVERS = object()
+ 
++logger = logging.getLogger('django.dispatch')
++
+ 
+ class Signal:
+     """
+@@ -118,6 +124,11 @@
+         # Return a list of tuple pairs [(receiver, response), ... ].
+         responses = []
+         for receiver in self._live_receivers(sender):
++            receiver_name = (
++                receiver.__name__ if hasattr(receiver, '__name__') else
++                getattr(receiver, '__class__', type(receiver)).__name__
++            )
++            extra = {'signal': self, 'receiver': receiver_name}
+             try:
+                 response = receiver(signal=self, sender=sender, **named)
+             except Exception as err:
+@@ -125,6 +136,10 @@
+                 # pass the error instance instead of the result.
+                 if not isinstance(err, Exception):
+                     err = Exception(err)
++                logger.exception(
++                    'Error calling receiver %s for signal %s',
++                    receiver_name, self.providing_args, extra=extra,
++                )
+                 responses.append((receiver, err))
+             else:
+                 responses.append((receiver, response))
+```

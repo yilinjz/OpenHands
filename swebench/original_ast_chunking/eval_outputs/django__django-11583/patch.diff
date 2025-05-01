@@ -1,0 +1,52 @@
+```patch
+--- a/django/utils/autoreload.py
++++ b/django/utils/autoreload.py
+@@ -129,22 +129,36 @@
+         if path.suffix == '.pyc':
+             path = path.with_suffix('.py')
+         # Ensure the path is absolute to prevent issues with path comparisons.
++        # Add the file path.
+         try:
++            results.add(path.resolve().absolute())
++        except FileNotFoundError:
++            # File might have been deleted between the time it was added to
++            # sys.modules and the time we try to watch it.
++            logger.debug('Skipping path %s because it does not exist.', path)
++            continue
++        except ValueError as e:
++            # ValueError can be raised for various reasons, including
++            # "embedded null byte" (https://code.djangoproject.com/ticket/31221).
++            logger.debug('Skipping path %s due to %s', path, e)
++            continue
++
++        # Add the parent directory of the module to the watched directories.
++        # This ensures that new modules added to the directory are detected.
++        try:
+             results.add(path.parent.resolve().absolute())
+-            results.add(path.resolve().absolute())
+         except FileNotFoundError:
+-            # File might have been deleted between the time it was added to
+-            # sys.modules and the time we try to watch it.
++            logger.debug('Skipping path %s because it does not exist.', path.parent)
++            continue
++        except ValueError as e:
++            logger.debug('Skipping path %s due to %s', path.parent, e)
+             continue
+         # If the module is part of a package, watch the package's __init__.py
+         # file as well.
+-        if '.' in module_path:
++        if '.' in module_path and hasattr(module, '__path__'):
+             package_path = Path(module.__path__[0])
+             init_py = package_path / '__init__.py'
+             if init_py.exists():
+                 try:
+                     results.add(init_py.resolve().absolute())
+                 except FileNotFoundError:
++                    logger.debug('Skipping path %s because it does not exist.', init_py)
++                    continue
++                except ValueError as e:
++                    logger.debug('Skipping path %s due to %s', init_py, e)
+                     continue
+
+     # Also watch files added explicitly.
+```

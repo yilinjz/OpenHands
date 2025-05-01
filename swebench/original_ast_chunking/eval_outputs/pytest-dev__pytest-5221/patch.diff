@@ -1,0 +1,34 @@
+```patch
+--- a/src/_pytest/python.py
++++ b/src/_pytest/python.py
+@@ -17,9 +17,10 @@
+         if verbose > 0:
+             bestrel = get_best_relpath(fixture_def.func)
+             funcargspec = "{} -- {}".format(argname, bestrel)
++            funcargspec = "{} (scope: {}) -- {}".format(
++                argname, fixture_def.scope, bestrel
++            )
+         else:
+-            funcargspec = argname
++            funcargspec = "{} (scope: {})".format(argname, fixture_def.scope)
+         tw.line(funcargspec, green=True)
+         fixture_doc = fixture_def.func.__doc__
+         if fixture_doc:
+@@ -86,6 +87,7 @@
+         if verbose <= 0 and argname[0] == "_":
+             continue
+         if verbose > 0:
++            scope = fixturedef.scope
+             funcargspec = "%s -- %s" % (argname, bestrel)
+             funcargspec = "%s (scope: %s) -- %s" % (argname, bestrel)
+             funcargspec = "%s (scope: %s) -- %s" % (argname, scope, bestrel)
+@@ -93,7 +95,7 @@
+         else:
+             funcargspec = argname
+             funcargspec = "%s (scope: %s)" % (argname, scope)
+-        tw.line(funcargspec, green=True)
++        tw.line(funcargspec, green=True)
+         loc = getlocation(fixturedef.func, curdir)
+         doc = fixturedef.func.__doc__ or ""
+         if doc:
+```

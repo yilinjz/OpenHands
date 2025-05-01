@@ -1,0 +1,48 @@
+```patch
+--- a/django/db/models/sql/query.py
++++ b/django/db/models/sql/query.py
+@@ -16,6 +16,7 @@
+ from django.db.models.query_utils import FilteredRelation
+ from django.db.models.sql.constants import (
+     CURSOR, GET_ITERATOR_CHUNK_SIZE, INNER, LOUTER, NO_RESULTS, ORDER_DIR,
++    QUERY_TERMS, RECURSIVE_CTE_ALIAS, SINGLE,
+ )
+ from django.db.models.sql.datastructures import BaseTable, Empty, Join
+ from django.db.models.sql.expressions import (
+@@ -1441,16 +1442,32 @@
+             else:
+                 # Model field ordering.
+                 try:
+-                    _, field_list, _, _ = self._find_ordering_parts(field.split(LOOKUP_SEP))
+-                    for target, final_descending in self.get_order_by(field_list, descending):
+-                        self.order_by.append(OrderBy(target, descending=final_descending))
++                    lookup_parts = field.split(LOOKUP_SEP)
++                    # Resolve path, potentially adding joins via names_to_path/setup_joins.
++                    path, final_field_info, targets, alias = self._find_ordering_parts(lookup_parts)
++                    # final_field_info = (resolved_field, targets, containing_alias, joins)
++                    resolved_field = final_field_info[0]
++                    containing_alias = final_field_info[2]
++
++                    # Check if ordering by the attname of a relation field.
++                    is_ordering_by_attname = (
++                        resolved_field.is_relation and
++                        lookup_parts[-1] == resolved_field.attname
++                    )
++
++                    if is_ordering_by_attname:
++                        # Order directly by the FK column `resolved_field.column`
++                        # on the table represented by `containing_alias`.
++                        # This bypasses get_order_by() and avoids applying the
++                        # related model's default ordering or adding an
++                        # unnecessary join for ordering.
++                        expression = Col(containing_alias, resolved_field.column, resolved_field)
++                        self.order_by.append(OrderBy(expression, descending=descending))
++                    else:
++                        # Default behavior: use get_order_by().
++                        field_list = path + [final_field_info]  # Reconstruct field_list.
++                        for target, final_descending in self.get_order_by(field_list, descending):
++                            self.order_by.append(OrderBy(target, descending=final_descending))
+                 except FieldError as e:
+                     if field in self.annotation_select:
+                         # It's an aggregate field. We need to make sure an aggregate
+```

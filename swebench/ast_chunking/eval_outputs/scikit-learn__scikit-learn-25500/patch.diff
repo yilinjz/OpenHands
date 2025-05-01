@@ -1,0 +1,17 @@
+```patch
+--- a/sklearn/calibration.py
++++ b/sklearn/calibration.py
+@@ -761,7 +761,10 @@
+             this_pred = predictions[:, class_idx]
+
+             # Predict the calibrated probability using the current class's calibrator
+-            proba[:, class_idx] = calibrator.predict(this_pred)
++            calibrated_prediction = calibrator.predict(this_pred)
++            # Ensure the output is a 1D numpy array to be assigned to the slice
++            # Handles cases where calibrator.predict returns a DataFrame (e.g., isotonic)
++            proba[:, class_idx] = np.asarray(calibrated_prediction).squeeze(axis=-1)
+
+         # Normalize the probabilities
+         if n_classes == 2:
+
+```

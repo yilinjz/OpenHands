@@ -1,0 +1,106 @@
+2025-04-30 20:23:50,234 - INFO - Creating container for sympy__sympy-16106...
+2025-04-30 20:23:50,263 - INFO - Container for sympy__sympy-16106 created: 164f47419479d48d94fcc897b9b896274161c8b0b3473b460011d396bbb4f21c
+2025-04-30 20:23:50,527 - INFO - Container for sympy__sympy-16106 started: 164f47419479d48d94fcc897b9b896274161c8b0b3473b460011d396bbb4f21c
+2025-04-30 20:23:50,528 - INFO - Intermediate patch for sympy__sympy-16106 written to logs/run_evaluation/20250430_200121/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/sympy__sympy-16106/patch.diff, now applying to container...
+2025-04-30 20:23:50,644 - INFO - Failed to apply patch to container: git apply --verbose
+2025-04-30 20:23:50,700 - INFO - Failed to apply patch to container: git apply --verbose --reject
+2025-04-30 20:23:50,758 - INFO - >>>>> Applied Patch:
+patching file sympy/printing/mathml.py
+Hunk #1 succeeded at 477 with fuzz 1 (offset 414 lines).
+Hunk #2 succeeded at 767 with fuzz 2 (offset 60 lines).
+
+2025-04-30 20:23:51,410 - INFO - Git diff before:
+diff --git a/sympy/printing/mathml.py b/sympy/printing/mathml.py
+index 1aa0ee01a2..a28ce4cca1 100644
+--- a/sympy/printing/mathml.py
++++ b/sympy/printing/mathml.py
+@@ -477,6 +477,15 @@ def _print_int(self, p):
+         dom_element.appendChild(self.dom.createTextNode(str(p)))
+         return dom_element
+ 
++    def _print_Indexed(self, e):
++        # Content MathML: <apply><selector/><ci>base</ci><ci>idx1</ci>...</apply>
++        x = self.dom.createElement('apply')
++        x.appendChild(self.dom.createElement('selector'))
++        x.appendChild(self._print(e.base))
++        for idx in e.indices:
++            x.appendChild(self._print(idx))
++        return x
++
+ 
+ class MathMLPresentationPrinter(MathMLPrinterBase):
+     """Prints an expression to the Presentation MathML markup language.
+@@ -758,6 +767,21 @@ def _print_Integral(self, e):
+         mrow.appendChild(var)
+         return mrow
+ 
++    def _print_Indexed(self, e):
++        # Presentation MathML: <msub><mi>base</mi><mrow>idx1, idx2</mrow></msub>
++        x = self.dom.createElement('msub')
++        x.appendChild(self._print(e.base))
++        mrow = self.dom.createElement('mrow')
++        for i, idx in enumerate(e.indices):
++            mrow.appendChild(self._print(idx))
++            if i < len(e.indices) - 1:
++                mo = self.dom.createElement('mo')
++                # separating comma
++                mo.appendChild(self.dom.createTextNode(','))
++                mrow.appendChild(mo)
++        x.appendChild(mrow)
++        return x
++
+     def _print_Sum(self, e):
+         limits = list(e.limits)
+         subsup = self.dom.createElement('munderover')
+2025-04-30 20:23:51,411 - INFO - Eval script for sympy__sympy-16106 written to logs/run_evaluation/20250430_200121/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/sympy__sympy-16106/eval.sh; copying to container...
+2025-04-30 20:23:57,376 - INFO - Test runtime: 5.91 seconds
+2025-04-30 20:23:57,376 - INFO - Test output for sympy__sympy-16106 written to logs/run_evaluation/20250430_200121/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/sympy__sympy-16106/test_output.txt
+2025-04-30 20:23:57,441 - INFO - Git diff after:
+diff --git a/sympy/printing/mathml.py b/sympy/printing/mathml.py
+index 1aa0ee01a2..a28ce4cca1 100644
+--- a/sympy/printing/mathml.py
++++ b/sympy/printing/mathml.py
+@@ -477,6 +477,15 @@ def _print_int(self, p):
+         dom_element.appendChild(self.dom.createTextNode(str(p)))
+         return dom_element
+ 
++    def _print_Indexed(self, e):
++        # Content MathML: <apply><selector/><ci>base</ci><ci>idx1</ci>...</apply>
++        x = self.dom.createElement('apply')
++        x.appendChild(self.dom.createElement('selector'))
++        x.appendChild(self._print(e.base))
++        for idx in e.indices:
++            x.appendChild(self._print(idx))
++        return x
++
+ 
+ class MathMLPresentationPrinter(MathMLPrinterBase):
+     """Prints an expression to the Presentation MathML markup language.
+@@ -758,6 +767,21 @@ def _print_Integral(self, e):
+         mrow.appendChild(var)
+         return mrow
+ 
++    def _print_Indexed(self, e):
++        # Presentation MathML: <msub><mi>base</mi><mrow>idx1, idx2</mrow></msub>
++        x = self.dom.createElement('msub')
++        x.appendChild(self._print(e.base))
++        mrow = self.dom.createElement('mrow')
++        for i, idx in enumerate(e.indices):
++            mrow.appendChild(self._print(idx))
++            if i < len(e.indices) - 1:
++                mo = self.dom.createElement('mo')
++                # separating comma
++                mo.appendChild(self.dom.createTextNode(','))
++                mrow.appendChild(mo)
++        x.appendChild(mrow)
++        return x
++
+     def _print_Sum(self, e):
+         limits = list(e.limits)
+         subsup = self.dom.createElement('munderover')
+2025-04-30 20:23:57,441 - INFO - Grading answer for sympy__sympy-16106...
+2025-04-30 20:23:57,443 - INFO - report: {'sympy__sympy-16106': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_print_IndexedBase']}, 'PASS_TO_PASS': {'success': ['test_mathml_printer', 'test_content_printmethod', 'test_content_mathml_core', 'test_content_mathml_functions', 'test_content_mathml_limits', 'test_content_mathml_integrals', 'test_content_mathml_matrices', 'test_content_mathml_sums', 'test_content_mathml_tuples', 'test_content_mathml_add', 'test_content_mathml_Rational', 'test_content_mathml_constants', 'test_content_mathml_trig', 'test_content_mathml_relational', 'test_content_symbol', 'test_content_mathml_greek', 'test_content_mathml_order', 'test_content_settings', 'test_presentation_printmethod', 'test_presentation_mathml_core', 'test_presentation_mathml_functions', 'test_print_derivative', 'test_presentation_mathml_limits', 'test_presentation_mathml_integrals', 'test_presentation_mathml_matrices', 'test_presentation_mathml_sums', 'test_presentation_mathml_add', 'test_presentation_mathml_Rational', 'test_presentation_mathml_constants', 'test_presentation_mathml_trig', 'test_presentation_mathml_relational', 'test_presentation_symbol', 'test_presentation_mathml_greek', 'test_presentation_mathml_order', 'test_print_tuples', 'test_print_re_im', 'test_presentation_settings', 'test_toprettyxml_hooking', 'test_print_domains', 'test_print_expression_with_minus', 'test_print_AssocOp', 'test_print_basic', 'test_ln_notation_print', 'test_mul_symbol_print', 'test_print_lerchphi', 'test_print_polylog', 'test_print_logic', 'test_root_notation_print', 'test_fold_frac_powers_print', 'test_fold_short_frac_print', 'test_print_factorials', 'test_print_Lambda', 'test_print_conjugate', 'test_print_matrix_symbol', 'test_print_random_symbol'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-16106: resolved: False
+2025-04-30 20:23:57,444 - INFO - Attempting to stop container sweb.eval.sympy__sympy-16106.20250430_200121...
+2025-04-30 20:24:12,656 - INFO - Attempting to remove container sweb.eval.sympy__sympy-16106.20250430_200121...
+2025-04-30 20:24:12,685 - INFO - Container sweb.eval.sympy__sympy-16106.20250430_200121 removed.

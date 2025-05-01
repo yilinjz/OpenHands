@@ -1,0 +1,21 @@
+```patch
+--- a/sympy/matrices/common.py
++++ b/sympy/matrices/common.py
+@@ -14,8 +14,11 @@
+         """
+         if len(args) == 0:
+             return cls._new()
+-
+-        kls = type(args[0])
+-        return reduce(kls.row_join, args)
++        # Use iterative row_join instead of reduce
++        # Fixes issue with zero-row matrices, see issue #11974
++        res = args[0]
++        for i in range(1, len(args)):
++            res = res.row_join(args[i])
++        return res
+
+     def reshape(self, rows, cols):
+         """Reshape the matrix. Total number of elements must remain the same.
+
+```

@@ -1,0 +1,65 @@
+```patch
+--- a/django/db/models/sql/compiler.py
++++ b/django/db/models/sql/compiler.py
+@@ -362,7 +362,12 @@
+         return self._deferred_columns_cb_cache[start_alias]
+
+     def get_default_columns(
+-        self, start_alias=None, opts=None, from_parent=None, as_pairs=False
++        self,
++        start_alias=None,
++        opts=None,
++        from_parent=None,
++        as_pairs=False,
++        force_pk=False,
+     ):
+         """
+         Compute the default columns for selecting the given model. Return a list
+@@ -388,7 +393,8 @@
+         only_load = self.deferred_to_columns_cb(start_alias)
+         for field in opts.concrete_fields:
+             if from_parent and field.name == from_parent.name:
+-                continue
++                # Skip the field pointing back to the parent model.
++                continue
+             if only_load is not None and field.attname not in only_load:
+                 continue
+             if as_pairs:
+@@ -396,6 +402,12 @@
+             else:
+                 result.append(field.get_col(start_alias))
+             seen.add(field.attname)
++        # When select_related is used, we must ensure the primary key is part of the
++        # query. It won't be present when only() restricts the fields of the related
++        # model.
++        if force_pk and opts.pk.attname not in seen:
++            col = opts.pk.get_col(start_alias)
++            result.append((col, opts.pk.attname) if as_pairs else col)
+
+         if from_parent:
+             # Add the field matching the parent link
+@@ -725,7 +737,10 @@
+                     "remote_setter": f.set_cached_value,
+                 }
+                 columns = self.get_default_columns(
+-                    start_alias=alias, opts=model._meta, from_parent=f
++                    start_alias=alias,
++                    opts=model._meta,
++                    from_parent=f,
++                    force_pk=True,
+                 )
+                 select_fields = []
+                 for col in columns:
+@@ -778,7 +793,10 @@
+                     "from_parent": from_parent,
+                 }
+                 columns = self.get_default_columns(
+-                    start_alias=alias, opts=model._meta, from_parent=opts.model
++                    start_alias=alias,
++                    opts=model._meta,
++                    from_parent=opts.model,
++                    force_pk=True,
+                 )
+                 select_fields = []
+                 for col in columns:
+```

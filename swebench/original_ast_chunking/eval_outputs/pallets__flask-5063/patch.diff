@@ -1,0 +1,40 @@
+```patch
+--- a/src/flask/cli.py
++++ b/src/flask/cli.py
+@@ -348,6 +348,7 @@
+     rules = sorted(
+         rules_with_endpoint, key=lambda x: (x[1].endpoint, x[1].methods, x[1].rule)
+     )
++    server_name = app.config.get("SERVER_NAME") or "<no server name>"
+ 
+     rule_methods = [", ".join(sorted(rule.methods)) for endpoint, rule in rules]
+ 
+@@ -355,16 +356,20 @@
+     max_rule = max(len(rule.rule) for endpoint, rule in rules)
+     max_rule_methods = max(len(methods) for methods in rule_methods)
+ 
++    domains = []
++    for endpoint, rule in rules:
++        domain = f"{rule.subdomain}.{server_name}" if rule.subdomain else server_name
++        domains.append(domain)
++
++    max_domain = max(len(domain) for domain in domains)
++
+     header = (
+-        f"{'Endpoint':<{max_endpoint}}  {'Methods':<{max_rule_methods}}  {'Rule':<{max_rule}}"
++        f"{'Domain':<{max_domain}}  {'Endpoint':<{max_endpoint}}  {'Methods':<{max_rule_methods}}  {'Rule':<{max_rule}}"
+     )
+     click.echo(header)
+-    click.echo(f"{'-' * max_endpoint}  {'-' * max_rule_methods}  {'-' * max_rule}")
++    click.echo(f"{'-' * max_domain}  {'-' * max_endpoint}  {'-' * max_rule_methods}  {'-' * max_rule}")
+ 
+-    for (endpoint, rule), methods in zip(rules, rule_methods):
+-        click.echo(
+-            f"{endpoint:<{max_endpoint}}  {methods:<{max_rule_methods}}  "
+-            f"{rule.rule:<{max_rule}}"
+-        )
++    for (endpoint, rule), methods, domain in zip(rules, rule_methods, domains):
++        click.echo(
++            f"{domain:<{max_domain}}  {endpoint:<{max_endpoint}}  {methods:<{max_rule_methods}}  {rule.rule:<{max_rule}}"
++        )
+```

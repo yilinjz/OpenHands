@@ -1,0 +1,3 @@
+```diff
+--- a/seaborn/_core/typing.py
++++ b/seaborn/_core/typing.py

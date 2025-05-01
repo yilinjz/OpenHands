@@ -1,0 +1,33 @@
+```diff
+--- a/sphinx/ext/autosummary/generate.py
++++ b/sphinx/ext/autosummary/generate.py
+@@ -68,7 +68,25 @@
+     ns.update(context)
+
+     if doc.objtype == 'module':
+-        ns['members'] = dir(obj)
++        # find out all members that are documented documented
++        members = []
++        for name in dir(obj):
++            try:
++                value = safe_getattr(obj, name)
++                doc_cls = get_documenter(app, value, obj)
++                if (imported_members or
++                        getattr(value, '__module__', None) == obj.__name__):
++                    # skip members varaibles (cf. autodoc-skip-member event)
++                    if skip_member(value, name, doc_cls.objtype):
++                        continue
++                    members.append(name)
++            except AttributeError:
++                continue
++            except Exception as exc:
++                logger.warning(__('autosummary: failed to determine %r to be documented, '
++                                  'the following exception was raised:\n%s'),
++                               name, exc, type='autosummary')
++                continue
++        ns['members'] = members
+         ns['functions'], ns['all_functions'] = \
+             get_members(obj, {'function'}, imported=imported_members)
+         ns['classes'], ns['all_classes'] = \
+
+```

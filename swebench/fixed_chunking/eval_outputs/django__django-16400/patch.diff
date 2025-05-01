@@ -1,0 +1,109 @@
+```patch
+--- a/django/contrib/auth/management/__init__.py
++++ b/django/contrib/auth/management/__init__.py
+@@ -1,5 +1,6 @@
+ """
+-Creates permissions for all installed apps that need permissions.
++Creates permissions for all installed apps that need permissions for the database
++indicated by the ``using`` argument.
+ """
+ import getpass
+ import unicodedata
+@@ -10,7 +11,7 @@
+ from django.contrib.auth.models import Permission
+ from django.contrib.contenttypes.models import ContentType
+ from django.core.management.base import CommandError
+-from django.db import DEFAULT_DB_ALIAS, router
++from django.db import DEFAULT_DB_ALIAS, connections, router
+ from django.dispatch import receiver
+ from django.utils.encoding import smart_str
+ from django.utils.translation import gettext, gettext_lazy as _
+@@ -27,7 +28,7 @@
+     if not router.allow_migrate_model(using, Permission):
+         return
+ 
+-    if verbosity >= 2:
++    if verbosity >= 2 and kwargs.get("interactive", True):
+         print("Running post-migrate handler for auth.permissions")
+ 
+     searched_perms = []
+@@ -40,7 +41,7 @@
+         # This is needed to properly handle proxy models.
+         model = app_config.get_model(model_name, require_ready=False)
+         if not router.allow_migrate_model(using, model):
+-            continue
++            continue
+ 
+         opts = model._meta
+         # The permissions we're looking for are stored in the ContentType map.
+@@ -48,7 +49,7 @@
+         # This avoids hitting the database for models that don't exist in the
+         # database yet. This can happen in case of clashes between models of the
+         # same name in different apps.
+-        try:
++        try:
+             ctype = ContentType.objects.using(using).get_for_model(
+                 model, for_concrete_model=False
+             )
+@@ -60,7 +61,7 @@
+         all_perms = set(
+             Permission.objects.using(using)
+             .filter(
+-                content_type=ctype,
++                content_type=ctype,
+             )
+             .values_list("codename", flat=True)
+         )
+@@ -83,7 +84,7 @@
+             Permission(codename=codename, name=name, content_type=ctype)
+             for codename, name in perms_to_create
+         ]
+-        Permission.objects.using(using).bulk_create(permissions)
++        Permission.objects.using(using).bulk_create(permissions)
+         if verbosity >= 2:
+             for perm in permissions:
+                 print("Adding permission '%s'" % perm)
+@@ -96,7 +97,13 @@
+ 
+ @receiver(post_migrate)
+ def _create_permissions(**kwargs):
+-    # Ensure that permissions are created for the correct database.
+-    if kwargs.get("using") == DEFAULT_DB_ALIAS:
+-        create_permissions(**kwargs)
++    # The permissions need to be created in the database where the table is
++    # actually created. It's possible that the ContentTypes table is created
++    # as part of a migration but on a different database than the one specified
++    # by the --database command line argument. Assume that the ContentTypes
++    # table is part of the default database connection unless specified
++    # otherwise.
++    db = router.db_for_write(ContentType)
++    if connections[db].settings_dict == connections[kwargs["using"]].settings_dict:
++        create_permissions(**kwargs)
+ 
+--- a/django/db/migrations/recorder.py
++++ b/django/db/migrations/recorder.py
+@@ -62,7 +62,7 @@
+         # The database router is consulted when querying Migration.objects.
+         try:
+             return set(
+-                self.Migration.objects.values_list("app", "name")
++                self.Migration.objects.using(self.connection.alias).values_list("app", "name")
+             )
+         except ProgrammingError:
+             # Table doesn't exist, so no migrations are applied.
+@@ -73,12 +73,12 @@
+         """Record a migration as having been applied."""
+         self.ensure_schema()
+         # Use the database specified by self.connection.alias.
+-        self.Migration.objects.create(app=app, name=name)
++        self.Migration.objects.using(self.connection.alias).create(app=app, name=name)
+
+     def record_unapplied(self, app, name):
+         """Record a migration as having been unapplied."""
+         self.ensure_schema()
+         # Use the database specified by self.connection.alias.
+-        self.Migration.objects.filter(app=app, name=name).delete()
++        self.Migration.objects.using(self.connection.alias).filter(app=app, name=name).delete()
+
+     def flush(self):
+```

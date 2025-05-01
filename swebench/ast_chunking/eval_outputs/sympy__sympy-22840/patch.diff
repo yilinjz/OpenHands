@@ -1,0 +1,33 @@
+```patch
+--- a/sympy/simplify/cse_main.py
++++ b/sympy/simplify/cse_main.py
+@@ -17,7 +17,8 @@
+     Substitutions containing any Symbol from ``ignore`` will be ignored.
+     """
+     from sympy.matrices.expressions import MatrixExpr, MatrixSymbol, MatMul, MatAdd
+-    from sympy.polys.rootoftools import RootOf
++    from sympy.matrices.expressions.matexpr import MatrixElement
++    from sympy.polys.rootoftools import RootOf
+ 
+     if opt_subs is None:
+         opt_subs = dict()
+@@ -36,11 +37,14 @@
+         if isinstance(expr, RootOf):
+             return
+ 
+-        if isinstance(expr, Basic) and (expr.is_Atom or expr.is_Order):
+-            if expr.is_Symbol:
+-                excluded_symbols.add(expr)
++        # Don't treat MatrixSymbol, MatrixElement, other Atoms, or Order as CSE candidates
++        # We also don't want to collect non-Symbol atoms in excluded_symbols
++        if isinstance(expr, (MatrixSymbol, MatrixElement)):
+             return
++        # Handle remaining Atoms and Order
++        if isinstance(expr, Basic) and (expr.is_Atom or expr.is_Order):
++            if expr.is_Symbol:
++                excluded_symbols.add(expr)
++            return
+ 
+         if iterable(expr):
+             args = expr
+```

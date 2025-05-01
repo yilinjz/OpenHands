@@ -1,0 +1,32 @@
+```diff
+--- a/django/utils/http.py
++++ b/django/utils/http.py
+@@ -18,13 +18,18 @@
+     else:
+         raise ValueError("%r is not in a valid HTTP date format" % date)
+     try:
+-        year = int(m.group('year'))
+-        if year < 100:
+-            if year < 70:
+-                year += 2000
+-            else:
+-                year += 1900
+-        month = MONTHS.index(m.group('mon').lower()) + 1
++        g = m.groupdict()
++        year = int(g['year'])
++        if len(g['year']) == 2:
++            # RFC 7231 § 7.1.1.1: A recipient that parses a timestamp value with
++            # a two-digit year MUST interpret YY as representing the
++            # corresponding year in the current century if YY is less than or
++            # equal to the last two digits of the current year + 50, otherwise
++            # interpret YY as representing the corresponding year in the
++            # preceding century.
++            current_year = datetime.datetime.utcnow().year
++            current_century = current_year // 100 * 100
++            year += current_century - 100 if year > (current_year + 50) % 100 else current_century
++        month = MONTHS.index(g['mon'].lower()) + 1
+         day = int(m.group('day'))
+         hour = int(m.group('hour'))
+         min = int(m.group('min'))
+
+```

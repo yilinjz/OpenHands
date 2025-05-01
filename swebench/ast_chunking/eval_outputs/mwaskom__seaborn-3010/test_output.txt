@@ -1,0 +1,609 @@
++ source /opt/miniconda3/bin/activate
+++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z '' ']'
++++ export CONDA_SHLVL=0
++++ CONDA_SHLVL=0
++++ '[' -n '' ']'
++++++ dirname /opt/miniconda3/bin/conda
+++++ dirname /opt/miniconda3/bin
++++ PATH=/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export PATH
++++ '[' -z '' ']'
++++ PS1=
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
++++ PS1=
++++ __conda_exe shell.posix activate
++++ /opt/miniconda3/bin/conda shell.posix activate
+++ ask_conda='PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval 'PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=1
++++ CONDA_SHLVL=1
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
++++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ __conda_hashr
+++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
++ conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
++ '[' -n '' ']'
++ local ask_conda
+++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+++ /opt/miniconda3/bin/conda shell.posix activate testbed
++ ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++ eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ export CONDA_SHLVL=2
+++ CONDA_SHLVL=2
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_1=/opt/miniconda3
+++ CONDA_PREFIX_1=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ cd /testbed
++ git config --global --add safe.directory /testbed
++ cd /testbed
++ git status
+On branch master
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   seaborn/_stats/regression.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	seaborn/_stats/regression.py.orig
+	seaborn/_stats/regression.py.rej
+
+no changes added to commit (use "git add" and/or "git commit -a")
++ git show
+commit 0f5a013e2cf43562deec3b879458e59a73853813
+Author: Michael Waskom <mwaskom@gmail.com>
+Date:   Sun Sep 11 15:28:48 2022 -0400
+
+    Bump version
+
+diff --git a/seaborn/__init__.py b/seaborn/__init__.py
+index a2a60bb3..5a01033f 100644
+--- a/seaborn/__init__.py
++++ b/seaborn/__init__.py
+@@ -18,4 +18,4 @@ import matplotlib as mpl
+ _orig_rc_params = mpl.rcParams.copy()
+ 
+ # Define the seaborn version
+-__version__ = "0.12.0.dev0"
++__version__ = "0.12.1.dev0"
++ git -c core.fileMode=false diff 0f5a013e2cf43562deec3b879458e59a73853813
+diff --git a/seaborn/_stats/regression.py b/seaborn/_stats/regression.py
+index 7b7ddc8d..db6c2203 100644
+--- a/seaborn/_stats/regression.py
++++ b/seaborn/_stats/regression.py
+@@ -22,6 +22,10 @@ class PolyFit(Stat):
+     def _fit_predict(self, data):
+ 
+         x = data["x"]
++
++        # Drop rows with missing data
++        data = data.dropna(subset=["x", "y"])
++
+         y = data["y"]
+         if x.nunique() <= self.order:
+             # TODO warn?
++ source /opt/miniconda3/bin/activate
+++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z x ']'
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
++++ PS1='(testbed) '
++++ __conda_exe shell.posix activate
++++ /opt/miniconda3/bin/conda shell.posix activate
+++ ask_conda='PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''3'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_2='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval 'PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''3'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_2='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=3
++++ CONDA_SHLVL=3
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
++++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_PREFIX_2=/opt/miniconda3/envs/testbed
++++ CONDA_PREFIX_2=/opt/miniconda3/envs/testbed
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ __conda_hashr
+++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
++ conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
++ '[' -n '' ']'
++ local ask_conda
+++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+++ /opt/miniconda3/bin/conda shell.posix activate testbed
++ ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''4'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_3='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++ eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''4'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_3='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ export CONDA_SHLVL=4
+++ CONDA_SHLVL=4
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_3=/opt/miniconda3
+++ CONDA_PREFIX_3=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ python -m pip install -e '.[dev]'
+Obtaining file:///testbed
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Checking if build backend supports build_editable: started
+  Checking if build backend supports build_editable: finished with status 'done'
+  Getting requirements to build editable: started
+  Getting requirements to build editable: finished with status 'done'
+  Preparing editable metadata (pyproject.toml): started
+  Preparing editable metadata (pyproject.toml): finished with status 'done'
+Requirement already satisfied: numpy>=1.17 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from seaborn==0.12.1.dev0) (1.25.2)
+Requirement already satisfied: pandas>=0.25 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from seaborn==0.12.1.dev0) (2.0.0)
+Requirement already satisfied: matplotlib>=3.1 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from seaborn==0.12.1.dev0) (3.7.2)
+Requirement already satisfied: pytest in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from seaborn==0.12.1.dev0) (8.3.3)
+Requirement already satisfied: pytest-cov in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from seaborn==0.12.1.dev0) (5.0.0)
+Requirement already satisfied: pytest-xdist in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from seaborn==0.12.1.dev0) (3.6.1)
+Requirement already satisfied: flake8 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from seaborn==0.12.1.dev0) (7.1.1)
+Requirement already satisfied: mypy in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from seaborn==0.12.1.dev0) (1.13.0)
+Requirement already satisfied: contourpy>=1.0.1 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from matplotlib>=3.1->seaborn==0.12.1.dev0) (1.1.0)
+Requirement already satisfied: cycler>=0.10 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from matplotlib>=3.1->seaborn==0.12.1.dev0) (0.11.0)
+Requirement already satisfied: fonttools>=4.22.0 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from matplotlib>=3.1->seaborn==0.12.1.dev0) (4.42.1)
+Requirement already satisfied: kiwisolver>=1.0.1 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from matplotlib>=3.1->seaborn==0.12.1.dev0) (1.4.5)
+Requirement already satisfied: packaging>=20.0 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from matplotlib>=3.1->seaborn==0.12.1.dev0) (23.1)
+Requirement already satisfied: pillow>=6.2.0 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from matplotlib>=3.1->seaborn==0.12.1.dev0) (10.0.0)
+Requirement already satisfied: pyparsing<3.1,>=2.3.1 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from matplotlib>=3.1->seaborn==0.12.1.dev0) (3.0.9)
+Requirement already satisfied: python-dateutil>=2.7 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from matplotlib>=3.1->seaborn==0.12.1.dev0) (2.8.2)
+Requirement already satisfied: importlib-resources>=3.2.0 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from matplotlib>=3.1->seaborn==0.12.1.dev0) (6.0.1)
+Requirement already satisfied: pytz>=2020.1 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from pandas>=0.25->seaborn==0.12.1.dev0) (2023.3.post1)
+Requirement already satisfied: tzdata>=2022.1 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from pandas>=0.25->seaborn==0.12.1.dev0) (2023.1)
+Requirement already satisfied: mccabe<0.8.0,>=0.7.0 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from flake8->seaborn==0.12.1.dev0) (0.7.0)
+Requirement already satisfied: pycodestyle<2.13.0,>=2.12.0 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from flake8->seaborn==0.12.1.dev0) (2.12.1)
+Requirement already satisfied: pyflakes<3.3.0,>=3.2.0 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from flake8->seaborn==0.12.1.dev0) (3.2.0)
+Requirement already satisfied: typing-extensions>=4.6.0 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from mypy->seaborn==0.12.1.dev0) (4.12.2)
+Requirement already satisfied: mypy-extensions>=1.0.0 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from mypy->seaborn==0.12.1.dev0) (1.0.0)
+Requirement already satisfied: tomli>=1.1.0 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from mypy->seaborn==0.12.1.dev0) (2.0.2)
+Requirement already satisfied: iniconfig in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from pytest->seaborn==0.12.1.dev0) (2.0.0)
+Requirement already satisfied: pluggy<2,>=1.5 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from pytest->seaborn==0.12.1.dev0) (1.5.0)
+Requirement already satisfied: exceptiongroup>=1.0.0rc8 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from pytest->seaborn==0.12.1.dev0) (1.2.2)
+Requirement already satisfied: coverage>=5.2.1 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from coverage[toml]>=5.2.1->pytest-cov->seaborn==0.12.1.dev0) (7.6.4)
+Requirement already satisfied: execnet>=2.1 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from pytest-xdist->seaborn==0.12.1.dev0) (2.1.1)
+Requirement already satisfied: zipp>=3.1.0 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from importlib-resources>=3.2.0->matplotlib>=3.1->seaborn==0.12.1.dev0) (3.16.2)
+Requirement already satisfied: six>=1.5 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from python-dateutil>=2.7->matplotlib>=3.1->seaborn==0.12.1.dev0) (1.16.0)
+Building wheels for collected packages: seaborn
+  Building editable for seaborn (pyproject.toml): started
+  Building editable for seaborn (pyproject.toml): finished with status 'done'
+  Created wheel for seaborn: filename=seaborn-0.12.1.dev0-py3-none-any.whl size=3956 sha256=6b42d034f1ff1a62768924c6ee6158dbd0695c9b2ad9734436a2139e3692864e
+  Stored in directory: /tmp/pip-ephem-wheel-cache-aofgyeip/wheels/7d/66/67/70d1ee2124ccf21d601c352e25cdca10f611f7c8b3f9ffb9e4
+Successfully built seaborn
+Installing collected packages: seaborn
+  Attempting uninstall: seaborn
+    Found existing installation: seaborn 0.12.1.dev0
+    Uninstalling seaborn-0.12.1.dev0:
+      Successfully uninstalled seaborn-0.12.1.dev0
+Successfully installed seaborn-0.12.1.dev0
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable.It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
++ git checkout 0f5a013e2cf43562deec3b879458e59a73853813 tests/_stats/test_regression.py
+Updated 0 paths from 8983decc
++ git apply -v -
+Checking patch tests/_stats/test_regression.py...
+Applied patch tests/_stats/test_regression.py cleanly.
++ : '>>>>> Start Test Output'
++ pytest --no-header -rA tests/_stats/test_regression.py
+============================= test session starts ==============================
+collected 3 items
+
+tests/_stats/test_regression.py ..F                                      [100%]
+
+=================================== FAILURES ===================================
+________________________ TestPolyFit.test_missing_data _________________________
+
+self = <tests._stats.test_regression.TestPolyFit object at 0x7f0119ce1c10>
+df =            x         y color group
+0   1.449377 -1.164349     b     y
+1   0.547052 -0.550104     a     y
+2  -1.238494 ...600 -0.364542     c     y
+98 -1.887821 -0.068687     b     x
+99 -0.596893  0.767449     c     x
+
+[100 rows x 4 columns]
+
+    def test_missing_data(self, df):
+    
+        groupby = GroupBy(["group"])
+        df.iloc[5:10] = np.nan
+>       res1 = PolyFit()(df[["x", "y"]], groupby, "x", {})
+
+tests/_stats/test_regression.py:59: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/_stats/regression.py:45: in __call__
+    return groupby.apply(data, self._fit_predict)
+seaborn/_core/groupby.py:109: in apply
+    return self._reorder_columns(func(data, *args, **kwargs), data)
+seaborn/_stats/regression.py:34: in _fit_predict
+    p = np.polyfit(x, y, self.order)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+x = array([ 1.44937693,  0.54705238, -1.23849421,  0.0042397 ,  0.96104443,
+               nan,         nan,         nan, ...108545,  0.35369949, -0.58809377, -1.66542662,
+        1.67094557,  0.42036328,  1.78859975, -1.88782104, -0.5968929 ])
+y = array([-1.16434886, -0.55010368, -1.14244064, -0.96140692,  0.11880587,
+       -1.04393204, -1.46369337, -1.15356151, ...584062, -0.8530132 ,  0.91548798, -0.89857771,
+       -1.3093609 ,  0.80800121, -0.3645424 , -0.06868673,  0.76744947])
+deg = 2, rcond = None, full = False, w = None, cov = False
+
+    @array_function_dispatch(_polyfit_dispatcher)
+    def polyfit(x, y, deg, rcond=None, full=False, w=None, cov=False):
+        """
+        Least squares polynomial fit.
+    
+        .. note::
+           This forms part of the old polynomial API. Since version 1.4, the
+           new polynomial API defined in `numpy.polynomial` is preferred.
+           A summary of the differences can be found in the
+           :doc:`transition guide </reference/routines.polynomials>`.
+    
+        Fit a polynomial ``p(x) = p[0] * x**deg + ... + p[deg]`` of degree `deg`
+        to points `(x, y)`. Returns a vector of coefficients `p` that minimises
+        the squared error in the order `deg`, `deg-1`, ... `0`.
+    
+        The `Polynomial.fit <numpy.polynomial.polynomial.Polynomial.fit>` class
+        method is recommended for new code as it is more stable numerically. See
+        the documentation of the method for more information.
+    
+        Parameters
+        ----------
+        x : array_like, shape (M,)
+            x-coordinates of the M sample points ``(x[i], y[i])``.
+        y : array_like, shape (M,) or (M, K)
+            y-coordinates of the sample points. Several data sets of sample
+            points sharing the same x-coordinates can be fitted at once by
+            passing in a 2D-array that contains one dataset per column.
+        deg : int
+            Degree of the fitting polynomial
+        rcond : float, optional
+            Relative condition number of the fit. Singular values smaller than
+            this relative to the largest singular value will be ignored. The
+            default value is len(x)*eps, where eps is the relative precision of
+            the float type, about 2e-16 in most cases.
+        full : bool, optional
+            Switch determining nature of return value. When it is False (the
+            default) just the coefficients are returned, when True diagnostic
+            information from the singular value decomposition is also returned.
+        w : array_like, shape (M,), optional
+            Weights. If not None, the weight ``w[i]`` applies to the unsquared
+            residual ``y[i] - y_hat[i]`` at ``x[i]``. Ideally the weights are
+            chosen so that the errors of the products ``w[i]*y[i]`` all have the
+            same variance.  When using inverse-variance weighting, use
+            ``w[i] = 1/sigma(y[i])``.  The default value is None.
+        cov : bool or str, optional
+            If given and not `False`, return not just the estimate but also its
+            covariance matrix. By default, the covariance are scaled by
+            chi2/dof, where dof = M - (deg + 1), i.e., the weights are presumed
+            to be unreliable except in a relative sense and everything is scaled
+            such that the reduced chi2 is unity. This scaling is omitted if
+            ``cov='unscaled'``, as is relevant for the case that the weights are
+            w = 1/sigma, with sigma known to be a reliable estimate of the
+            uncertainty.
+    
+        Returns
+        -------
+        p : ndarray, shape (deg + 1,) or (deg + 1, K)
+            Polynomial coefficients, highest power first.  If `y` was 2-D, the
+            coefficients for `k`-th data set are in ``p[:,k]``.
+    
+        residuals, rank, singular_values, rcond
+            These values are only returned if ``full == True``
+    
+            - residuals -- sum of squared residuals of the least squares fit
+            - rank -- the effective rank of the scaled Vandermonde
+               coefficient matrix
+            - singular_values -- singular values of the scaled Vandermonde
+               coefficient matrix
+            - rcond -- value of `rcond`.
+    
+            For more details, see `numpy.linalg.lstsq`.
+    
+        V : ndarray, shape (M,M) or (M,M,K)
+            Present only if ``full == False`` and ``cov == True``.  The covariance
+            matrix of the polynomial coefficient estimates.  The diagonal of
+            this matrix are the variance estimates for each coefficient.  If y
+            is a 2-D array, then the covariance matrix for the `k`-th data set
+            are in ``V[:,:,k]``
+    
+    
+        Warns
+        -----
+        RankWarning
+            The rank of the coefficient matrix in the least-squares fit is
+            deficient. The warning is only raised if ``full == False``.
+    
+            The warnings can be turned off by
+    
+            >>> import warnings
+            >>> warnings.simplefilter('ignore', np.RankWarning)
+    
+        See Also
+        --------
+        polyval : Compute polynomial values.
+        linalg.lstsq : Computes a least-squares fit.
+        scipy.interpolate.UnivariateSpline : Computes spline fits.
+    
+        Notes
+        -----
+        The solution minimizes the squared error
+    
+        .. math::
+            E = \\sum_{j=0}^k |p(x_j) - y_j|^2
+    
+        in the equations::
+    
+            x[0]**n * p[0] + ... + x[0] * p[n-1] + p[n] = y[0]
+            x[1]**n * p[0] + ... + x[1] * p[n-1] + p[n] = y[1]
+            ...
+            x[k]**n * p[0] + ... + x[k] * p[n-1] + p[n] = y[k]
+    
+        The coefficient matrix of the coefficients `p` is a Vandermonde matrix.
+    
+        `polyfit` issues a `RankWarning` when the least-squares fit is badly
+        conditioned. This implies that the best fit is not well-defined due
+        to numerical error. The results may be improved by lowering the polynomial
+        degree or by replacing `x` by `x` - `x`.mean(). The `rcond` parameter
+        can also be set to a value smaller than its default, but the resulting
+        fit may be spurious: including contributions from the small singular
+        values can add numerical noise to the result.
+    
+        Note that fitting polynomial coefficients is inherently badly conditioned
+        when the degree of the polynomial is large or the interval of sample points
+        is badly centered. The quality of the fit should always be checked in these
+        cases. When polynomial fits are not satisfactory, splines may be a good
+        alternative.
+    
+        References
+        ----------
+        .. [1] Wikipedia, "Curve fitting",
+               https://en.wikipedia.org/wiki/Curve_fitting
+        .. [2] Wikipedia, "Polynomial interpolation",
+               https://en.wikipedia.org/wiki/Polynomial_interpolation
+    
+        Examples
+        --------
+        >>> import warnings
+        >>> x = np.array([0.0, 1.0, 2.0, 3.0,  4.0,  5.0])
+        >>> y = np.array([0.0, 0.8, 0.9, 0.1, -0.8, -1.0])
+        >>> z = np.polyfit(x, y, 3)
+        >>> z
+        array([ 0.08703704, -0.81349206,  1.69312169, -0.03968254]) # may vary
+    
+        It is convenient to use `poly1d` objects for dealing with polynomials:
+    
+        >>> p = np.poly1d(z)
+        >>> p(0.5)
+        0.6143849206349179 # may vary
+        >>> p(3.5)
+        -0.34732142857143039 # may vary
+        >>> p(10)
+        22.579365079365115 # may vary
+    
+        High-order polynomials may oscillate wildly:
+    
+        >>> with warnings.catch_warnings():
+        ...     warnings.simplefilter('ignore', np.RankWarning)
+        ...     p30 = np.poly1d(np.polyfit(x, y, 30))
+        ...
+        >>> p30(4)
+        -0.80000000000000204 # may vary
+        >>> p30(5)
+        -0.99999999999999445 # may vary
+        >>> p30(4.5)
+        -0.10547061179440398 # may vary
+    
+        Illustration:
+    
+        >>> import matplotlib.pyplot as plt
+        >>> xp = np.linspace(-2, 6, 100)
+        >>> _ = plt.plot(x, y, '.', xp, p(xp), '-', xp, p30(xp), '--')
+        >>> plt.ylim(-2,2)
+        (-2, 2)
+        >>> plt.show()
+    
+        """
+        order = int(deg) + 1
+        x = NX.asarray(x) + 0.0
+        y = NX.asarray(y) + 0.0
+    
+        # check arguments.
+        if deg < 0:
+            raise ValueError("expected deg >= 0")
+        if x.ndim != 1:
+            raise TypeError("expected 1D vector for x")
+        if x.size == 0:
+            raise TypeError("expected non-empty vector for x")
+        if y.ndim < 1 or y.ndim > 2:
+            raise TypeError("expected 1D or 2D array for y")
+        if x.shape[0] != y.shape[0]:
+>           raise TypeError("expected x and y to have same length")
+E           TypeError: expected x and y to have same length
+
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/numpy/lib/polynomial.py:643: TypeError
+==================================== PASSES ====================================
+=========================== short test summary info ============================
+PASSED tests/_stats/test_regression.py::TestPolyFit::test_no_grouper
+PASSED tests/_stats/test_regression.py::TestPolyFit::test_one_grouper
+FAILED tests/_stats/test_regression.py::TestPolyFit::test_missing_data - Type...
+========================= 1 failed, 2 passed in 1.12s ==========================
++ : '>>>>> End Test Output'
++ git checkout 0f5a013e2cf43562deec3b879458e59a73853813 tests/_stats/test_regression.py
+Updated 1 path from 8983decc

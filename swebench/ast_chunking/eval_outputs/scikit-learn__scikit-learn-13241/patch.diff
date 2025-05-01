@@ -1,0 +1,29 @@
+```diff
+--- a/sklearn/decomposition/kernel_pca.py
++++ b/sklearn/decomposition/kernel_pca.py
+@@ -1,10 +1,11 @@
+ """Kernel Principal component analysis (KPCA)"""
+ 
++import numpy as np
+ from scipy import linalg
+ from scipy.sparse.linalg import eigsh
+ 
+ from ..base import BaseEstimator, TransformerMixin, _UnstableOn32BitMixin
+-from ..utils.validation import check_is_fitted, check_array, check_random_state
++from ..utils.validation import check_is_fitted, check_array, check_random_state
+ from ..metrics.pairwise import pairwise_kernels
+ from ..preprocessing import KernelCenterer
+ from ..utils.arpack import eigsh as _eigsh  # needs to be imported earlier
+@@ -35,6 +36,10 @@
+         self.lambdas_ = self.lambdas_[indices]
+         self.alphas_ = self.alphas_[:, indices]
+ 
++        # flip eigenvectors' sign to enforce deterministic output
++        # we choose the sign based on the element with largest absolute value
++        self.alphas_, _ = svd_flip(self.alphas_, np.zeros((self.alphas_.shape[1], 1)))
++
+         # remove eigenvectors with a zero eigenvalue
+         if self.remove_zero_eig or self.n_components is None:
+             self.alphas_ = self.alphas_[:, self.lambdas_ > 0]
+
+```

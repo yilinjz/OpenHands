@@ -1,0 +1,30 @@
+```patch
+--- a/sklearn/base.py
++++ b/sklearn/base.py
+@@ -197,11 +197,19 @@
+             if name in params:
+                 v = params[name]
+                 default_v = param.default
+-                # FIXME: We should compare using np.array_equal for arrays, etc.
+-                # Here we just check that the value is not the default value
+-                # by using !=. The comparison logic is not robust yet.
+-                if v != default_v:
++
++                try:
++                    # Use standard comparison first
++                    is_different = v != default_v
++
++                    # For arrays, comparison results in a boolean array.
++                    # Use np.any() to check if any element is different.
++                    if isinstance(is_different, np.ndarray):
++                        is_different = np.any(is_different)
++
++                    if is_different:
++                        changed_params[name] = v
++                except ValueError:
++                    # Catch ValueError when comparing arrays with non-arrays
++                    # or similar ambiguous comparisons. Treat as different.
+                     changed_params[name] = v
+         return changed_params
+ 
+```

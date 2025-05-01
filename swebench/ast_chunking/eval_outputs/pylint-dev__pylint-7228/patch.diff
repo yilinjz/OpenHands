@@ -1,0 +1,13 @@
+```patch
+--- a/pylint/checkers/base.py
++++ b/pylint/checkers/base.py
+@@ -100,7 +100,7 @@
+     "function-rgx": Option(
+         type="regexp",
+         metavar="<regexp>",
+-        default=re.compile(r"^[a-z_][a-z0-9_]{2,30}$"),
++        default=r"^[a-z_][a-z0-9_]{2,30}$",
+         help="Regular expression matching correct function names.",
+     ),
+     "function-name-style": Option(
+```

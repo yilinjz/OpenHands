@@ -1,0 +1,25 @@
+```patch
+--- a/src/_pytest/_io/saferepr.py
++++ b/src/_pytest/_io/saferepr.py
+@@ -15,12 +15,21 @@
+
+ def _format_repr_exception(exc: Exception, obj: object) -> str:
+     """Format the information about exception raised in repr() call."""
++    # Use getattr with default values to guard against __getattr__ raising
++    # an exception (although this is unlikely for built-in types).
++    exc_name = getattr(type(exc), "__name__", "unknown")
++    obj_name = getattr(type(obj), "__name__", "unknown")
+     try:
+-        exc_info = str(exc)
++        # Try to get the exception message, guarding against str(exc) failing.
++        exc_str = str(exc)
+     except Exception:
+-        exc_info = f"<{type(exc).__name__} instance at {hex(id(exc))}>"
+-    return "<[reprexc] %s getting repr of %s instance at 0x%x>" % (
+-        exc_info, obj.__class__.__name__, id(obj)
++        # If str(exc) fails, provide a basic placeholder.
++        exc_str = f"<exception str() failed for {exc_name}>"
++
++    # Format a useful message safely.
++    # Based on original format string: <[reprexc] %s getting repr of %s instance at 0x%x>
++    return "<[reprexc] %

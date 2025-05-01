@@ -1,0 +1,37 @@
+```diff
+--- a/lib/matplotlib/legend.py
++++ b/lib/matplotlib/legend.py
+@@ -143,3 +143,30 @@
+     def _update_bbox_to_anchor(self, loc_in_canvas):
+         loc_in_bbox = self.legend.axes.transAxes.transform(loc_in_canvas)
+         self.legend.set_bbox_to_anchor(loc_in_bbox)
++
++    def __getstate__(self):
++        """Override to remove canvas and callbacks."""
++        # Get state from parent classes (Artist)
++        state = super().__getstate__().copy()
++        # Prune the state dictionary for pickling.
++        state['_observers'] = []  # Clear observers list
++        state['canvas'] = None    # Remove canvas reference
++        state.pop('_bg_cache', None)  # Remove blit cache
++        # DraggableOffsetBox references artist and offsetbox, which are the
++        # legend and its _legend_box respectively. Legend pickling should
++        # handle restoring these, so we don't explicitly save/restore them here.
++        return state
++
++    def __setstate__(self, state):
++        """Override to restore and reconnect."""
++        # Restore state using parent classes' __setstate__
++        super().__setstate__(state)
++        # Re-connect after unpickling.
++        # The canvas should be part of the unpickled figure/axes structure.
++        # We rely on the legend object being correctly unpickled first,
++        # including its figure and canvas references.
++        if self.legend and self.legend.figure and self.legend.figure.canvas:
++            self.canvas = self.legend.figure.canvas
++            self.connect()  # Re-register callbacks
++        else:
++            # Ensure canvas is None if it couldn't be restored
++            self.canvas = None
+
+```

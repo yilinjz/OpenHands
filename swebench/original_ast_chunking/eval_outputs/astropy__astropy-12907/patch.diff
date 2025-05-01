@@ -1,0 +1,20 @@
+```patch
+--- a/astropy/modeling/separable.py
++++ b/astropy/modeling/separable.py
+@@ -123,8 +123,13 @@
+     else:
+         cright = np.zeros((noutp, right.shape[1]))
+         # Determine number of outputs of the left model/matrix
++        # to correctly position the right matrix vertically.
++        if isinstance(left, Model):
++            lnout = left.n_outputs
++        else:
++            lnout = left.shape[0]
+         # Place the 'right' matrix in the lower part of cright.
+-        cright[-right.shape[0]:, -right.shape[1]:] = 1
++        cright[lnout:, :right.shape[1]] = right
+
+     return np.hstack([cleft, cright])
+
+
+```

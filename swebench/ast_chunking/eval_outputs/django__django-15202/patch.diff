@@ -1,0 +1,18 @@
+```diff
+--- a/django/core/validators.py
++++ b/django/core/validators.py
+@@ -128,8 +128,11 @@
+                 raise
+         else:
+             # Now verify IPv6 in the netloc part
+-            host_match = re.search(r'^\[(.+)\](?::\d{1,5})?$', urlsplit(value).netloc)
++            try:
++                netloc = urlsplit(value).netloc
++            except ValueError:  # e.g. "Invalid IPv6 URL"
++                raise ValidationError(self.message, code=self.code, params={'value': value})
++            host_match = re.search(r'^\[(.+)\](?::\d{1,5})?$', netloc)
+             if host_match:
+                 potential_ip = host_match[1]
+                 try:
+
+```

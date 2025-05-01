@@ -1,0 +1,19 @@
+```patch
+--- a/django/db/models/sql/query.py
++++ b/django/db/models/sql/query.py
+@@ -27,8 +27,13 @@
+         else:
+             col = _get_col(targets[0], join_info.final_field, alias, simple_col)
+ 
++        lookup_type = lookups[-1]
++        if lookup_type == 'isnull' and not isinstance(value, bool):
++            raise ValueError(
++                'The __isnull lookup must be used with a boolean value '
++                '(True or False).'
++            )
+         condition = self.build_lookup(lookups, col, value)
+-        lookup_type = condition.lookup_name
+         clause.add(condition, AND)
+ 
+         require_outer = lookup_type == 'isnull' and condition.rhs is True and not current_negated
+```

@@ -1,0 +1,30 @@
+```patch
+--- a/sympy/utilities/lambdify.py
++++ b/sympy/utilities/lambdify.py
+@@ -651,15 +651,18 @@
+     from sympy.utilities.iterables import NotIterable, iterable
+
+     if isinstance(arg, (list, tuple, Tuple)):
++        # Recursively apply to elements
++        elements_str = [_recursive_to_string(doprint, e) for e in arg]
++
+         if isinstance(arg, list):
+             left, right = '[]'
++            content = ', '.join(elements_str)
+         elif isinstance(arg, (tuple, Tuple)):
+             left, right = "()"
+-        else:
+-            # This branch is technically unreachable due to the outer if condition
+-            raise NotImplementedError("unhandled type: %s, %s" % (type(arg), arg))
+-        # TODO: Rework this function, it's hacky
+-        # Check for single element tuple
+-        return left +', '.join(_recursive_to_string(doprint, e) for e in arg) + right
++            if len(arg) == 1:
++                content = elements_str[0] + ',' # Add trailing comma for single element tuple
++            else:
++                content = ', '.join(elements_str)
++        return left + content + right
+     elif isinstance(arg, str):
+         return arg
+     else:
+```

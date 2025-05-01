@@ -1,0 +1,13 @@
+```patch
+--- a/sympy/core/basic.py
++++ b/sympy/core/basic.py
+@@ -35,6 +35,8 @@
+     """
+     __metaclass__ = BasicMeta
+
++    __slots__ = ()
++
+     # To be overridden by Basic subclasses
+     def __new__(cls, *args, **kwargs):
+         # args = map(_sympify, args) # XXX this is slow
+```

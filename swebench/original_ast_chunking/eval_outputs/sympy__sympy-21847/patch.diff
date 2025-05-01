@@ -1,0 +1,71 @@
+```patch
+--- a/sympy/polys/monomials.py
++++ b/sympy/polys/monomials.py
+@@ -7,7 +7,7 @@
+ from sympy.utilities.iterables import is_sequence, iterable
+ 
+ from itertools import product as cartes_product
+-from itertools import combinations_with_replacement, product
++from itertools import combinations_with_replacement, product as iter_product
+
+
+ @public
+@@ -99,40 +99,30 @@
+         total_degree = True
+     if total_degree:
+         if min_degree > max_degree:
+-            return
+-        if not variables or max_degree == 0:
++            return # No degrees in the range
++
++        # Handle degree 0 separately
++        if min_degree <= 0 <= max_degree:
+             yield S.One
++
++        if max_degree == 0:
+             return
+-        # Force to list in case of passed tuple or other incompatible collection
+-        variables = list(variables) + [S.One]
++
++        if not variables: # No variables, only S.One is possible
++            return
++
++        # Iterate through degrees from max(1, min_degree) up to max_degree
++        start_degree = max(1, min_degree)
++        variables = list(variables) # Ensure it's a list
++
+         if all(variable.is_commutative for variable in variables):
+-            monomials_list_comm = []
+-            for item in combinations_with_replacement(variables, max_degree):
+-                powers = dict()
+-                for variable in variables:
+-                    powers[variable] = 0
+-                for variable in item:
+-                    if variable != 1:
+-                        powers[variable] += 1
+-                if max(powers.values()) >= min_degree:
+-                    monomials_list_comm.append(Mul(*item))
+-            yield from set(monomials_list_comm)
++            for d in range(start_degree, max_degree + 1):
++                for monom_tuple in combinations_with_replacement(variables, d):
++                    yield Mul(*monom_tuple)
+         else:
+-            monomials_list_non_comm = []
+-            for item in product(variables, repeat=max_degree):
+-                powers = dict()
+-                for variable in variables:
+-                    powers[variable] = 0
+-                for variable in item:
+-                    if variable != 1:
+-                        powers[variable] += 1
+-                if max(powers.values()) >= min_degree:
+-                    monomials_list_non_comm.append(Mul(*item))
+-            yield from set(monomials_list_non_comm)
++            for d in range(start_degree, max_degree + 1):
++                for monom_tuple in iter_product(variables, repeat=d):
++                    yield Mul(*monom_tuple)
+     else:
+         if any(min_degrees[i] > max_degrees[i] for i in range(n)):
+             raise ValueError('min_degrees[i] must be <= max_degrees[i] for all i')
+
+```

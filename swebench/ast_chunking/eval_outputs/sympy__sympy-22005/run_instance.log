@@ -1,0 +1,46 @@
+2025-05-01 20:06:54,439 - INFO - Creating container for sympy__sympy-22005...
+2025-05-01 20:06:54,487 - INFO - Container for sympy__sympy-22005 created: 5cad6f719cd09e17dabc3f56e1f3718f38205bd7971639a9c9a1e3fb9d8d0db0
+2025-05-01 20:06:54,915 - INFO - Container for sympy__sympy-22005 started: 5cad6f719cd09e17dabc3f56e1f3718f38205bd7971639a9c9a1e3fb9d8d0db0
+2025-05-01 20:06:54,916 - INFO - Intermediate patch for sympy__sympy-22005 written to logs/run_evaluation/20250501_195119/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/sympy__sympy-22005/patch.diff, now applying to container...
+2025-05-01 20:06:55,102 - INFO - >>>>> Applied Patch:
+Checking patch sympy/solvers/polysys.py...
+Hunk #1 succeeded at 240 (offset 135 lines).
+Applied patch sympy/solvers/polysys.py cleanly.
+
+2025-05-01 20:06:55,883 - INFO - Git diff before:
+diff --git a/sympy/solvers/polysys.py b/sympy/solvers/polysys.py
+index b9809fd4e9..674322d4eb 100644
+--- a/sympy/solvers/polysys.py
++++ b/sympy/solvers/polysys.py
+@@ -240,7 +240,7 @@ def _solve_reduced_system(system, gens, entry=False):
+ 
+         univariate = list(filter(_is_univariate, basis))
+ 
+-        if len(univariate) == 1:
++        if len(univariate) == 1 and len(gens) == 1:
+             f = univariate.pop()
+         else:
+             raise NotImplementedError(filldedent('''
+2025-05-01 20:06:55,883 - INFO - Eval script for sympy__sympy-22005 written to logs/run_evaluation/20250501_195119/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/sympy__sympy-22005/eval.sh; copying to container...
+2025-05-01 20:07:06,717 - INFO - Test runtime: 10.75 seconds
+2025-05-01 20:07:06,717 - INFO - Test output for sympy__sympy-22005 written to logs/run_evaluation/20250501_195119/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/sympy__sympy-22005/test_output.txt
+2025-05-01 20:07:06,790 - INFO - Git diff after:
+diff --git a/sympy/solvers/polysys.py b/sympy/solvers/polysys.py
+index b9809fd4e9..674322d4eb 100644
+--- a/sympy/solvers/polysys.py
++++ b/sympy/solvers/polysys.py
+@@ -240,7 +240,7 @@ def _solve_reduced_system(system, gens, entry=False):
+ 
+         univariate = list(filter(_is_univariate, basis))
+ 
+-        if len(univariate) == 1:
++        if len(univariate) == 1 and len(gens) == 1:
+             f = univariate.pop()
+         else:
+             raise NotImplementedError(filldedent('''
+2025-05-01 20:07:06,791 - INFO - Grading answer for sympy__sympy-22005...
+2025-05-01 20:07:06,791 - INFO - report: {'sympy__sympy-22005': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_solve_poly_system']}, 'PASS_TO_PASS': {'success': ['test_solve_biquadratic', 'test_solve_triangulated'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-22005: resolved: False
+2025-05-01 20:07:06,791 - INFO - Attempting to stop container sweb.eval.sympy__sympy-22005.20250501_195119...
+2025-05-01 20:07:22,024 - INFO - Attempting to remove container sweb.eval.sympy__sympy-22005.20250501_195119...
+2025-05-01 20:07:22,057 - INFO - Container sweb.eval.sympy__sympy-22005.20250501_195119 removed.

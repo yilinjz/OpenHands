@@ -1,0 +1,142 @@
+```patch
+--- a/xarray/core/formatting.py
++++ b/xarray/core/formatting.py
+@@ -1,5 +1,6 @@
+ import contextlib
+ import functools
++import io
+ import itertools
+ import math
+ import textwrap
+@@ -7,13 +8,17 @@
+ from typing import (
+     TYPE_CHECKING,
+     Hashable,
++    Iterable,
+     Mapping,
+     Optional,
+     Sequence,
++    TypeVar,
+     Union,
+ )
+ 
+ import numpy as np
++
++from . import formatting_html
+ 
+ from .options import OPTIONS, set_options
+ from .pycompat import dask_array_type
+@@ -21,6 +26,11 @@
+ 
+ # Used for DataArray, Variable and Dataset methods; not for top-level functions
+ T = TypeVar("T")
++
++if TYPE_CHECKING:
++    from .dataarray import DataArray
++    from .dataset import Dataset
++    from .variable import Variable
+ 
+ 
+ @contextlib.contextmanager
+@@ -200,28 +210,34 @@
+     return summary
+ 
+ 
+-def summarize_coord(name: Hashable, var: Variable, col_width: int) -> list[str]:
++def summarize_coord(
++    name: Hashable, var: Union["Variable", "DataArray"], col_width: int
++) -> list[str]:
+     """Summarize a single Coordinate for display."""
+     is_index = name in var.dims
+     marker = "*" if is_index else " "
++    # If var is a DataArray, operate on its underlying Variable
++    real_var = var.variable if hasattr(var, "variable") else var
+ 
+-    first_col = f"{marker} {name} ({', '.join(var.dims)})"
++    units = real_var.attrs.get("units")
++    attrs_to_summarize = real_var.attrs.copy()
++    if units is not None:
++        name_str = f"{name}, in {units}"
++        attrs_to_summarize.pop("units", None)  # Remove units if present
++    else:
++        name_str = f"{name}"
++
++    dims_str = f"({', '.join(real_var.dims)})" if real_var.dims else ""
++    first_col = f"{marker} {name_str} {dims_str}"
+     if len(first_col) > col_width:
+         first_col = f"{first_col[:col_width - 3]}..."
+-    elif col_width is not None:
+-        first_col = first_col.ljust(col_width)
+-
+-    attrs_summary = summarize_attrs(var.attrs)
++    first_col = first_col.ljust(col_width)
+ 
+-    dtype_str = dtype_repr(var.dtype)
+-    preview = summarize_array(var.variable if isinstance(var, DataArray) else var)
++    dtype_str = dtype_repr(real_var.dtype)
++    preview = summarize_array(real_var)
+ 
+     summary = [f"{first_col} {dtype_str} {preview}"]
+ 
+-    if attrs_summary:
+-        summary += [f"    {attrs_summary}"]
++    if attrs_to_summarize:
++        attrs_summary = summarize_attrs(attrs_to_summarize)
++        if attrs_summary:  # Only add line if attributes string is non-empty
++            summary += [f"    {attrs_summary}"]
+     return summary
+ 
+ 
+-def summarize_datavar(name: Hashable, var: Variable, col_width: int) -> list[str]:
++def summarize_datavar(
++    name: Hashable, var: Union["Variable", "DataArray"], col_width: int
++) -> list[str]:
+     """Summarize a single DataArray for display."""
+-    first_col = f"  {name} ({', '.join(var.dims)})"
++    # If var is a DataArray, operate on its underlying Variable
++    real_var = var.variable if hasattr(var, "variable") else var
++
++    units = real_var.attrs.get("units")
++    attrs_to_summarize = real_var.attrs.copy()
++    if units is not None:
++        name_str = f"{name}, in {units}"
++        attrs_to_summarize.pop("units", None)  # Remove units if present
++    else:
++        name_str = f"{name}"
++
++    dims_str = f"({', '.join(real_var.dims)})" if real_var.dims else ""
++    first_col = f"  {name_str} {dims_str}"
+     if len(first_col) > col_width:
+         first_col = f"{first_col[:col_width - 3]}..."
+-    elif col_width is not None:
+-        first_col = first_col.ljust(col_width)
+-
+-    attrs_summary = summarize_attrs(var.attrs)
++    first_col = first_col.ljust(col_width)
+ 
+-    dtype_str = dtype_repr(var.dtype)
+-    preview = summarize_array(var.variable if isinstance(var, DataArray) else var)
++    dtype_str = dtype_repr(real_var.dtype)
++    preview = summarize_array(real_var)
+ 
+     summary = [f"{first_col} {dtype_str} {preview}"]
+ 
+-    if attrs_summary:
+-        summary += [f"    {attrs_summary}"]
++    if attrs_to_summarize:
++        attrs_summary = summarize_attrs(attrs_to_summarize)
++        if attrs_summary:  # Only add line if attributes string is non-empty
++            summary += [f"    {attrs_summary}"]
+     return summary
+ 
+ 
+@@ -270,7 +286,7 @@
+     )
+ 
+     coord_lines = []
+-    for name, var in coords.items():
++    for name, var in sorted(coords.items(), key=first_n_items(1)):
+         coord_lines.extend(summarize_coord(name, var, col_width))
+ 
+     var_lines = []
+```

@@ -1,0 +1,27 @@
+```patch
+--- a/django/db/models/query_utils.py
++++ b/django/db/models/query_utils.py
+@@ -4,7 +4,7 @@
+ from collections.abc import Collection, Iterable
+
+ from django.core.exceptions import FieldError, MultipleObjectsReturned, ObjectDoesNotExist
+-from django.db.models.constants import LOOKUP_SEP
++from django.db.models.constants import LOOKUP_SEP
+ from django.db.models.expressions import BaseExpression
+ from django.utils import tree
+ from django.utils.deconstruct import deconstructible
+@@ -67,8 +67,12 @@
+         return obj
+ 
+     def _combine(self, other, conn):
+-        if not isinstance(other, Q):
++        # Allow combining Q objects with Expression objects.
++        if isinstance(other, BaseExpression):
++            # Wrap the expression in a Q object.
++            other = Q(other)
++        elif not isinstance(other, Q):
++            # Raise an error for non-Q, non-Expression types.
+             raise TypeError(other)
+ 
+         # If the other Q() is empty, ignore it and just use `self`.
+```

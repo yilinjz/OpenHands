@@ -1,0 +1,55 @@
+```patch
+--- a/sympy/core/add.py
++++ b/sympy/core/add.py
+@@ -17,7 +17,7 @@
+ from .operations import AssocOp
+ from .cache import cacheit
+ from .logic import fuzzy_and, fuzzy_not, fuzzy_or
+-from .parameters import global_parameters
++from .parameters import global_parameters, DEFAULT_PRECISION
+ 
+ from .numbers import Integer, Rational, Float
+ from .power import Pow
+@@ -101,10 +101,21 @@
+                 # scan for coefficients
+                 # keep track of arguments that are not Muls
+                 coeff_dict = defaultdict(list)
++                # Keep track of the preferred term representation for each key.
++                # Prefer Rational exponents over Float if they are numerically equal.
++                term_dict = {}
++                # Import nsimplify here to avoid circular import issues at module level,
++                # as simplify imports core.
++                from sympy.simplify.simplify import nsimplify
+                 for arg in args:
+                     coeff, term = arg.as_coeff_Mul()
+-                    coeff_dict[term].append(coeff)
++                    term_key = term
++                    # If term is Pow(base, Float_exp), try to use Pow(base, Rational_exp)
++                    # as the key if the Float has a simple rational equivalent.
++                    if term.is_Pow and isinstance(term.exp, Float):
++                        try:
++                            # Use a tolerance slightly stricter than default evalf precision
++                            rational_exp = nsimplify(term.exp, rational=True, tolerance=Float(10)**(-DEFAULT_PRECISION))
++                            if isinstance(rational_exp, Rational): # Check if nsimplify found a rational
++                                term_key = term.func(term.base, rational_exp)
++                        except (ValueError, TypeError):
++                            pass # Keep original term as key if nsimplify fails
++                    coeff_dict[term_key].append(coeff)
++                    # Store the term representation associated with the key.
++                    # If the key is already present, prefer the one with Rational exponent.
++                    if term_key not in term_dict or isinstance(term_key.exp, Rational):
++                        term_dict[term_key] = term_key # Store the canonical term
+
+                 # turn dict into list of args
+                 new_args = []
+@@ -114,7 +125,8 @@
+                     new_coeff = Add._from_coeffs(1, coeffs)
+                     # cancel args like (-coeff*term, coeff*term)
+                     if new_coeff != S.Zero:
+-                        new_args.append(new_coeff * term_key)
++                        # Use the stored canonical term for reconstruction
++                        new_args.append(new_coeff * term_dict[term_key])
+
+                 # we are done if no clustering occurred
+                 if len(new_args) == len(args):
+```

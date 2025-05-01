@@ -1,0 +1,123 @@
+```patch
+--- a/sympy/physics/vector/point.py
++++ b/sympy/physics/vector/point.py
+@@ -1,4 +1,5 @@
+ from sympy.physics.vector.vector import Vector, _check_vector
++from sympy.physics.vector.vector import VectorTypeError
+ from sympy.physics.vector.frame import ReferenceFrame, _check_frame
+ from sympy import sympify
+ from sympy.core.basic import Basic
+@@ -447,18 +448,62 @@
+         return self.vel(outframe)
+
+     def vel(self, frame):
+-        """The velocity Vector of this Point in the ReferenceFrame.
+-
++        """Returns the velocity vector of this point in the specified frame.
++
++        If the velocity of this point has been defined explicitly in the
++        reference frame, that velocity is returned. If not, and the point's
++        position has been defined relative to another point whose velocity in
++        the frame is known, the velocity is calculated using the relationship:
++
++        ^N v^P = ^N v^O + d/dt(^N r^OP)
++
++        where P is this point, O is the other point, N is the frame, and
++        ^N r^OP is the position vector from O to P expressed in the N frame.
++        The calculation is performed recursively down the chain of points
++        until a point with a known velocity in the frame is found. The time
++        derivative is taken with respect to the specified frame N.
++
++        If the velocity has not been defined explicitly and the point has no
++        defined position relative to another point (i.e., it is a root point
++        in the position hierarchy), it is assumed to have zero velocity in the
++        specified frame.
++
++        Parameters
++        ----------
+         Parameters
+         ==========
+ 
+         frame : ReferenceFrame
+             The frame in which the returned velocity vector will be defined in
+ 
++        Returns
++        -------
++        Vector
++            The velocity vector of this point in the specified frame.
++
++        Raises
++        ------
++        ValueError
++            If the velocity cannot be determined (e.g., the velocity of a
++            parent point in the position hierarchy is not defined in the
++            frame, or differentiation fails).
++        VectorTypeError
++            If the frame argument is not a ReferenceFrame.
++
++        Examples
++        --------
+         Examples
+         ========
+ 
+         >>> from sympy.physics.vector import Point, ReferenceFrame
++        >>> from sympy.physics.vector import dynamicsymbols, Vector
+         >>> N = ReferenceFrame('N')
+         >>> p1 = Point('p1')
+         >>> p1.set_vel(N, 10 * N.x)
+@@ -466,13 +511,49 @@
+         >>> p1.vel(N)
+         10*N.x
+ 
+-        """
+-
++        >>> # Velocity calculation example
++        >>> q = dynamicsymbols('q')
++        >>> A = ReferenceFrame('A')
++        >>> P = Point('P') # P's velocity in A is implicitly zero
++        >>> Q = Point('Q')
++        >>> Q.set_pos(P, q * A.x)
++        >>> Q.vel(A) # Calculates P.vel(A) + d/dt(q*A.x) in A
++        q'*A.x
++        >>> O = Point('O')
++        >>> O.set_vel(A, 5 * A.y) # O's velocity in A is explicitly set
++        >>> R = Point('R')
++        >>> R.set_pos(O, q * A.y)
++        >>> R.vel(A) # Calculates O.vel(A) + d/dt(q*A.y) in A
++        q'*A.y + 5*A.y
++
++        """
+         _check_frame(frame)
++        # Check cache
+         if not (frame in self._vel_dict):
+-            raise ValueError('Velocity of point ' + self.name + ' has not been'
+-                             ' defined in ReferenceFrame ' + frame.name)
++            # If not cached, attempt to calculate based on position definition
++            parent_point = None
++            relative_pos_vec = None
++            if self._pos_dict:
++                parent_point, relative_pos_vec = list(self._pos_dict.items())[0]
++
++            if parent_point is not None:
++                try:
++                    parent_vel = parent_point.vel(frame) # Recursive call
++                    relative_vel = relative_pos_vec.dt(frame)
++                    calculated_vel = parent_vel + relative_vel
++                    # Cache the calculated velocity
++                    self._vel_dict[frame] = calculated_vel
++                except RecursionError:
++                    raise ValueError('Recursive position definition detected for point {}'.format(self.name))
++                except Exception as e:
++                    # Propagate ValueError from parent, otherwise wrap other errors
++                    if isinstance(e, ValueError):
++                        raise e
++                    else:
++                        raise ValueError('Velocity of point {} could not be calculated in ReferenceFrame {}: {}'.format(self.name, frame.name, e)) from e
++            else:
++                # No parent point, assume zero velocity if not set. Cache it.
++                self._vel_dict[frame] = Vector(0)
++
+         return self._vel_dict[frame]
+
+     def acc(self, frame):
+```

@@ -1,0 +1,169 @@
+```patch
+--- a/sympy/printing/pretty/pretty.py
++++ b/sympy/printing/pretty/pretty.py
+@@ -1,79 +1,81 @@
+ def _print_BasisDependent(self, expr):
+-    from sympy.vector import Vector
++    from sympy.vector import Vector, VectorZero
++    from sympy import Integer # Assuming Integer is needed and imported
++
++    # Handle Zero Vector
++    if expr == VectorZero():
++        # Attempt to get a pre-defined pretty form for zero, otherwise default
++        try:
++            return prettyForm(expr._pretty_form)
++        except AttributeError:
++             # Basic fallback for zero vector representation if needed
++             return prettyForm("0") # Placeholder, adapt if needed
++
++    if not isinstance(expr, Vector):
++         # This function is likely intended only for Vector types
++         raise TypeError(f"Expected Vector, got {type(expr)}")
+ 
+     if not self._use_unicode:
+         raise NotImplementedError("ASCII pretty printing of BasisDependent is not implemented")
+ 
+-    if expr == expr.zero:
+-        return prettyForm(expr.zero._pretty_form)
+-    o1 = []
+-    vectstrs = []
++    # Separate vector into components per coordinate system
++    items = expr.separate().items()
++
++    all_components = []
++    for system, vect in items:
++         # Sort components by basis vector string representation for consistent output
++         inneritems = sorted(vect.components.items(), key=lambda x: x[0].__str__())
++         all_components.extend(inneritems)
++
++    # Handle case where vector becomes zero after separation/filtering
++    if not all_components:
++         # Should ideally return the zero vector specific to the context if possible
++         return prettyForm(VectorZero()._pretty_form)
++
++    pretty_terms = []
++    signs = [] # +1 for positive/first term, -1 for negative term needing '-' sign
++
++    for i, (basis_vec, coeff) in enumerate(all_components):
++        # Pretty print basis vector, center its baseline
++        p_basis = basis_vec._pretty_form
++        p_basis.baseline = p_basis.height() // 2
++
++        # Determine sign and get absolute value of coefficient
++        coeff_sign = 1
++        # Check sign only for non-first terms to determine the operator (+ or -)
++        # Use could_extract_minus_sign() for robust sign checking
++        if i > 0 and coeff.could_extract_minus_sign():
++            coeff_sign = -1
++            coeff = -coeff
++        # Check sign for the first term to potentially add a leading '-'
++        elif i == 0 and coeff.could_extract_minus_sign():
++             # Factor out the sign only if it's easily separable (e.g., -5, -x, -1*expr)
++             # Avoid factoring sign from expressions like (-x + y)
++             # Check if it's Number, Symbol, or Mul starting with -1
++             if coeff.is_Number or coeff.is_Symbol or \
++                (coeff.is_Mul and coeff.args[0] == Integer(-1)):
++                 coeff_sign = -1
++                 coeff = -coeff
++             # Otherwise, print as is, sign remains +1 for operator purposes
++
++        # Pretty print coefficient (absolute value part), center its baseline
++        if coeff == Integer(1):
++            # If coefficient is 1, the term is just the basis vector
++            term = p_basis
++        else:
++            p_coeff = self._print(coeff)
++            p_coeff.baseline = p_coeff.height() // 2
++            # Combine coefficient and basis vector, aligning centered baselines
++            term = prettyForm(*p_coeff.right(' ', p_basis))
++
++        pretty_terms.append(term)
++        signs.append(coeff_sign)
++
++    # Combine the pretty printed terms with operators (+ or -)
++    if not pretty_terms:
++        return prettyForm(VectorZero()._pretty_form) # Should be unreachable
++
++    # Start with the first term
++    result = pretty_terms[0]
++    # Add leading minus sign if the first term's sign was factored out
+     if isinstance(expr, Vector):
+-        items = expr.separate().items()
+-    else:
+-        items = [(0, expr)]
+-    for system, vect in items:
+-        inneritems = list(vect.components.items())
+-        inneritems.sort(key = lambda x: x[0].__str__())
+-        for k, v in inneritems:
+-            #if the coef of the basis vector is 1
+-            #we skip the 1
+-            if v == 1:
+-                o1.append(u"" +
+-                          k._pretty_form)
+-            #Same for -1
+-            elif v == -1:
+-                o1.append(u"(-1) " +
+-                          k._pretty_form)
+-            #For a general expr
+-            else:
+-                #We always wrap the measure numbers in
+-                #parentheses
+-                arg_str = self._print(
+-                    v).parens()[0]
+-
+-                o1.append(arg_str + ' ' + k._pretty_form)
+-            vectstrs.append(k._pretty_form)
+-
+-    #outstr = u("").join(o1)
+-    if o1[0].startswith(u" + "):
+-        o1[0] = o1[0][3:]
+-    elif o1[0].startswith(" "):
+-        o1[0] = o1[0][1:]
+-    #Fixing the newlines
+-    lengths = []
+-    strs = ['']
+-    for i, partstr in enumerate(o1):
+-        # XXX: What is this hack?
+-        if '\n' in partstr:
+-            tempstr = partstr
+-            tempstr = tempstr.replace(vectstrs[i], '')
+-            tempstr = tempstr.replace(u'\N{RIGHT PARENTHESIS UPPER HOOK}',
+-                                      u'\N{RIGHT PARENTHESIS UPPER HOOK}'
+-                                      + ' ' + vectstrs[i])
+-            o1[i] = tempstr
+-    o1 = [x.split('\n') for x in o1]
+-    n_newlines = max([len(x) for x in o1])
+-    for parts in o1:
+-        lengths.append(len(parts[0]))
+-        for j in range(n_newlines):
+-            if j+1 <= len(parts):
+-                if j >= len(strs):
+-                    strs.append(' ' * (sum(lengths[:-1]) +
+-                                       3*(len(lengths)-1)))
+-                if j == 0:
+-                    strs[0] += parts[0] + ' + '
+-                else:
+-                    strs[j] += parts[j] + ' '*(lengths[-1] -
+-                                               len(parts[j])+
+-                                               3)
+-            else:
+-                if j >= len(strs):
+-                    strs.append(' ' * (sum(lengths[:-1]) +
+-                                       3*(len(lengths)-1)))
+-                strs[j] += ' '*(lengths[-1]+3)
+-
+-    return prettyForm(u'\n'.join([s[:-3] for s in strs]))
++        if signs[0] == -1:
++            p_neg = prettyForm("-")
++            p_neg.baseline = p_neg.height() // 2
++            # Align baselines for adding the minus sign
++            max_baseline = max(p_neg.baseline, result.baseline)
++            p_neg = p_neg.vadjust(max_baseline - p_neg.baseline)
++            result = result.vadjust(max_baseline - result.baseline)
++            result = prettyForm(*p_neg.right(result)) # Attach minus sign
++
++    # Add subsequent terms with '+' or '-' operator
++    for i in range(1, len(pretty_terms)):
++        term = pretty_terms[i]
++        # Choose operator based on the sign extracted earlier for this term
++        op =

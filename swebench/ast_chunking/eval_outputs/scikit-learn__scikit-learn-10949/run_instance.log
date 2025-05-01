@@ -1,0 +1,95 @@
+2025-05-01 20:01:52,123 - INFO - Creating container for scikit-learn__scikit-learn-10949...
+2025-05-01 20:01:52,154 - INFO - Container for scikit-learn__scikit-learn-10949 created: b0f4ef98cdd2daf1cfad52667bf1699fe6bc8fdb5648f7b20871fd6973f82194
+2025-05-01 20:01:52,442 - INFO - Container for scikit-learn__scikit-learn-10949 started: b0f4ef98cdd2daf1cfad52667bf1699fe6bc8fdb5648f7b20871fd6973f82194
+2025-05-01 20:01:52,442 - INFO - Intermediate patch for scikit-learn__scikit-learn-10949 written to logs/run_evaluation/20250501_195119/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/scikit-learn__scikit-learn-10949/patch.diff, now applying to container...
+2025-05-01 20:01:52,552 - INFO - Failed to apply patch to container: git apply --verbose
+2025-05-01 20:01:52,608 - INFO - Failed to apply patch to container: git apply --verbose --reject
+2025-05-01 20:01:52,662 - INFO - >>>>> Applied Patch:
+patching file sklearn/utils/validation.py
+Hunk #1 succeeded at 1 with fuzz 3.
+Hunk #2 succeeded at 23 with fuzz 3 (offset 8 lines).
+Hunk #3 succeeded at 556 with fuzz 2 (offset 104 lines).
+
+2025-05-01 20:01:53,051 - INFO - Git diff before:
+diff --git a/sklearn/utils/validation.py b/sklearn/utils/validation.py
+index fe1f7236e..37f617ab4 100644
+--- a/sklearn/utils/validation.py
++++ b/sklearn/utils/validation.py
+@@ -1,6 +1,7 @@
+ """Utilities for input validation"""
+ 
+ # Authors: Olivier Grisel
++#          Gael Varoquaux <gael.varoquaux@normalesup.org>
+ #          Gael Varoquaux
+ #          Andreas Mueller
+ #          Lars Buitinck
+@@ -22,7 +23,7 @@ from ..externals import six
+ from ..utils.fixes import signature
+ from .. import get_config as _get_config
+ from ..exceptions import NonBLASDotWarning
+-from ..exceptions import NotFittedError
++from ..exceptions import NotFittedError, DataConversionWarning
+ from ..exceptions import DataConversionWarning
+ from ..externals.joblib import Memory
+ 
+@@ -556,6 +557,14 @@ def check_array(array, accept_sparse=False, accept_large_sparse=True,
+             _assert_all_finite(array,
+                                allow_nan=force_all_finite == 'allow-nan')
+ 
++    # Warn if input dtype was object and converted to numeric
++    if warn_on_dtype and dtype_orig is not None and array.dtype != dtype_orig:
++        # Check specifically for object to numeric conversion
++        if dtype_orig.kind == 'O' and np.issubdtype(array.dtype, np.number):
++            warnings.warn("Data with input dtype %s was converted to %s%s."
++                          % (dtype_orig, array.dtype, context),
++                          DataConversionWarning)
++
+     shape_repr = _shape_repr(array.shape)
+     if ensure_min_samples > 0:
+         n_samples = _num_samples(array)
+2025-05-01 20:01:53,051 - INFO - Eval script for scikit-learn__scikit-learn-10949 written to logs/run_evaluation/20250501_195119/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/scikit-learn__scikit-learn-10949/eval.sh; copying to container...
+2025-05-01 20:02:00,327 - INFO - Test runtime: 7.22 seconds
+2025-05-01 20:02:00,327 - INFO - Test output for scikit-learn__scikit-learn-10949 written to logs/run_evaluation/20250501_195119/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/scikit-learn__scikit-learn-10949/test_output.txt
+2025-05-01 20:02:00,392 - INFO - Git diff after:
+diff --git a/sklearn/utils/validation.py b/sklearn/utils/validation.py
+index fe1f7236e..37f617ab4 100644
+--- a/sklearn/utils/validation.py
++++ b/sklearn/utils/validation.py
+@@ -1,6 +1,7 @@
+ """Utilities for input validation"""
+ 
+ # Authors: Olivier Grisel
++#          Gael Varoquaux <gael.varoquaux@normalesup.org>
+ #          Gael Varoquaux
+ #          Andreas Mueller
+ #          Lars Buitinck
+@@ -22,7 +23,7 @@ from ..externals import six
+ from ..utils.fixes import signature
+ from .. import get_config as _get_config
+ from ..exceptions import NonBLASDotWarning
+-from ..exceptions import NotFittedError
++from ..exceptions import NotFittedError, DataConversionWarning
+ from ..exceptions import DataConversionWarning
+ from ..externals.joblib import Memory
+ 
+@@ -556,6 +557,14 @@ def check_array(array, accept_sparse=False, accept_large_sparse=True,
+             _assert_all_finite(array,
+                                allow_nan=force_all_finite == 'allow-nan')
+ 
++    # Warn if input dtype was object and converted to numeric
++    if warn_on_dtype and dtype_orig is not None and array.dtype != dtype_orig:
++        # Check specifically for object to numeric conversion
++        if dtype_orig.kind == 'O' and np.issubdtype(array.dtype, np.number):
++            warnings.warn("Data with input dtype %s was converted to %s%s."
++                          % (dtype_orig, array.dtype, context),
++                          DataConversionWarning)
++
+     shape_repr = _shape_repr(array.shape)
+     if ensure_min_samples > 0:
+         n_samples = _num_samples(array)
+2025-05-01 20:02:00,392 - INFO - Grading answer for scikit-learn__scikit-learn-10949...
+2025-05-01 20:02:00,400 - INFO - report: {'scikit-learn__scikit-learn-10949': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['sklearn/utils/tests/test_validation.py::test_check_dataframe_warns_on_dtype']}, 'PASS_TO_PASS': {'success': ['sklearn/utils/tests/test_validation.py::test_as_float_array', 'sklearn/utils/tests/test_validation.py::test_as_float_array_nan[X0]', 'sklearn/utils/tests/test_validation.py::test_as_float_array_nan[X1]', 'sklearn/utils/tests/test_validation.py::test_np_matrix', 'sklearn/utils/tests/test_validation.py::test_memmap', 'sklearn/utils/tests/test_validation.py::test_ordering', 'sklearn/utils/tests/test_validation.py::test_check_array_force_all_finite_valid[asarray-inf-False]', 'sklearn/utils/tests/test_validation.py::test_check_array_force_all_finite_valid[asarray-nan-allow-nan]', 'sklearn/utils/tests/test_validation.py::test_check_array_force_all_finite_valid[asarray-nan-False]', 'sklearn/utils/tests/test_validation.py::test_check_array_force_all_finite_valid[csr_matrix-inf-False]', 'sklearn/utils/tests/test_validation.py::test_check_array_force_all_finite_valid[csr_matrix-nan-allow-nan]', 'sklearn/utils/tests/test_validation.py::test_check_array_force_all_finite_valid[csr_matrix-nan-False]', 'sklearn/utils/tests/test_validation.py::test_check_array', 'sklearn/utils/tests/test_validation.py::test_check_array_pandas_dtype_object_conversion', 'sklearn/utils/tests/test_validation.py::test_check_array_on_mock_dataframe', 'sklearn/utils/tests/test_validation.py::test_check_array_dtype_stability', 'sklearn/utils/tests/test_validation.py::test_check_array_dtype_warning', 'sklearn/utils/tests/test_validation.py::test_check_array_accept_sparse_type_exception', 'sklearn/utils/tests/test_validation.py::test_check_array_accept_sparse_no_exception', 'sklearn/utils/tests/test_validation.py::test_check_array_accept_large_sparse_no_exception[csr]', 'sklearn/utils/tests/test_validation.py::test_check_array_accept_large_sparse_no_exception[csc]', 'sklearn/utils/tests/test_validation.py::test_check_array_accept_large_sparse_no_exception[coo]', 'sklearn/utils/tests/test_validation.py::test_check_array_accept_large_sparse_no_exception[bsr]', 'sklearn/utils/tests/test_validation.py::test_check_array_accept_large_sparse_raise_exception[csr]', 'sklearn/utils/tests/test_validation.py::test_check_array_accept_large_sparse_raise_exception[csc]', 'sklearn/utils/tests/test_validation.py::test_check_array_accept_large_sparse_raise_exception[coo]', 'sklearn/utils/tests/test_validation.py::test_check_array_accept_large_sparse_raise_exception[bsr]', 'sklearn/utils/tests/test_validation.py::test_check_array_large_indices_non_supported_scipy_version[csr]', 'sklearn/utils/tests/test_validation.py::test_check_array_large_indices_non_supported_scipy_version[csc]', 'sklearn/utils/tests/test_validation.py::test_check_array_large_indices_non_supported_scipy_version[coo]', 'sklearn/utils/tests/test_validation.py::test_check_array_large_indices_non_supported_scipy_version[bsr]', 'sklearn/utils/tests/test_validation.py::test_check_array_min_samples_and_features_messages', 'sklearn/utils/tests/test_validation.py::test_check_array_complex_data_error', 'sklearn/utils/tests/test_validation.py::test_has_fit_parameter', 'sklearn/utils/tests/test_validation.py::test_check_symmetric', 'sklearn/utils/tests/test_validation.py::test_check_is_fitted', 'sklearn/utils/tests/test_validation.py::test_check_consistent_length', 'sklearn/utils/tests/test_validation.py::test_check_dataframe_fit_attribute', 'sklearn/utils/tests/test_validation.py::test_suppress_validation', 'sklearn/utils/tests/test_validation.py::test_check_memory', 'sklearn/utils/tests/test_validation.py::test_check_array_memmap[True]', 'sklearn/utils/tests/test_validation.py::test_check_array_memmap[False]'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for scikit-learn__scikit-learn-10949: resolved: False
+2025-05-01 20:02:00,400 - INFO - Attempting to stop container sweb.eval.scikit-learn__scikit-learn-10949.20250501_195119...
+2025-05-01 20:02:15,789 - INFO - Attempting to remove container sweb.eval.scikit-learn__scikit-learn-10949.20250501_195119...
+2025-05-01 20:02:15,814 - INFO - Container sweb.eval.scikit-learn__scikit-learn-10949.20250501_195119 removed.

@@ -1,0 +1,15 @@
+```patch
+--- a/sympy/functions/combinatorial/numbers.py
++++ b/sympy/functions/combinatorial/numbers.py
+@@ -1019,6 +1019,10 @@
+     def eval(cls, n, k_sym=None, symbols=None):
+         n = sympify(n)
+ 
++        # Handle simple case bell(oo) -> oo
++        if k_sym is None and symbols is None and n is S.Infinity:
++            return S.Infinity
++
+         # Handle bell(n, k, symbols) -- incomplete Bell polynomials
+         if (k_sym is not None) and (symbols is not None):
+             k_sym = sympify(k_sym)
+```

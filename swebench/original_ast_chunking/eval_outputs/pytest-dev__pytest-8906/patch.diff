@@ -1,0 +1,77 @@
+```patch
+--- a/src/_pytest/outcomes.py
++++ b/src/_pytest/outcomes.py
+@@ -1,6 +1,7 @@
+ """Outcome exceptions.
+ 
+ Exception classes for outcomes which aren't simply errors.
++Used for explicit skipping or xfail markers.
+ """
+ import sys
+ from typing import Any
+@@ -10,6 +11,7 @@
+ from typing import Optional
+ from typing import Type
+ from typing import TYPE_CHECKING
++from typing import Union
+ 
+ if sys.version_info >= (3, 8):
+     from typing import Literal
+@@ -101,3 +103,18 @@
+         self.msg = msg
+         self.allow_module_level = allow_module_level
+         super().__init__(msg)
++
++
++def skip_module(reason: str) -> "NoReturn":
++    """Skip an entire module unconditionally.
++
++    This function should be called at the module level, usually at the top
++    of the file before any imports or code which might fail in certain
++    environments.
++
++    This is a helper function that effectively calls
++    :func:`pytest.skip(reason, allow_module_level=True) <pytest.skip>`.
++
++    :param reason: The reason why the module is skipped.
++    """
++    skip(reason, allow_module_level=True)
+--- a/src/_pytest/python.py
++++ b/src/_pytest/python.py
+@@ -38,11 +38,13 @@
+             if e.allow_module_level:
+                 raise
+             raise self.CollectError(
+-                "Using pytest.skip outside of a test is not allowed. "
+-                "To decorate a test function, use the @pytest.mark.skip "
+-                "or @pytest.mark.skipif decorators instead, and to skip a "
+-                "module use `pytestmark = pytest.mark.{skip,skipif}."
++                "Using pytest.skip() at module level is generally not recommended.\n"
++                "- To skip specific tests, use the @pytest.mark.skip or @pytest.mark.skipif decorators.\n"
++                "- To skip all tests in a module *after* it is imported, use `pytestmark = pytest.mark.skipif(...)`.\n"
++                "- If a module cannot be imported due to syntax errors or incompatible dependencies,\n"
++                "  use `pytest.skip(reason, allow_module_level=True)` or `pytest.skip_module(reason)`\n"
++                "  at the top of the module before the problematic import."
+             ) from e
+         self.config.pluginmanager.consider_module(mod)
+         return mod
+--- a/src/pytest/__init__.py
++++ b/src/pytest/__init__.py
+@@ -12,7 +12,7 @@
+ from _pytest.config import ExitCode
+ from _pytest.config import UsageError
+ from _pytest.config.argparsing import hookspec
+-from _pytest.outcomes import exit, fail, importorskip, skip, xfail
++from _pytest.outcomes import exit, fail, importorskip, skip, skip_module, xfail
+ from _pytest.warning_types import PytestAssertRewriteWarning
+ from _pytest.warning_types import PytestCacheWarning
+ from _pytest.warning_types import PytestCollectionWarning
+@@ -68,6 +68,7 @@
+     "fail",
+     "skip",
+     "skip_module",
++    "skip_module",
+     "xfail",
+     "importorskip",
+     "ExitCode",
+```

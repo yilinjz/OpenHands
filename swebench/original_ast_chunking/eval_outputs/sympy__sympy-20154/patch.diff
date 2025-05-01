@@ -1,0 +1,67 @@
+```patch
+--- a/sympy/utilities/iterables.py
++++ b/sympy/utilities/iterables.py
+@@ -41,21 +41,16 @@
+ 42     {3: 2}
+ 43
+ 44     Note that the _same_ dictionary object is returned each time.
+-45     This is for speed:  generating each partition goes quickly,
+-46     taking constant time, independent of n.
++45     This was previously done for speed reasons, but it could lead
++46     to confusing results, so a copy of the dictionary is now returned.
+ 47
+-48     >>> [p for p in partitions(6, k=2)]
+-49     [{1: 6}, {1: 6}, {1: 6}, {1: 6}]
++48     Collecting the partitions into a list now works as expected:
+ 49
+-50     If you want to build a list of the returned dictionaries then
+-51     make a copy of them:
++50     >>> list(partitions(6, k=2))
++51     [{2: 3}, {1: 2, 2: 2}, {1: 4, 2: 1}, {1: 6}]
+ 52
+-53
+-54     >>> [p.copy() for p in partitions(6, k=2)]  # doctest: +SKIP
++53     >>> list(partitions(6, k=2, size=True))
+ 54     [(3, {2: 3}), (4, {1: 2, 2: 2}), (5, {1: 4, 2: 1}), (6, {1: 6})]
+-55     >>> [(M, p.copy()) for M, p in partitions(6, k=2, size=True)]  # doctest: +SKIP
+-56     [(3, {2: 3}), (4, {1: 2, 2: 2}), (5, {1: 4, 2: 1}), (6, {1: 6})]
+ 57
+ 58     References
+ 59     ==========
+@@ -80,9 +75,9 @@
+         # and returning {} to represent it is consistent with
+         # the counting convention, e.g. nT(0) == 1.
+         if size:
+-            yield 0, {}
++            yield 0, {} # No copy needed for empty dict literal
+         else:
+-            yield {}
++            yield {}    # No copy needed for empty dict literal
+         return
+ 
+     if m is None:
+@@ -101,9 +96,9 @@
+     p[n] = 1
+     M = 1 # number of parts
+     if size:
+-        yield M, p
++        yield M, p.copy()
+     else:
+-        yield p
++        yield p.copy()
+ 
+     s[0] = n + 1 # use s[0] as work area/marker
+     if k is not None:
+@@ -148,9 +143,9 @@
+ 
+         # yield the partition
+         if size:
+-            yield M, p
++            yield M, p.copy()
+         else:
+-            yield p
++            yield p.copy()
+ 
+         # locate the smallest part > 1
+         i = 2
+```

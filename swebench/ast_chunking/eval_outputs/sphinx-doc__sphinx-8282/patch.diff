@@ -1,0 +1,14 @@
+```diff
+--- a/sphinx/ext/autodoc/__init__.py
++++ b/sphinx/ext/autodoc/__init__.py
+@@ -1631,6 +1631,9 @@
+         if self.doc_as_attr:
+             return ''
+
++        if self.env.config.autodoc_typehints in ('none', 'description'):
++            kwargs.setdefault('show_annotation', False)
++
+         sig = super().format_signature()
+         sigs = []
+
+```

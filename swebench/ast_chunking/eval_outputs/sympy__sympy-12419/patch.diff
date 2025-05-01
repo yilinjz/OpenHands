@@ -1,0 +1,26 @@
+```patch
+--- a/sympy/matrices/expressions/matexpr.py
++++ b/sympy/matrices/expressions/matexpr.py
+@@ -36,12 +36,17 @@
+     def conjugate(self):
+         return self
+
+-    def _entry(self, i, j):
+-        if i == j:
+-            return S.One
++    def _entry(self, i, j, **kwargs):
++        # Indices must be integers, possibly symbolic
++        i, j = sympify(i), sympify(j)
++
++        # Handle concrete integer indices
++        if i.is_Integer and j.is_Integer:
++            return S.One if i == j else S.Zero
++        # Handle symbolic indices
+         else:
+-            return S.Zero
++            from sympy.functions.special.tensor_functions import KroneckerDelta
++            return KroneckerDelta(i, j)
+
+     def _eval_determinant(self):
+         return S.One
+```

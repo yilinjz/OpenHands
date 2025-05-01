@@ -1,0 +1,20 @@
+```patch
+--- a/django/db/models/sql/query.py
++++ b/django/db/models/sql/query.py
+@@ -371,13 +371,11 @@
+         opts = self.get_meta()
+         loaded_fields = set()
+         deferred_set, defer = self.get_deferred_load_set()
+-
+         if not defer:
+-            # If we are loading specific fields, add the PK automatically.
++            # Always load the PK in 'only' mode.
++            loaded_fields.add(opts.pk.attname)
+             if deferred_set:
+-                loaded_fields.add(opts.pk.attname)
+                 loaded_fields.update(deferred_set)
+-            # Otherwise, take all fields except deferred ones.
+         else:
+             # If we are deferring fields, add all fields not explicitly deferred.
+             # PK is included by default.
+```

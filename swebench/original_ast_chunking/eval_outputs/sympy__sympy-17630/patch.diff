@@ -1,0 +1,48 @@
+```patch
+--- a/sympy/matrices/expressions/blockmatrix.py
++++ b/sympy/matrices/expressions/blockmatrix.py
+@@ -68,6 +68,7 @@
+ from sympy.matrices.expressions.matexpr import MatrixExpr, ShapeError, Identity, ZeroMatrix
+ from sympy.matrices.expressions.matadd import MatAdd
+ from sympy.matrices.expressions.matmul import MatMul
++from sympy.matrices.expressions.special import ZeroMatrix
+ from sympy.matrices.expressions.matpow import MatPow
+ from sympy.matrices.expressions.transpose import Transpose
+ from sympy.matrices.expressions.inverse import Inverse
+@@ -259,12 +260,26 @@
+             self.colblocksizes == other.rowblocksizes):
+             raise ShapeError("Matrices Block shapes incorrect for block multiplication")
+ 
++        def compute_block(i, j):
++            # Calculate the sum of products for block (i, j)
++            block_sum_args = [self.blocks[i, k] * other.blocks[k, j]
++                              for k in range(self.blockshape[1])]
++
++            # Create the sum expression
++            block_sum = MatAdd(*block_sum_args)
++
++            # Evaluate the sum
++            result = block_sum.doit()
++
++            # Check if the result simplified to scalar zero
++            if result == S.Zero:
++                # If so, return a ZeroMatrix of the correct dimensions
++                rows = self.rowblocksizes[i]
++                cols = other.colblocksizes[j]
++                return ZeroMatrix(rows, cols)
++            else:
++                # Otherwise, return the evaluated matrix expression
++                return result
++
+         newblocks = Matrix(self.blockshape[0], other.blockshape[1], lambda i, j:
+-            MatAdd(*[self.blocks[i, k] * other.blocks[k, j]
+-                     for k in range(self.blockshape[1])]).doit())
+-
+-        # TODO: Remove this once MatAdd can handle ZeroMatrix.
+-        # This is necessary because MatAdd.doit() returns 0 instead of ZeroMatrix(...)
+-        # newblocks = newblocks.applyfunc(lambda x: x if x else ZeroMatrix(x.rows, x.cols))
++            compute_block(i, j))
+ 
+         return BlockMatrix(newblocks)
+ 
+```

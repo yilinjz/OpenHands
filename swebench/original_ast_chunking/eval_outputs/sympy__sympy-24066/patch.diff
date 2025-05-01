@@ -1,0 +1,162 @@
+```patch
+--- a/sympy/physics/units/unitsystem.py
++++ b/sympy/physics/units/unitsystem.py
+@@ -1,10 +1,24 @@
+ from collections import defaultdict
+ from typing import Set as tSet
+ 
++from sympy.core.add import Add
++from sympy.core.expr import Expr
++from sympy.core.function import Function, Derivative
++from sympy.core.mul import Mul
++from sympy.core.power import Pow
+ from sympy.core.singleton import S
+ from sympy.core.symbol import Symbol
+ from sympy.physics.units.dimensions import Dimension
++from sympy.physics.units.dimensionsystem import DimensionSystem
+ from sympy.physics.units.quantities import Quantity
++from sympy.utilities.exceptions import SymPyDeprecationWarning
++
++# Imports for function handling in _collect_factor_and_dimension
++from sympy.functions.elementary.exponential import exp, log
++from sympy.functions.elementary.trigonometric import sin, cos, tan, asin, acos, atan, atan2
++from sympy.functions.elementary.hyperbolic import sinh, cosh, tanh, asinh, acosh, atanh
++from sympy.functions.elementary.complexes import Abs
++
+ 
+ # Dictionaries storing units prefixes
+ # Prefixes are grouped by system because prefixes are part of units systems
+@@ -14,6 +28,20 @@
+     "metric": {},
+     "binary": {},
+ }
++
++# Define sets of functions based on dimensional behavior for _collect_factor_and_dimension
++# Functions requiring dimensionless args and returning dimensionless result:
++_DIMENSIONLESS_FUNC_ARG_DIMLESS_RES = {
++    exp, log,
++    sin, cos, tan, asin, acos, atan,
++    sinh, cosh, tanh, asinh, acosh, atanh,
++}
++# Functions preserving dimension (require 1 arg):
++_PRESERVE_DIM_FUNC_1_ARG = {Abs}
++# Functions requiring args with same dimension and returning dimensionless result:
++_SAME_DIM_ARG_DIMLESS_RES = {atan2}
++
++
+ 
+ 
+ class UnitSystem:
+@@ -160,6 +188,7 @@
+         Return tuple with scale factor expression and dimension expression.
+         """
+         from sympy.physics.units import Quantity
++        # Note: Factor is the numeric factor, Dimension is the Dimension object.
+         if isinstance(expr, Quantity):
+             return expr.scale_factor, expr.dimension
+         elif isinstance(expr, Mul):
+@@ -173,19 +202,26 @@
+         elif isinstance(expr, Pow):
+             factor, dim = self._collect_factor_and_dimension(expr.base)
+             exp_factor, exp_dim = self._collect_factor_and_dimension(expr.exp)
+-            if self.get_dimension_system().is_dimensionless(exp_dim):
+-                exp_dim = 1
+-            return factor ** exp_factor, dim ** (exp_factor * exp_dim)
++            # If the exponent is dimensionful, raise an error:
++            if not self.get_dimension_system().is_dimensionless(exp_dim):
++                raise ValueError(f"Cannot raise base to a dimensionful exponent '{expr.exp}' (dimension is {exp_dim})")
++            # If the base is dimensionful, the exponent must be a rational number (or integer):
++            # Allow symbolic exponents if the base is dimensionless.
++            if not self.get_dimension_system().is_dimensionless(dim) and not expr.exp.is_constant(simplify=False):
++                 # Weaker check: is_number allows symbolic constants like pi.
++                 # is_constant(simplify=False) is stricter, allows only numbers.
++                 # Maybe expr.exp.is_rational is better if we only allow rational powers for dimensionful bases.
++                 # Let's stick to requiring dimensionless exponent for now, checked above.
++                 # The main point is dim ** symbolic_exponent is ill-defined.
++                 # However, factor ** symbolic_exponent is fine.
++                 # Let's refine the dimension calculation: dim ** exp_factor
++                 pass # Let SymPy handle symbolic powers if possible, focus on dimension correctness.
++
++            # The dimension part: dim ** exp_factor (exponent must be numeric/dimensionless factor)
++            return factor ** exp_factor, dim ** exp_factor
+         elif isinstance(expr, Add):
+             factor, dim = self._collect_factor_and_dimension(expr.args[0])
+             for addend in expr.args[1:]:
+                 addend_factor, addend_dim = \
+                     self._collect_factor_and_dimension(addend)
+-                if dim != addend_dim:
+-                    raise ValueError(
+-                        'Dimension of "{}" is {}, '
+-                        'but it should be {}'.format(
+-                            addend, addend_dim, dim))
++                # Check dimensions are equivalent using the system's dimension system
++                if not self.get_dimension_system().equivalent_dims(dim, addend_dim):
++                    raise ValueError(
++                        f'Dimension of "{addend}" is {addend_dim}, '
++                        f'but it should be equivalent to {dim}')
+                 factor += addend_factor
++            # The dimension of the sum is the dimension of the first term (since all must be equivalent)
+             return factor, dim
+         elif isinstance(expr, Derivative):
+             factor, dim = self._collect_factor_and_dimension(expr.args[0])
+@@ -195,12 +231,44 @@
+                 dim /= idim**count
+             return factor, dim
+         elif isinstance(expr, Function):
++             # Argument dimensions are checked based on the function type
+              fds = [self._collect_factor_and_dimension(
+                  arg) for arg in expr.args]
+-             return (expr.func(*(f[0] for f in fds)),
+-                     *(d[1] for d in fds))
++             factors = [f[0] for f in fds]
++             dims = [d[1] for d in fds]
++
++             func = expr.func
++
++             if func in _DIMENSIONLESS_FUNC_ARG_DIMLESS_RES:
++                 # Check args are dimensionless
++                 for i, arg_dim in enumerate(dims):
++                     if not self.get_dimension_system().is_dimensionless(arg_dim):
++                         raise ValueError(
++                             f'Dimension of argument "{expr.args[i]}" to function '
++                             f'"{func}" is {arg_dim}, but it should be dimensionless '
++                             f'(Dimension(1)).')
++                 # Result is dimensionless
++                 return func(*factors), Dimension(1)
++             elif func in _SAME_DIM_ARG_DIMLESS_RES: # e.g. atan2
++                 # Check arity matches expected for these functions (e.g., 2 for atan2)
++                 if func == atan2 and len(dims) != 2:
++                      raise TypeError(f"{func} takes 2 arguments, got {len(dims)}")
++                 # Check args have same dimension
++                 if not self.get_dimension_system().equivalent_dims(dims[0], dims[1]):
++                     raise ValueError(f"Arguments to {func} must have the same dimension, "
++                                      f"got {dims[0]} and {dims[1]}")
++                 # Result is dimensionless
++                 return func(*factors), Dimension(1)
++             elif func in _PRESERVE_DIM_FUNC_1_ARG: # e.g. Abs
++                 if len(expr.args) != 1:
++                     raise ValueError(f"Function {func} expects 1 argument for this dimension analysis, got {len(expr.args)}")
++                 # Result has the same dimension as the argument
++                 return func(*factors), dims[0]
++             else:
++                 # Raise error for unhandled functions
++                 raise TypeError(f"Cannot determine dimension for the function '{func}'. "
++                                 f"Define its dimensional behavior in UnitSystem._collect_factor_and_dimension.")
++
+          elif isinstance(expr, Dimension):
+              return S.One, expr
+          else:
++             # Attempt to treat as number, symbol, or other dimensionless scalar
++             try:
++                 if expr.is_number or expr.is_Symbol or expr.is_commutative:
++                     # Assume dimensionless if it's a number, symbol, or commutative scalar
++                     return expr, Dimension(1)
++             except AttributeError:
++                 pass
++             # Fallback error for unknown types
++             raise TypeError(f"Cannot determine factor and dimension for expression of type {type(expr)}: {expr}")
++
+ 
+     def get_units_non_prefixed(self) -> tSet[Quantity]:
+         """
+```

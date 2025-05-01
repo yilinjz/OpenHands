@@ -1,0 +1,36 @@
+```patch
+--- a/django/core/checks/model_checks.py
++++ b/django/core/checks/model_checks.py
+@@ -1,10 +1,18 @@
++# This patch modifies the creation of the check message for E028/W045.
++# Assumes `settings` and `Warning` are imported at the top of the file.
++# Assumes this code runs inside a loop (`for db_table...`) and conditional
++# (`if len(db_table_models[db_table]) > 1:`).
++            from django.conf import settings
++            from django.core.checks import Warning
++
++            is_multi_db = len(settings.DATABASES) > 1
++            model_list = ', '.join(db_table_models[db_table])
++            msg = "db_table '%s' is used by multiple models: %s." % (db_table, model_list)
++            # Downgrade to Warning if multiple databases are configured, assuming routing might handle it.
++            check_class = Warning if is_multi_db else Error
++            # Use a new ID 'models.W045' for the warning to allow specific silencing.
++            check_id = 'models.W045' if is_multi_db else 'models.E028'
++            hint = "Ensure database routing prevents clashes in multi-DB setups." if is_multi_db else None
++            check_class(
++                msg,
++                obj=db_table,
++                id=check_id,
++                hint=hint,
++            )
+                 Error(
+-                     "db_table '%s' is used by multiple models: %s."
+-                     % (db_table, ', '.join(db_table_models[db_table])),
+-                     obj=db_table,
+-                     id='models.E028',
+-                 )
+-             )
+      for index_name, model_labels in indexes.items():
+          if len(model_labels) > 1:
+              model_labels = set(model_labels)
+```

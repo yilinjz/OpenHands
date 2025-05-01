@@ -1,0 +1,27 @@
+```patch
+--- a/sympy/printing/latex.py
++++ b/sympy/printing/latex.py
+@@ -560,11 +560,11 @@
+                     # Check if num is Rational(1, q)
+                     elif num.is_Rational and num.p == 1:
+                         num_str = "1"
+-                        den = Mul(num.q, den)
++                        den = Mul(num.q, den, evaluate=False)
+                     # Check if num is Rational(-1, q)
+                     elif num.is_Rational and num.p == -1:
+                         num_str = "-1"
+-                        den = Mul(num.q, den)
++                        den = Mul(num.q, den, evaluate=False)
+                     else:
+                         num_str = self._print(num)
+
+@@ -708,7 +708,7 @@
+                 return tex % self._print(expr.base)
+
+             # Check for expr = 1/x**n
+-            elif expr.exp.is_negative and not expr.base.is_Add: # Denominator is not a sum
++            elif expr.exp.is_negative and expr.base is not S.Exp1 and not expr.base.is_Add: # Denominator is not a sum, base is not E
+                 # Use PPRINT_PRECEDENCE so that terms are not parenthesized unnecessarily
+                 tex = r"\frac{1}{%s}"
+                 # A few nice rules are needed for powers like x**(-3/2)
+```

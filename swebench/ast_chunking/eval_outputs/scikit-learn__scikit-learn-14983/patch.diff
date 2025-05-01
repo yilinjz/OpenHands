@@ -1,0 +1,21 @@
+```patch
+--- a/sklearn/model_selection/_split.py
++++ b/sklearn/model_selection/_split.py
+@@ -17,6 +17,7 @@
+ from ..utils.validation import _num_samples, check_array
+ from ..utils.validation import _deprecate_positional_args
+ from ..utils.multiclass import type_of_target
++from ..base import BaseEstimator
+ 
+ __all__ = ['BaseCrossValidator',
+            'KFold',
+@@ -1007,7 +1008,7 @@
+ ###############################################################################
+ # Repeated K-Fold and Stratified K-Fold cross validators
+ 
+-class _RepeatedSplits(metaclass=ABCMeta):
++class _RepeatedSplits(BaseEstimator, metaclass=ABCMeta):
+     """Repeated splits for an arbitrary randomized CV splitter.
+ 
+     Repeats splits for cross-validators n times with different randomization
+```

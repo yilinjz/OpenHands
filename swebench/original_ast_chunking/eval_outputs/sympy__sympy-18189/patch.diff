@@ -1,0 +1,18 @@
+```patch
+--- a/sympy/solvers/diophantine.py
++++ b/sympy/solvers/diophantine.py
+@@ -8,8 +8,10 @@
+ 7             syms = [i for i in syms if i in var]
+ 8             if syms != var:
+ 9                 dict_sym_index = dict(zip(syms, range(len(syms))))
+-10                 return {tuple([t[dict_sym_index[i]] for i in var])
+-11                             for t in diophantine(eq, param)}
++10                 # call self with default syms ordering and permute=permute
++11                 # then rearrange the results
++12                 sols = diophantine(eq, param, permute=permute)
++13                 return {tuple([t[dict_sym_index[i]] for i in var]) for t in sols}
+ 12         n, d = eq.as_numer_denom()
+ 13         if n.is_number:
+ 14             return set()
+
+```

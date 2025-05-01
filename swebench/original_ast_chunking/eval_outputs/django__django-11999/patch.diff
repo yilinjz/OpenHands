@@ -1,0 +1,19 @@
+```patch
+--- a/django/db/models/base.py
++++ b/django/db/models/base.py
+@@ -302,8 +302,11 @@ class ModelBase(type):
+ 
+             # Create the get_FOO_display() method (FOO is the field name)
+             if field.choices:
+-                func = curry(cls._get_FIELD_display, field=field)
+-                setattr(new_class, 'get_%s_display' % field.name, func)
++                display_method_name = 'get_%s_display' % field.name
++                # Only add the method if it wasn't defined explicitly
++                # on the model class.
++                if display_method_name not in attrs:
++                    func = curry(cls._get_FIELD_display, field=field)
++                    setattr(new_class, display_method_name, func)
+ 
+         new_class._prepare()
+ 
+```

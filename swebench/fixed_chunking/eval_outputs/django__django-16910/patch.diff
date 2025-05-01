@@ -1,0 +1,35 @@
+```patch
+--- a/django/db/models/sql/compiler.py
++++ b/django/db/models/sql/compiler.py
+@@ -116,7 +116,11 @@
+                 )
+                 continue
+ 
+-            related_field_name = f.field.related_query_name()
++            # Use the field name on the reverse relation for OneToOne relations.
++            if isinstance(f, OneToOneRel):
++                related_field_name = f.name
++            else:
++                related_field_name = f.field.related_query_name()
+             if restricted:
+                 next = requested.get(related_field_name, {})
+                 if not next and related_field_name not in requested:
+@@ -144,7 +148,7 @@
+                 )
+ 
+             if load_fields:
+-                related_load_fields = {
++                fields_to_load = {
+                     k[len(related_field_name) + len(LOOKUP_SEP)] : v
+                     for k, v in load_fields.items()
+                     if k.startswith(related_field_name + LOOKUP_SEP)
+@@ -152,7 +156,7 @@
+             else:
+                 fields_to_load = None
+ 
+-            if fields_to_load is not None and not fields_to_load:
++            if fields_to_load is not None and not fields_to_load and restricted:
+                 # An empty dictionary means no fields from the related model
+                 # should be loaded. Skip recursion.
+                 continue
+```

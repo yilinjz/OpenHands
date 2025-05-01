@@ -1,0 +1,57 @@
+2025-04-30 20:05:30,985 - INFO - Creating container for django__django-13158...
+2025-04-30 20:05:31,060 - INFO - Container for django__django-13158 created: 2dff3b43c7898d46403fe03f8c1e35f08fec3e3f1d742273b608cdb82f163c09
+2025-04-30 20:05:31,412 - INFO - Container for django__django-13158 started: 2dff3b43c7898d46403fe03f8c1e35f08fec3e3f1d742273b608cdb82f163c09
+2025-04-30 20:05:31,416 - INFO - Intermediate patch for django__django-13158 written to logs/run_evaluation/20250430_200121/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/django__django-13158/patch.diff, now applying to container...
+2025-04-30 20:05:31,552 - INFO - Failed to apply patch to container: git apply --verbose
+2025-04-30 20:05:31,607 - INFO - Failed to apply patch to container: git apply --verbose --reject
+2025-04-30 20:05:31,661 - INFO - >>>>> Applied Patch:
+patching file django/db/models/query.py
+Hunk #1 succeeded at 918 with fuzz 2 (offset 18 lines).
+
+2025-04-30 20:05:33,027 - INFO - Git diff before:
+diff --git a/django/db/models/query.py b/django/db/models/query.py
+index 07d6ffd4ca..71c87edd71 100644
+--- a/django/db/models/query.py
++++ b/django/db/models/query.py
+@@ -918,6 +918,13 @@ class QuerySet:
+ 
+     def none(self):
+         """Return an empty QuerySet."""
++        # If this is already a combined query, cloning and setting
++        # set_empty() won't work as expected, as the combination
++        # logic might ignore the top-level WHERE clause.
++        # Return a dedicated EmptyQuerySet instead.
++        if self.query.combinator:
++            return EmptyQuerySet(model=self.model)
++
+         clone = self._chain()
+         clone.query.set_empty()
+         return clone
+2025-04-30 20:05:33,027 - INFO - Eval script for django__django-13158 written to logs/run_evaluation/20250430_200121/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/django__django-13158/eval.sh; copying to container...
+2025-04-30 20:05:43,182 - INFO - Test runtime: 10.10 seconds
+2025-04-30 20:05:43,182 - INFO - Test output for django__django-13158 written to logs/run_evaluation/20250430_200121/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/django__django-13158/test_output.txt
+2025-04-30 20:05:43,258 - INFO - Git diff after:
+diff --git a/django/db/models/query.py b/django/db/models/query.py
+index 07d6ffd4ca..71c87edd71 100644
+--- a/django/db/models/query.py
++++ b/django/db/models/query.py
+@@ -918,6 +918,13 @@ class QuerySet:
+ 
+     def none(self):
+         """Return an empty QuerySet."""
++        # If this is already a combined query, cloning and setting
++        # set_empty() won't work as expected, as the combination
++        # logic might ignore the top-level WHERE clause.
++        # Return a dedicated EmptyQuerySet instead.
++        if self.query.combinator:
++            return EmptyQuerySet(model=self.model)
++
+         clone = self._chain()
+         clone.query.set_empty()
+         return clone
+2025-04-30 20:05:43,258 - INFO - Grading answer for django__django-13158...
+2025-04-30 20:05:43,261 - INFO - report: {'django__django-13158': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_union_none (queries.test_qs_combinators.QuerySetSetOperationTests)']}, 'PASS_TO_PASS': {'success': ['test_combining_multiple_models (queries.test_qs_combinators.QuerySetSetOperationTests)', 'test_count_difference (queries.test_qs_combinators.QuerySetSetOperationTests)', 'test_count_intersection (queries.test_qs_combinators.QuerySetSetOperationTests)', 'test_count_union (queries.test_qs_combinators.QuerySetSetOperationTests)', 'test_count_union_empty_result (queries.test_qs_combinators.QuerySetSetOperationTests)', 'test_difference_with_empty_qs (queries.test_qs_combinators.QuerySetSetOperationTests)', 'test_difference_with_values (queries.test_qs_combinators.QuerySetSetOperationTests)', 'test_intersection_with_empty_qs (queries.test_qs_combinators.QuerySetSetOperationTests)', 'test_intersection_with_values (queries.test_qs_combinators.QuerySetSetOperationTests)', 'test_limits (queries.test_qs_combinators.QuerySetSetOperationTests)', 'test_order_by_same_type (queries.test_qs_combinators.QuerySetSetOperationTests)', 'test_order_raises_on_non_selected_column (queries.test_qs_combinators.QuerySetSetOperationTests)', 'test_ordering (queries.test_qs_combinators.QuerySetSetOperationTests)', 'test_ordering_by_alias (queries.test_qs_combinators.QuerySetSetOperationTests)', 'test_ordering_by_f_expression (queries.test_qs_combinators.QuerySetSetOperationTests)', 'test_ordering_by_f_expression_and_alias (queries.test_qs_combinators.QuerySetSetOperationTests)', 'test_qs_with_subcompound_qs (queries.test_qs_combinators.QuerySetSetOperationTests)', 'test_simple_difference (queries.test_qs_combinators.QuerySetSetOperationTests)', 'test_simple_intersection (queries.test_qs_combinators.QuerySetSetOperationTests)', 'test_simple_union (queries.test_qs_combinators.QuerySetSetOperationTests)', 'test_union_distinct (queries.test_qs_combinators.QuerySetSetOperationTests)', 'test_union_with_empty_qs (queries.test_qs_combinators.QuerySetSetOperationTests)', 'test_union_with_extra_and_values_list (queries.test_qs_combinators.QuerySetSetOperationTests)', 'test_union_with_two_annotated_values_list (queries.test_qs_combinators.QuerySetSetOperationTests)', 'test_union_with_values (queries.test_qs_combinators.QuerySetSetOperationTests)', 'test_union_with_values_list_and_order (queries.test_qs_combinators.QuerySetSetOperationTests)', 'test_union_with_values_list_on_annotated_and_unannotated (queries.test_qs_combinators.QuerySetSetOperationTests)', 'test_unsupported_operations_on_combined_qs (queries.test_qs_combinators.QuerySetSetOperationTests)', 'test_unsupported_ordering_slicing_raises_db_error (queries.test_qs_combinators.QuerySetSetOperationTests)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-13158: resolved: False
+2025-04-30 20:05:43,261 - INFO - Attempting to stop container sweb.eval.django__django-13158.20250430_200121...
+2025-04-30 20:05:58,596 - INFO - Attempting to remove container sweb.eval.django__django-13158.20250430_200121...
+2025-04-30 20:05:58,629 - INFO - Container sweb.eval.django__django-13158.20250430_200121 removed.

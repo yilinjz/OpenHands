@@ -1,0 +1,23 @@
+```diff
+--- a/django/db/models/fields/reverse_related.py
++++ b/django/db/models/fields/reverse_related.py
+@@ -1,7 +1,7 @@
+ from django.core import exceptions
+ from django.db.models.query_utils import PathInfo
+ from django.utils.functional import cached_property
+-
++from django.utils.hashable import make_hashable
+
+ # Private API
+
+@@ -137,7 +137,7 @@
+         # ManyToManyRel specific identity values.
+         return super().identity + (
+             self.through._meta.label_lower if self.through else None,
+-            self.through_fields,
++            make_hashable(self.through_fields),
+             self.db_constraint,
+         )
+
+
+```

@@ -1,0 +1,202 @@
+```patch
+--- a/sympy/printing/lambdarepr.py
++++ b/sympy/printing/lambdarepr.py
+@@ -1,10 +1,12 @@
+ from __future__ import print_function, division
+ 
+-from sympy.core import Basic, Mul, Add, Pow, S, Function, Integer, Symbol
++from sympy.core import Basic, Mul, Add, Pow, S, Function, Integer, Symbol, Tuple
+ from sympy.core.compatibility import string_types, range
+ from sympy.core.function import Lambda
+ from sympy.printing.str import StrPrinter
+ from sympy.utilities.iterables import postorder_traversal
++from sympy.matrices.expressions import Identity, ZeroMatrix, MatrixSymbol, MatrixExpr
++from sympy.matrices.expressions.shape import Shape
+ 
+ # This is the implementation of the lambdarepr function. Its arguments are:
+ # expr, args (sequence of variables), modules (dictionary of used modules),
+@@ -105,6 +107,66 @@
+         # check for translated names in self.modules
+         return super(LambdaPrinter, self)._print_Symbol(expr)
+ 
++    def _print_Identity(self, expr):
++        # Print Identity(n) as module.eye(n)
++        if not expr.shape[0] == expr.shape[1]:
++             # Should not happen for Identity
++             raise ValueError("Identity matrix must be square")
++
++        # Assume numpy is the target for matrix operations
++        # lambdify should ensure 'numpy' is in modules if MatrixExpr is used.
++        if 'numpy' in self._module_aliases:
++            np_mod = self._module_aliases['numpy']
++        elif 'numpy' in self.modules:
++            np_mod = 'numpy'
++        else:
++            # Try to infer module from known functions like 'eye'
++            if 'eye' in self._known_functions:
++                func_info = self._known_functions['eye']
++                if isinstance(func_info, tuple): # (module_alias, func_name)
++                    np_mod = func_info[0]
++                else: # Assume top-level function, check modules
++                     raise TypeError("lambdify needs a module (like numpy) providing 'eye'.")
++            else:
++                 raise TypeError("lambdify requires the numpy module for Identity matrix.")
++
++        shape_arg = expr.shape[0] # Dimension argument (Symbol, Number, or Shape)
++        # Identity matrix is always square.
++        # Note: dtype is not handled here; numpy's default (float64) is used.
++        return "{module}.eye({arg})".format(module=np_mod,
++                                            arg=self._print(shape_arg))
++
++    def _print_ZeroMatrix(self, expr):
++        # Print ZeroMatrix(r, c) as module.zeros((r, c))
++        if 'numpy' in self._module_aliases:
++            np_mod = self._module_aliases['numpy']
++        elif 'numpy' in self.modules:
++            np_mod = 'numpy'
++        else:
++            if 'zeros' in self._known_functions:
++                func_info = self._known_functions['zeros']
++                if isinstance(func_info, tuple):
++                    np_mod = func_info[0]
++                else:
++                     raise TypeError("lambdify needs a module (like numpy) providing 'zeros'.")
++            else:
++                 raise TypeError("lambdify requires the numpy module for ZeroMatrix.")
++
++        shape_tuple = expr.shape # (rows, cols)
++        # Print the shape tuple (r, c)
++        printed_shape = "({rows}, {cols})".format(rows=self._print(shape_tuple[0]),
++                                                  cols=self._print(shape_tuple[1]))
++        # Note: dtype is not handled here; numpy's default (float64) is used.
++        return "{module}.zeros({shape})".format(module=np_mod,
++                                                shape=printed_shape)
++
++    def _print_Shape(self, expr):
++        # Print Shape(M) as module.shape(M)
++        # Relies on 'shape' being mapped in _known_functions
++        shape_func_str = self._print(Symbol('shape')) # Get module.shape string
++        matrix_arg = expr.args[0]
++        return "{func}({arg})".format(func=shape_func_str, arg=self._print(matrix_arg))
++
+     def _print_MatrixBase(self, expr):
+         # If the Matrix contains symbols, we want to print the symbols directly
+         # in the output string. Replacing the symbols with Dummy symbols will
+@@ -115,6 +177,30 @@
+         else:
+             return super(LambdaPrinter, self)._print_MatrixBase(expr)
+ 
++    def _print_MatrixElement(self, expr):
++        # Print M[i, j] or shape(M)[i] correctly
++        from sympy.matrices.expressions.slice import MatrixSlice
++
++        # Handle shape(M)[i]
++        if isinstance(expr.parent, Shape):
++            shape_func_str = self._print(Symbol('shape')) # Get module.shape string
++            matrix_arg = expr.parent.args[0]
++            # Indices should be integers. Lambdify handles single index access.
++            idx = expr.indices[0] # Assuming single index for shape tuple access
++            return "{func}({arg})[{idx}]".format(func=shape_func_str,
++                                                 arg=self._print(matrix_arg),
++                                                 idx=self._print(idx))
++        # Handle Slice(...).shape[i] ? This might be complex.
++        # Let's rely on the default MatrixElement printing for other cases.
++        # The default StrPrinter._print_MatrixElement prints M[i, j]
++        # which is compatible with numpy array indexing.
++        return super(LambdaPrinter, self)._print_MatrixElement(expr)
++
++    def _print_Tuple(self, expr):
++        # Handle tuples, e.g., for shape in zeros.
++        # Don't parenthesize single-element tuples used for indexing.
++        return '({0})'.format(self.reprify(expr, ", "))
++
+ 
+ def lambdarepr(expr, args=None, modules=None, dummify=False, printer=None):
+     """
+--- a/sympy/utilities/lambdify.py
++++ b/sympy/utilities/lambdify.py
+@@ -1,5 +1,5 @@
+ from __future__ import print_function, division
+-import inspect
++import inspect, sys
+ 
+ from sympy.core.compatibility import (exec_, is_sequence, iterable,
+                                       string_types, range, builtins,
+@@ -10,7 +10,8 @@
+ from sympy.utilities.decorator import doctest_depends_on
+ from sympy.utilities.iterables import flatten
+ 
+-from sympy.core.symbol import Symbol
++from sympy.core.symbol import Symbol, Dummy
++from sympy.core.basic import Basic
+ 
+ 
+ class NotIterable:
+@@ -479,6 +480,8 @@
+     """
+     from sympy.core.symbol import Symbol
+     from sympy.utilities.iterables import flatten
++    from sympy.matrices.expressions import MatrixSymbol, Identity, ZeroMatrix
++    from sympy.matrices.expressions.shape import Shape
+ 
+     # If the user hasn't specified any modules, use what is available.
+     if modules is None:
+@@ -540,6 +543,58 @@
+     # Create lambda function.
+     lstr = lambdastr(args, expr, printer=printer, dummify=dummify)
+ 
++    # Preprocessing step for matrix expression dimensions:
++    # If expr contains Identity(n) where n is a dimension of a MatrixSymbol
++    # argument M, replace n with M.shape[i] before printing.
++    if not isinstance(expr, (list, tuple, dict)):
++        expr_list = [expr]
++        is_list_like = False
++    else:
++        expr_list = expr # Handle list/tuple/dict of expressions
++        is_list_like = True
++
++    processed_exprs = []
++    original_dim_symbols = set()
++    subs_dict = {}
++    has_matrix_expr = False
++
++    # Collect dimension symbols from MatrixSymbol args and create substitution dict
++    flat_args = flatten(args)
++    for arg in flat_args:
++        if isinstance(arg, MatrixSymbol):
++            has_matrix_expr = True
++            for i, dim in enumerate(arg.shape):
++                # Use the actual Shape object for substitution, not just the symbol
++                # This ensures the printer receives Shape(M)[i]
++                shape_obj = Shape(arg)[i]
++                if isinstance(dim, Symbol) and dim.is_Symbol: # Check it's a symbol, not a number
++                    original_dim_symbols.add(dim)
++                    # Map the dimension symbol to the Shape object
++                    if dim not in subs_dict:
++                         subs_dict[dim] = shape_obj
++                    elif subs_dict[dim] != shape_obj:
++                        # Warn or error if same symbol maps to different shapes?
++                        # For now, allow override, last one wins (might be fragile)
++                        pass # subs_dict[dim] = shape_obj
++
++    # Apply substitution to expressions if substitutions exist
++    if subs_dict:
++        for i, e in enumerate(expr_list):
++            if isinstance(e, Basic): # Only substitute on SymPy expressions
++                # Substitute dimension symbols within the expression
++                processed_e = e.subs(subs_dict)
++                processed_exprs.append(processed_e)
++                if e != processed_e: # Check if substitution occurred
++                    has_matrix_expr = True # Mark for numpy import check
++            else:
++                processed_exprs.append(e) # Keep non-SymPy exprs as is
++    else:
++        processed_exprs = list(expr_list) # No substitution needed
++        # Still check if original expression had matrix types
++        if not has_matrix_expr:
++            for e in expr_list:
++                 if isinstance(e, Basic) and e.has(MatrixSymbol, Identity, ZeroMatrix):
++                     has_matrix_expr = True
++                     break
+ 
+     # Check for unresolved dimension symbols that are not arguments

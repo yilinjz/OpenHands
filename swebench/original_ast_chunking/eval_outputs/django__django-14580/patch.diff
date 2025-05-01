@@ -1,0 +1,29 @@
+```patch
+--- a/django/db/migrations/writer.py
++++ b/django/db/migrations/writer.py
+@@ -178,8 +178,20 @@
+                     imports.add(self.app_models_import_name)
+                 # Other cases
+                 else:
+-                    name = value.__name__
+-                    imports.add(import_path)
++                    if import_path == 'django.db.models':
++                        # Special handling for models.Model, etc.
++                        # Use "models.Thing" and ensure "from django.db import models" is generated.
++                        name = 'models.%s' % value.__name__
++                        imports.add(import_path)
++                    elif import_path == 'django.conf':
++                        # Special handling for settings.
++                        # Use "settings.Thing" and ensure "from django.conf import settings" is generated.
++                        name = 'settings.%s' % value.__name__
++                        imports.add(import_path)
++                    else:
++                        # Standard import: "import path.to.module"
++                        # Use "path.to.module.Thing"
++                        name = '%s.%s' % (import_path, value.__name__)
++                        imports.add(import_path)
+                 return name, imports
+             # Cannot serialize this class, likely it's dynamic
+             else:
+
+```

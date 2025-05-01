@@ -1,0 +1,42 @@
+```patch
+--- a/django/db/models/fields/related.py
++++ b/django/db/models/fields/related.py
+@@ -1,5 +1,6 @@
+ from functools import partial
+ 
++from django.core import checks
+ from django.db import router
+ from django.db.models import signals
+ from django.db.models.constants import LOOKUP_SEP
+@@ -71,6 +72,7 @@
+             *self._check_relationship_model(**kwargs),
+             *self._check_ignored_options(**kwargs),
+             *self._check_table_uniqueness(**kwargs),
++            *self._check_related_name_for_symmetrical(**kwargs),
+         ]
+ 
+     def _check_unique(self, **kwargs):
+@@ -114,6 +116,18 @@
+             ]
+         return []
+ 
++    def _check_related_name_for_symmetrical(self, **kwargs):
++        # Ignore fields that are pointing to proxy models defined in other apps.
++        if not isinstance(self.remote_field.model, str) and self.remote_field.model._meta.proxy:
++            return []
++
++        if self.remote_field.symmetrical and self.related_name is not None:
++            return [
++                checks.Error(
++                    "The 'related_name' argument is not supported for symmetrical "
++                    "ManyToManyField fields.",
++                    obj=self,
++                    id='fields.E332',
++                )
++            ]
++        return []
++
+     def _check_relationship_model(self, from_model=None, **kwargs):
+         if hasattr(self.remote_field.through, '_meta'):
+             is_valid_through_model = True
+```

@@ -1,0 +1,45 @@
+```patch
+--- a/sympy/printing/mathematica.py
++++ b/sympy/printing/mathematica.py
+@@ -4,9 +4,11 @@
+ 
+ from __future__ import print_function, division
+ from sympy.printing.codeprinter import CodePrinter
++from sympy.printing.precedence import precedence
+ from sympy.printing.str import StrPrinter
+-from sympy.printing.precedence import precedence
+ 
++from sympy.core import Float, S
++from sympy.core.function import Derivative
+ # Used in MCodePrinter._print_Function(self)
+ known_functions = {
+     "exp": [(lambda x: True, "Exp")],
+@@ -50,9 +52,6 @@
+     _number_symbols = set()
+     _not_supported = set()
+ 
+-    # Needs to be imported here for StrPrinter._print_Float
+-    from sympy.core.numbers import Integer, Rational
+-
+     def __init__(self, settings={}):
+         """Register function mappings supplied by user"""
+         CodePrinter.__init__(self, settings)
+@@ -91,3 +90,16 @@
+ 
+     def _print_list(self, expr):
+         return '{' + ', '.join(self.doprint(a) for a in expr) + '}'
++
++    def _print_Derivative(self, expr):
++        """Prints the derivative in Mathematica format D[f[x], x]"""
++        return "D[%s]" % (self.stringify(expr.args, ", "))
++
++    def _print_Float(self, expr):
++        """Prints a float in Mathematica format (e.g., 1.0*^-4)"""
++        # Print float to string using parent class's method respecting precision settings
++        float_str = StrPrinter._print_Float(self, expr)
++        # Replace 'e' with Mathematica's '*^' for scientific notation
++        return float_str.replace('e', '*^')
++
++    def _print_NaN(self, expr):
++        return 'Indeterminate'
+```

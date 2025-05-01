@@ -1,0 +1,58 @@
+2025-05-01 01:40:45,641 - INFO - Creating container for django__django-11905...
+2025-05-01 01:40:45,671 - INFO - Container for django__django-11905 created: 18f1578911a7615c4db62ee576677744b133b143aed1701fd60e7996478aaf28
+2025-05-01 01:40:45,946 - INFO - Container for django__django-11905 started: 18f1578911a7615c4db62ee576677744b133b143aed1701fd60e7996478aaf28
+2025-05-01 01:40:45,946 - INFO - Intermediate patch for django__django-11905 written to logs/run_evaluation/20250501_013755/swebench-lite_fixed-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/django__django-11905/patch.diff, now applying to container...
+2025-05-01 01:40:46,094 - INFO - >>>>> Applied Patch:
+Checking patch django/db/models/sql/query.py...
+Hunk #1 succeeded at 1306 (offset 1279 lines).
+Applied patch django/db/models/sql/query.py cleanly.
+
+2025-05-01 01:40:47,379 - INFO - Git diff before:
+diff --git a/django/db/models/sql/query.py b/django/db/models/sql/query.py
+index ea51912e8b..cea959a4ca 100644
+--- a/django/db/models/sql/query.py
++++ b/django/db/models/sql/query.py
+@@ -1306,8 +1306,13 @@ class Query(BaseExpression):
+         else:
+             col = _get_col(targets[0], join_info.final_field, alias, simple_col)
+ 
++        lookup_type = lookups[-1]
++        if lookup_type == 'isnull' and not isinstance(value, bool):
++            raise ValueError(
++                'The __isnull lookup must be used with a boolean value '
++                '(True or False).'
++            )
+         condition = self.build_lookup(lookups, col, value)
+-        lookup_type = condition.lookup_name
+         clause.add(condition, AND)
+ 
+         require_outer = lookup_type == 'isnull' and condition.rhs is True and not current_negated
+2025-05-01 01:40:47,380 - INFO - Eval script for django__django-11905 written to logs/run_evaluation/20250501_013755/swebench-lite_fixed-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/django__django-11905/eval.sh; copying to container...
+2025-05-01 01:40:55,488 - INFO - Test runtime: 8.05 seconds
+2025-05-01 01:40:55,489 - INFO - Test output for django__django-11905 written to logs/run_evaluation/20250501_013755/swebench-lite_fixed-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/django__django-11905/test_output.txt
+2025-05-01 01:40:55,562 - INFO - Git diff after:
+diff --git a/django/db/models/sql/query.py b/django/db/models/sql/query.py
+index ea51912e8b..cea959a4ca 100644
+--- a/django/db/models/sql/query.py
++++ b/django/db/models/sql/query.py
+@@ -1306,8 +1306,13 @@ class Query(BaseExpression):
+         else:
+             col = _get_col(targets[0], join_info.final_field, alias, simple_col)
+ 
++        lookup_type = lookups[-1]
++        if lookup_type == 'isnull' and not isinstance(value, bool):
++            raise ValueError(
++                'The __isnull lookup must be used with a boolean value '
++                '(True or False).'
++            )
+         condition = self.build_lookup(lookups, col, value)
+-        lookup_type = condition.lookup_name
+         clause.add(condition, AND)
+ 
+         require_outer = lookup_type == 'isnull' and condition.rhs is True and not current_negated
+2025-05-01 01:40:55,562 - INFO - Grading answer for django__django-11905...
+2025-05-01 01:40:55,564 - INFO - report: {'django__django-11905': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_isnull_non_boolean_value (lookup.tests.LookupTests)', 'test_iterator (lookup.tests.LookupTests)']}, 'PASS_TO_PASS': {'success': [], 'failure': ['test_chain_date_time_lookups (lookup.tests.LookupTests)', 'test_count (lookup.tests.LookupTests)', 'test_custom_field_none_rhs (lookup.tests.LookupTests)', 'Lookup.can_use_none_as_rhs=True allows None as a lookup value.', 'test_error_messages (lookup.tests.LookupTests)', 'test_escaping (lookup.tests.LookupTests)', 'test_exact_exists (lookup.tests.LookupTests)', 'Transforms are used for __exact=None.', 'test_exact_query_rhs_with_selected_columns (lookup.tests.LookupTests)', 'test_exact_sliced_queryset_limit_one (lookup.tests.LookupTests)', 'test_exact_sliced_queryset_limit_one_offset (lookup.tests.LookupTests)', 'test_exact_sliced_queryset_not_limited_to_one (lookup.tests.LookupTests)', 'test_exclude (lookup.tests.LookupTests)', 'test_exists (lookup.tests.LookupTests)', 'test_get_next_previous_by (lookup.tests.LookupTests)', 'test_in (lookup.tests.LookupTests)', 'test_in_bulk (lookup.tests.LookupTests)', 'test_in_bulk_lots_of_ids (lookup.tests.LookupTests)', 'test_in_bulk_non_unique_field (lookup.tests.LookupTests)', 'test_in_bulk_with_field (lookup.tests.LookupTests)', 'test_in_different_database (lookup.tests.LookupTests)', 'test_in_keeps_value_ordering (lookup.tests.LookupTests)', 'test_lookup_collision (lookup.tests.LookupTests)', 'test_lookup_date_as_str (lookup.tests.LookupTests)', 'test_lookup_int_as_str (lookup.tests.LookupTests)', 'test_nested_outerref_lhs (lookup.tests.LookupTests)', 'test_none (lookup.tests.LookupTests)', 'test_nonfield_lookups (lookup.tests.LookupTests)', 'test_pattern_lookups_with_substr (lookup.tests.LookupTests)', 'test_regex (lookup.tests.LookupTests)', 'test_regex_backreferencing (lookup.tests.LookupTests)', 'test_regex_non_ascii (lookup.tests.LookupTests)', 'test_regex_non_string (lookup.tests.LookupTests)', 'test_regex_null (lookup.tests.LookupTests)', 'test_relation_nested_lookup_error (lookup.tests.LookupTests)', 'test_unsupported_lookups (lookup.tests.LookupTests)', 'test_values (lookup.tests.LookupTests)', 'test_values_list (lookup.tests.LookupTests)']}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-11905: resolved: False
+2025-05-01 01:40:55,564 - INFO - Attempting to stop container sweb.eval.django__django-11905.20250501_013755...
+2025-05-01 01:41:10,831 - INFO - Attempting to remove container sweb.eval.django__django-11905.20250501_013755...
+2025-05-01 01:41:10,865 - INFO - Container sweb.eval.django__django-11905.20250501_013755 removed.

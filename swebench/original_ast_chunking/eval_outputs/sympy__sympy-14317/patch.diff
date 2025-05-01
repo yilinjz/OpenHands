@@ -1,0 +1,114 @@
+```patch
+--- a/sympy/printing/latex.py
++++ b/sympy/printing/latex.py
+@@ -17,6 +17,7 @@
+ from sympy.core.compatibility import default_sort_key
+ from sympy.logic.boolalg import true, false
+ from sympy.polys.polytools import Poly
++from sympy.polys.polyerrors import PolynomialError
+ from sympy.vector import Vector, Dyadic
+ 
+ from .printer import Printer
+@@ -1074,6 +1075,78 @@
+         tex += r"\right)"
+         return tex
+ 
++    def _print_Poly(self, expr):
++        """
++        Custom printing for Poly objects to ensure terms are ordered correctly
++        (highest degree first) and domain/modulus is handled.
++        """
++        # Logic adapted from StrPrinter._print_Poly
++
++        # Get terms in the desired order (default for Poly.terms() is descending degree)
++        terms = expr.terms()
++
++        # Handle zero polynomial
++        if not terms:
++            poly_str = self._print(S.Zero)
++        else:
++            lterms = []
++            # Print generators once
++            gens = [ self._print(s) for s in expr.gens ]
++
++            for monom, coeff in terms:
++                # Need copy as coeff can be Number/NegativeOne/One etc.
++                abs_coeff = coeff.copy() if hasattr(coeff, 'copy') else coeff
++                is_negative = getattr(abs_coeff, 'is_negative', False) # Check negativity
++                if is_negative:
++                    abs_coeff = -abs_coeff # Make it positive for printing logic
++
++                # Print coefficient
++                printed_coeff = self._print(abs_coeff)
++
++                # Print monomial
++                lmonom_parts = []
++                for i, exp in enumerate(monom):
++                    if exp > 0:
++                        gen = gens[i]
++                        if exp == 1:
++                            lmonom_parts.append(gen)
++                        else:
++                            # Use self._print_Pow logic for base formatting if needed?
++                            # For now, assume gen is simple enough or self._print handled it.
++                            # Use braces for powers always for clarity.
++                            lmonom_parts.append(r"{%s}^{%d}" % (gen, exp))
++
++                lmonom = " ".join(lmonom_parts) # Use space for implicit multiplication
++
++                # Combine coefficient and monomial
++                if not lmonom: # Constant term
++                    term_str = printed_coeff # Use the printed abs_coeff directly
++                else:
++                    # Monomial exists, combine with coefficient
++                    if abs_coeff == 1:
++                        term_str = lmonom
++                    else:
++                        # Check if coefficient needs parentheses when multiplied
++                        if abs_coeff.is_Add: # Add needs parens
++                            printed_coeff = r"\left(%s\right)" % printed_coeff
++                        # Consider precedence for Mul/Pow? For now, mimic str printer.
++                        term_str = printed_coeff + " " + lmonom
++
++                lterms.append({'is_negative': is_negative, 'str': term_str})
++
++            # Assemble the polynomial string with signs
++            poly_terms = []
++            first = True
++            for term in lterms:
++                sign = " - " if term['is_negative'] else " + "
++                term_str = term['str']
++                if first:
++                    poly_terms.append( ("-" if term['is_negative'] else "") + term_str )
++                    first = False
++                else:
++                    poly_terms.append(sign + term_str)
++            poly_str = "".join(poly_terms)
++
+     def _print_FiniteField(self, expr):
+         return r"\mathbb{F}_{%d}" % expr.mod
+ 
+@@ -1109,6 +1182,22 @@
+         tex = r"%s\left(%s\right)" % (self._print(expr.domain), sargs)
+         return tex
+ 
++    # Override the default Poly printing behavior (which converts to Expr)
++    # by adding the _print_Poly method above. Now, format the wrapper.
++    def _print_Poly(self, expr): # This redefines the method, ensure the logic above is used.
++        # Call the actual printing logic defined above
++        poly_str = self._print_Poly_content(expr) # Rename the logic function
++
++        # Format generators and domain/modulus
++        sgens = ", ".join([self._print(s) for s in expr.gens])
++        try:
++            mod = expr.get_modulus()
++            mod_str = ", modulus=%s" % self._print(mod)
++        except PolynomialError: # No modulus defined
++            sdomain = self._print(expr.domain)
++            mod_str = ", domain=%s" % sdomain
++
++        return r"\operatorname{Poly}{\left( %s, %s%s \right)}" % (poly_str, sgens, mod_str)
+ 
+     def _print_ComplexRegion(self, expr):
+         # TODO: Handle ComplexRegion(FiniteSet)
+```

@@ -1,0 +1,16 @@
+```patch
+--- a/django/db/models/sql/query.py
++++ b/django/db/models/sql/query.py
+@@ -1261,7 +1261,9 @@
+         ) = self.names_to_path(parts, self.model._meta, allow_many=True, fail_on_missing=True)
+         field = path[-1].field
+         value = self.resolve_lookup_value(value, can_reuse, allow_joins)
+-        self.check_filterable(value)
++        # Skip filterable check for non-expression values to avoid issues with
++        # model instances having a field named 'filterable'.
++        if isinstance(value, models.Expression):
++            self.check_filterable(value)
+         self.check_query_object_type(value, opts, field)
+
+         if hasattr(value, 'resolve_expression'):
+```

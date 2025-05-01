@@ -1,0 +1,63 @@
+```patch
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -1,4 +1,5 @@
+ """
++from itertools import chain
+
+ from django.core import checks, exceptions, validators
+ from django.db import connection, connections, router
+@@ -285,6 +286,13 @@
+ class CharField(Field):
+     description = _("String (up to %(max_length)s)")
+
++    def __init__(self, *args, **kwargs):
++        super().__init__(*args, **kwargs)
++        if self.max_length is not None:
++            self.validators.append(validators.MaxLengthValidator(self.max_length))
++
++    def check(self, **kwargs):
++        errors = super().check(**kwargs)
++        errors.extend(self._check_max_length_attribute(**kwargs))
++        errors.extend(self._check_choices_max_length())
++        return errors
+
+     def _check_max_length_attribute(self, **kwargs):
+         if self.max_length is None:
+@@ -307,6 +315,34 @@
+         else:
+             return []
+
++    def _check_choices_max_length(self):
++        if not self.choices or not isinstance(self.max_length, int) or self.max_length <= 0:
++            # Either choices or max_length is not set, or max_length is invalid.
++            # No check needed or max_length check will fail elsewhere.
++            return []
++
++        # Use flatten_choices to handle nested structures.
++        choices_list = list(self.flatten_choices(self.choices))
++        if not choices_list:
++            return []
++
++        max_choice_length = 0
++        # Iterate through flattened choices (value, display_name)
++        for value, _ in choices_list:
++            # Ensure value is treated as string for length check
++            choice_len = len(str(value))
++            if choice_len > max_choice_length:
++                max_choice_length = choice_len
++
++        if max_choice_length > self.max_length:
++            return [
++                checks.Error(
++                    "'max_length' is too small to fit the longest value in 'choices'.",
++                    hint=f"The longest choice value has length {max_choice_length}, but 'max_length' is {self.max_length}.",
++                    obj=self,
++                    id='fields.E122',
++                )
++            ]
++        return []
+
+     def cast_db_type(self, connection):
+         if self.max_length is None:
+```

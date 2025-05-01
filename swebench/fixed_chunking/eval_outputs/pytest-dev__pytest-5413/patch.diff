@@ -1,0 +1,28 @@
+```patch
+--- a/src/_pytest/_code/__init__.py
++++ b/src/_pytest/_code/__init__.py
+@@ -603,12 +603,18 @@
+             self._tblen = len(self.traceback)
+ 
+     def __str__(self) -> str:
++        """Return str(self.value)"""
++        if self.value is None:
++            # Handle the case from for_later() before __exit__ is called
++            # or if __init__ fails early.
++            # Use the placeholder string set in for_later() or a default.
++            return getattr(self, "_str", "<ExceptionInfo without value>")
+         try:
+-            s = self._getreprcrash()
++            return str(self.value)
+         except Exception:
+-            s = "<[ExceptionInfo() failed for {!r}]>".format(object.__repr__(self))
+-        return s
+-
++            # Fallback if str(self.value) fails for some reason
++            return "<[ExceptionInfo(__str__) failed for {!r}]>".format(
++                object.__repr__(self.value)
++            )
+ 
+     def _getreprcrash(self) -> str:
+         """Return a representation of the exception info for printing when
+```

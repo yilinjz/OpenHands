@@ -1,0 +1,38 @@
+```patch
+--- a/src/_pytest/_io/saferepr.py
++++ b/src/_pytest/_io/saferepr.py
+@@ -11,17 +11,24 @@
+ def _format_repr_exception(exc: Exception, obj: Any) -> str:
+     """Format the exception raised by repr()."""
+     try:
+-        exc_name = type(exc).__name__
++        exc_name = type(exc).__name__  # noqa: B009
+     except Exception:
+-        exc_name = "<unknown>"
++        exc_name = "<unknown exc name>"
+     try:
+         # It is possible that accessing __class__ raises an exception,
+         # see https://github.com/pytest-dev/pytest/issues/5545.
+-        obj_name = type(obj).__name__
++        obj_name = type(obj).__name__  # noqa: B009
+     except Exception:
+-        obj_name = "<unknown>"
+-    return "<[{} raised in repr()] {} object at 0x{:x}>".format(
+-        exc_name, obj_name, id(obj)
++        obj_name = "<unknown obj name>"
++    try:
++        # Accessing id() might fail in some edge cases, see #7851.
++        obj_id = id(obj)
++    except Exception:
++        obj_id = "<unknown id>"
++
++    if isinstance(obj_id, int):
++        id_repr = "0x{:x}".format(obj_id)
++    else:
++        id_repr = str(obj_id)
++    return "<[{} raised in repr()] {} object at {}>".format(
++        exc_name, obj_name, id_repr
+     )
+
+
+```

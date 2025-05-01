@@ -1,0 +1,707 @@
+```patch
+--- a/examples/mixture/plot_gmm_covariances.py
++++ b/examples/mixture/plot_gmm_covariances.py
+@@ -102,7 +102,7 @@
+ # Break up the dataset into non-overlapping training (75%) and testing
+ # (25%) sets.
+ skf = StratifiedKFold(n_splits=4)
+-# Only take the first fold.
++# Only take the first fold. Requires the StratifiedKFold instance to be fitted as well.
+ train_index, test_index = next(iter(skf.split(X, y)))
+ 
+ 
+@@ -115,7 +115,7 @@
+ # Try GMMs using different types of covariances.
+ estimators = {cov_type: GaussianMixture(n_components=n_classes,
+                                           covariance_type=cov_type, max_iter=20,
+-                                          random_state=0)
++                                          random_state=0, n_clusters=n_classes)
+               for cov_type in ['spherical', 'diag', 'tied', 'full']}
+ 
+ n_estimators = len(estimators)
+@@ -130,7 +130,7 @@
+     # Since we have class labels for the training data, we can
+     # initialize the GMM parameters in a supervised manner.
+     estimators[name].means_init = np.array([X_train[y_train == i].mean(axis=0)
+-                                            for i in range(n_classes)])
++                                             for i in range(n_classes)])
+ 
+     # Train the other parameters using the EM algorithm.
+     estimators[name].fit(X_train)
+--- a/sklearn/mixture/bayesian_mixture.py
++++ b/sklearn/mixture/bayesian_mixture.py
+@@ -1,12 +1,12 @@
+ """Bayesian Gaussian Mixture Models."""
+ 
+-# Author: Wei Xue <xuewei4d@gmail.com>
+-#         Thierry Guillemot <thierry.guillemot.work@gmail.com>
++# Author: Wei Xue <xuewei4d@gmail.com>, Thierry Guillemot <thierry.guillemot.work@gmail.com>
+ # License: BSD 3 clause
+ 
+ import numpy as np
+ from scipy.special import digamma, gammaln
+ 
++from ..utils.validation import check_is_fitted
+ from ..utils import check_array
+ from ._base import _BaseMixture, _check_shape
+ from ._gaussian_mixture import _check_precision_positivity
+@@ -22,12 +22,12 @@
+ 
+     Parameters
+     ----------
+-    n_components : int, defaults to 1.
++    n_clusters : int, defaults to 1.
+         The number of mixture components. Depending on the data and the value
+         of the `weight_concentration_prior` the model can decide to not use
+         all the components by setting some component `weights_` to values very
+         close to zero. The number of effective components is therefore smaller
+-        than n_components.
++        than n_clusters.
+ 
+     covariance_type : {'full', 'tied', 'diag', 'spherical'}, defaults to 'full'
+         String describing the type of covariance parameters to use.
+@@ -50,7 +50,7 @@
+         Allows to assure that the covariance matrices are all positive.
+ 
+     max_iter : int, defaults to 100.
+-        The number of EM iterations to perform.
++        The number of variational inference iterations to perform.
+ 
+     n_init : int, defaults to 1.
+         The number of initializations to perform. The best results are kept.
+@@ -61,11 +61,11 @@
+             'kmeans' : responsibilities are initialized using kmeans.
+             'random' : responsibilities are initialized randomly.
+ 
+-    weights_init : array-like, shape (n_components, ), optional
++    weights_init : array-like of shape (n_clusters,), default=None
+         The user-provided initial weights.
+         If it None, weights are initialized using the `init_params` method.
+ 
+-    means_init : array-like, shape (n_components, n_features), optional
++    means_init : array-like of shape (n_clusters, n_features), default=None
+         The user-provided initial means.
+         If it None, means are initialized using the `init_params` method.
+ 
+@@ -73,19 +73,19 @@
+             optional
+         The user-provided initial precisions (inverse of the covariance matrices).
+         The shape depends on `covariance_type`::
+-            (n_components,)                        if 'spherical',
+-            (n_features, n_features)               if 'tied',
+-            (n_components, n_features)             if 'diag',
+-            (n_components, n_features, n_features) if 'full'
++            (n_clusters,)                        if 'spherical',
++            (n_features, n_features)             if 'tied',
++            (n_clusters, n_features)             if 'diag',
++            (n_clusters, n_features, n_features) if 'full'
+         If it None, precisions are initialized using the `init_params` method.
+ 
+     random_state : int, RandomState instance or None, optional (default=None)
+         Controls the random seed given to the method chosen to initialize the
+         parameters (see `init_params`).
+-        In addition, it controls the generation of random samples from the
+-        fitted distribution (see the method `sample`).
+-        Pass an int for reproducible output across multiple function calls.
+-        See :term:`Glossary <random_state>`.
++        In addition, it controls the random draw of the weights and means at
++        each initialization (if `init_params='random'`). Pass an int for
++        reproducible results across multiple function calls.
++        See :term:`Glossary <random_state>`.
+ 
+     warm_start : bool, default to False.
+         If 'warm_start' is True, the solution of the last fitting is used as
+@@ -110,10 +110,10 @@
+         The prior on the weight distribution (Dirichlet). This is a parameter
+         that influences the ability of the model to naturally adjust the number
+         of components used. If `weight_concentration_prior_type` is 'dirichlet_process',
+-        this is the concentration parameter for the Stick-breaking process. The higher
+-        concentration puts more mass on the single components. If
++        this is the concentration parameter for the Stick-breaking process. The
++        higher concentration puts more mass on the single components. If
+         `weight_concentration_prior_type` is 'dirichlet_distribution', this is
+-        the parameter of the Dirichlet distribution. The higher the value, the more
++        the parameter of the Dirichlet distribution. The higher the value the more
+         strength is put on the weights being equal.
+         Defaults to ``1. / n_components``.
+ 
+@@ -121,7 +121,7 @@
+         The prior on the mean distribution (Gaussian).
+         The higher the value the more flexibility is allowed on the mean.
+         Defaults to 1.
+-    
++
+     degrees_of_freedom_prior : float, optional.
+         The prior of the number of degrees of freedom on the covariance
+         distributions (Wishart). If it is not None, it must be greater
+@@ -139,10 +139,10 @@
+         The prior on the covariance distribution (Wishart). If it is not None,
+         it must be positive definite. If it is None, the prior is
+         ``reg_covar * eye(n_features)``. The shape depends on `covariance_type`::
+-            (n_features, n_features) if 'full',
+-            (n_features, n_features) if 'tied',
+-            (n_features)             if 'diag',
+-            (1,)                     if 'spherical'
++            (n_features, n_features) if 'full'
++            (n_features, n_features) if 'tied'
++            (n_features,)            if 'diag'
++            float                    if 'spherical'
+         Defaults to None.
+ 
+     Attributes
+@@ -150,13 +150,13 @@
+     weights_ : array-like, shape (n_components,)
+         The weights of each mixture components.
+ 
+-    means_ : array-like, shape (n_components, n_features)
++    means_ : array-like, shape (n_clusters, n_features)
+         The mean of each mixture component.
+ 
+     covariances_ : array-like
+         The covariance of each mixture component.
+         The shape depends on `covariance_type`::
+-            (n_components,)                        if 'spherical',
++            (n_clusters,)                        if 'spherical',
+             (n_features, n_features)               if 'tied',
+             (n_components, n_features)             if 'diag',
+             (n_components, n_features, n_features) if 'full'
+@@ -165,13 +165,13 @@
+     precisions_ : array-like
+         The precision matrices for each component in the mixture. A precision
+         matrix is the inverse of a covariance matrix. A covariance matrix is
+-        symmetric positive definite so the mixture of Gaussian can be
++        symmetric positive definite so the mixture of Gaussian can be equivalently
+         parametrized by the precision matrices. Storing the precision matrices instead
+         of the covariance matrices makes it more efficient to compute the log-likelihood
+         of new samples at test time. The shape depends on `covariance_type`::
+-            (n_components,)                        if 'spherical',
++            (n_clusters,)                        if 'spherical',
+             (n_features, n_features)               if 'tied',
+-            (n_components, n_features)             if 'diag',
++            (n_clusters, n_features)             if 'diag',
+             (n_components, n_features, n_features) if 'full'
+ 
+     precisions_cholesky_ : array-like
+@@ -180,10 +180,10 @@
+         matrix is symmetric positive definite so the mixture of Gaussian can be
+         equivalently parametrized by the precision matrices. Storing the
+         Cholesky decomposition of the precision matrices makes it more efficient
+-        to compute the log-likelihood of new samples at test time. The shape
++        to compute the log-likelihood of new samples at test time. The shape
+         depends on `covariance_type`::
+-            (n_components,)                        if 'spherical',
+-            (n_features, n_features)               if 'tied',
++            (n_clusters,)                        if 'spherical',
++            (n_features, n_features)             if 'tied',
+             (n_components, n_features)             if 'diag',
+             (n_components, n_features, n_features) if 'full'
+ 
+@@ -193,10 +193,10 @@
+     converged_ : bool
+         True when convergence was reached in fit(), False otherwise.
+ 
+-    n_iter_ : int
++    n_iter_ : int
+         Number of step used by the best fit of inference to reach the convergence.
+ 
+-    lower_bound_ : float
++    lower_bound_ : float
+         Lower bound value on the model evidence (of the training data) of the best fit of inference.
+ 
+     weight_concentration_prior_ : tuple or float
+@@ -204,19 +204,19 @@
+         concentration parameter of the Dirichlet distribution. If weight_concentration_prior_type
+         is 'dirichlet_process', the value corresponds to the concentration parameter of
+         the Stick-breaking process.
+-    
++
+     weight_concentration_ : array-like, shape (n_components,)
+         The dirichlet concentration of each component on the weight distribution.
+ 
+-    mean_precision_prior_ : float
++    mean_precision_prior_ : float
+         The precision on the mean distribution (Gaussian).
+ 
+-    mean_precision_ : array-like, shape (n_components,)
++    mean_precision_ : array-like, shape (n_clusters,)
+         The precision of each components on the mean distribution (Gaussian).
+ 
+-    degrees_of_freedom_prior_ : float
++    degrees_of_freedom_prior_ : float
+         The prior of the number of degrees of freedom on the covariance distributions (Wishart).
+-    
++
+     degrees_of_freedom_ : array-like, shape (n_components,)
+         The number of degrees of freedom of each components in the model.
+ 
+@@ -224,13 +224,17 @@
+         The prior on the covariance distribution (Wishart). The shape depends on
+         `covariance_type`::
+             (n_features, n_features) if 'full',
+-            (n_features, n_features) if 'tied',
+-            (n_features)             if 'diag',
+-            (1,)                     if 'spherical'
++            (n_features, n_features) if 'tied'
++            (n_features,)            if 'diag'
++            float                    if 'spherical'
+ 
+-    covariance_prior_ : array-like
++    covariance_prior_ : array-like or float
+         The prior on the covariance distribution (Wishart).
+ 
++    labels_ : array, shape (n_samples,)
++        The labels for each data point in the data used to fit the model.
++        Stored only if `fit` is called.
++
+     See Also
+     --------
+     GaussianMixture : Finite Gaussian mixture model fitted with EM.
+@@ -244,12 +248,12 @@
+     >>> X = np.array([[1, 2], [1, 4], [1, 0], [4, 2], [4, 4], [4, 0]])
+     >>> bgm = BayesianGaussianMixture(n_components=2, random_state=42).fit(X)
+     >>> bgm.means_
+-    array([[ 4.0539...,  1.9918...],
+-           [ 0.9708...,  1.9991...]])
++    array([[4.0539..., 1.9918...],
++           [0.9708..., 1.9991...]])
+     >>> bgm.predict([[0, 0], [5, 5]])
+     array([1, 0])
+     """
+-    def __init__(self, n_components=1, covariance_type='full', tol=1e-3,
++    def __init__(self, n_clusters=1, covariance_type='full', tol=1e-3,
+                  reg_covar=1e-6, max_iter=100, n_init=1, init_params='kmeans',
+                  weight_concentration_prior_type='dirichlet_process',
+                  weight_concentration_prior=None,
+@@ -258,7 +262,7 @@
+                  covariance_prior=None, random_state=None, warm_start=False,
+                  verbose=0, verbose_interval=10):
+ 
+-        super().__init__(n_components=n_components, tol=tol, reg_covar=reg_covar,
++        super().__init__(n_clusters=n_clusters, tol=tol, reg_covar=reg_covar,
+                          max_iter=max_iter, n_init=n_init, init_params=init_params,
+                          random_state=random_state, warm_start=warm_start,
+                          verbose=verbose, verbose_interval=verbose_interval)
+@@ -275,7 +279,7 @@
+         self.covariance_prior = covariance_prior
+ 
+     def _check_parameters(self, X):
+-        """Check the parameters of the model
++        """Check the parameters of the model.
+ 
+         Parameters
+         ----------
+@@ -283,7 +287,7 @@
+             Array with shape (n_samples, n_features)
+         """
+         _check_shape(X, n_features=None)
+-        self._check_weights_init()
++        self._check_initial_parameters(X)
+         self._check_means_init(X)
+         self._check_precisions_init(X)
+         self._check_covariance_type()
+@@ -291,11 +295,11 @@
+         self._check_weight_concentration_prior_parameter()
+         self._check_mean_prior_parameter()
+         self._check_degrees_of_freedom_prior_parameter()
+-        self._check_covariance_prior_parameter(X)
++        self._check_covariance_prior_parameter(X) # Check covariance prior parameter
+ 
+     def _check_weights_init(self):
+         """Check the user provided 'weights_init' parameter."""
+-        if self.weights_init is not None:
++        if self.weights_init is None:
+             pass
+         elif self.init_params == "kmeans":
+             check_is_fitted(self, "weights_")
+@@ -303,10 +307,10 @@
+             check_is_fitted(self, "weights_")
+         else:
+             raise ValueError("The provided weights_init parameter is inconsistent: "
+-                             "must be None or an array-like of shape "
+-                             "(n_components,).")
++                             "must be None or an array-like of shape (n_clusters,).")
+ 
+     def _check_means_init(self, X):
++        """Check the user provided 'means_init' parameter."""
+         n_features = X.shape[1]
+         if self.means_init is None:
+             pass
+@@ -314,11 +318,11 @@
+             check_is_fitted(self, "means_")
+         else:
+             raise ValueError("The provided means_init parameter is inconsistent: "
+-                             "must be None or an array-like of shape "
+-                             "(n_components, n_features).")
++                             "must be None or an array-like of shape (n_clusters, n_features).")
+ 
+     def _check_precisions_init(self, X):
+         """Check the user provided 'precisions_init' parameter."""
++        # Check precisions init parameters versus the n_features and covariance_type
+         n_features = X.shape[1]
+         if self.precisions_init is None:
+             pass
+@@ -326,10 +330,10 @@
+             check_is_fitted(self, "precisions_cholesky_")
+         else:
+             raise ValueError("The provided precisions_init parameter is inconsistent: "
+-                             "must be None or an array-like of shape depending on "
++                             "must be None or an array-like of shape depending on "
+                              "covariance_type.")
+ 
+-    def _check_covariance_type(self):
++    def _check_covariance_type(self): # Check covariance type parameter
+         if self.covariance_type not in ['spherical', 'tied', 'diag', 'full']:
+             raise ValueError("Invalid value for 'covariance_type': %s "
+                              "'covariance_type' should be in "
+@@ -340,13 +344,13 @@
+         """Check the weight concentration prior parameters.
+ 
+         If weight_concentration_prior is None, it is set to 1. / n_components.
+-        """
++        """ # Check weight concentration prior type parameter
+         if self.weight_concentration_prior_type not in [
+                 'dirichlet_process', 'dirichlet_distribution']:
+             raise ValueError("Invalid value for "
+                              "'weight_concentration_prior_type': %s "
+                              "'weight_concentration_prior_type' should be in "
+-                             "['dirichlet_process', 'dirichlet_distribution']"
++                             "['dirichlet_process', 'dirichlet_distribution']",
+                              % self.weight_concentration_prior_type)
+ 
+         if self.weight_concentration_prior is None:
+@@ -354,7 +358,7 @@
+ 
+         if not isinstance(self.weight_concentration_prior, (float, tuple)) or \
+            (isinstance(self.weight_concentration_prior, float) and
+-               self.weight_concentration_prior <= 0.):
++            self.weight_concentration_prior <= 0.):
+             raise ValueError("The 'weight_concentration_prior' should be "
+                              "strictly positive (got %s)."
+                              % self.weight_concentration_prior)
+@@ -362,7 +366,7 @@
+         # Check the shape of the weight concentration prior for the dirichlet distribution
+         if (self.weight_concentration_prior_type == 'dirichlet_distribution' and
+             isinstance(self.weight_concentration_prior, tuple)):
+-            if len(self.weight_concentration_prior) != self.n_components:
++            if len(self.weight_concentration_prior) != self.n_clusters:
+                 raise ValueError("The 'weight_concentration_prior' should have "
+                                  "the same length as n_components (got %s)."
+                                  % self.weight_concentration_prior)
+@@ -370,7 +374,7 @@
+                 raise ValueError("The 'weight_concentration_prior' should be "
+                                  "strictly positive (got %s)."
+                                  % self.weight_concentration_prior)
+-    
++
+     def _check_mean_prior_parameter(self):
+         """Check the mean prior parameters."""
+         if self.mean_precision_prior is None:
+@@ -380,7 +384,7 @@
+             raise ValueError("The 'mean_precision_prior' should be "
+                              "strictly positive (got %s)."
+                              % self.mean_precision_prior)
+-    
++
+     def _check_degrees_of_freedom_prior_parameter(self):
+         """Check the prior parameters for the degrees of freedom parameter."""
+         if self.degrees_of_freedom_prior is None:
+@@ -390,11 +394,11 @@
+             raise ValueError("The 'degrees_of_freedom_prior' should be "
+                              "greater than the number of features "
+                              "(including the constant term if present) "
+-                             "(got %s)." % self.degrees_of_freedom_prior)
++                             "(got %s)." % self.degrees_of_freedom_prior) # Check degrees of freedom prior parameter
+ 
+     def _check_covariance_prior_parameter(self, X):
+         """Check the prior parameters for the covariance parameter."""
+-        n_features = X.shape[1]
++        _, n_features = X.shape
+ 
+         if self.covariance_prior is None:
+             self.covariance_prior_ = self.reg_covar * np.eye(n_features)
+@@ -402,7 +406,7 @@
+             self.covariance_prior_ = check_array(
+                 self.covariance_prior, (float, np.ndarray), ensure_2d=False)
+ 
+-        # Check the shape of the covariance prior
++        # Check the shape of the covariance prior # Check covariance prior parameter
+         if self.covariance_type == 'full':
+             if (self.covariance_prior_.ndim != 2 or
+                     self.covariance_prior_.shape != (n_features, n_features)):
+@@ -410,7 +414,7 @@
+                                  "(n_features, n_features) for covariance_type "
+                                  "'full' (got %s)." % self.covariance_prior_.shape)
+             _check_precision_positivity(self.covariance_prior_,
+-                                        self.covariance_type)
++                                        self.covariance_type) # Check covariance prior parameter
+         elif self.covariance_type == 'tied':
+             if (self.covariance_prior_.ndim != 2 or
+                     self.covariance_prior_.shape != (n_features, n_features)):
+@@ -418,7 +422,7 @@
+                                  "(n_features, n_features) for covariance_type "
+                                  "'tied' (got %s)." % self.covariance_prior_.shape)
+             _check_precision_positivity(self.covariance_prior_,
+-                                        self.covariance_type)
++                                        self.covariance_type) # Check covariance prior parameter
+         elif self.covariance_type == 'diag':
+             if self.covariance_prior_.ndim != 1 or self.covariance_prior_.shape[0] != n_features:
+                 raise ValueError("The 'covariance_prior' should have shape "
+@@ -426,7 +430,7 @@
+                                  "'diag' (got %s)." % self.covariance_prior_.shape)
+             if np.any(self.covariance_prior_ <= 0.):
+                 raise ValueError("The 'covariance_prior' should be positive.")
+-        elif self.covariance_type == 'spherical':
++        elif self.covariance_type == 'spherical': # Check covariance prior parameter
+             if self.covariance_prior_.ndim != 0:
+                 raise ValueError("The 'covariance_prior' should be a scalar "
+                                  "for covariance_type 'spherical' (got %s)."
+@@ -434,11 +438,11 @@
+             if self.covariance_prior_ <= 0.:
+                 raise ValueError("The 'covariance_prior' should be positive.")
+ 
+-    def _initialize_parameters(self, X, random_state):
++    def _initialize_parameters(self, X, random_state): # Initialize parameters
+         """Initialize the model parameters.
+ 
+         Parameters
+-        ----------
++        ---------- # Initialize parameters
+         X : array-like, shape (n_samples, n_features)
+ 
+         random_state : RandomState
+@@ -446,14 +450,14 @@
+             The random state.
+         """
+         n_samples, _ = X.shape
+-        
++
+         # Init the weights, means and precisions parameters
+         # if the user didn't provide them
+         if self.weights_init is None:
+             self.weights_ = np.full(self.n_clusters, 1. / self.n_clusters)
+         else:
+             self.weights_ = check_array(self.weights_init, (int, float),
+-                                        ensure_2d=False, ensure_min_samples=self.n_components,
++                                        ensure_2d=False, ensure_min_samples=self.n_clusters,
+                                         allow_nd=False)
+             if len(self.weights_) != self.n_clusters:
+                 raise ValueError("The 'weights_init' parameter should have shape "
+@@ -462,10 +466,10 @@
+             if not np.all(self.weights_ >= 0.):
+                 raise ValueError("The 'weights_init' parameter should be positive.")
+             if not np.isclose(np.sum(self.weights_), 1.):
+-                raise ValueError("The 'weights_init' parameter should sum to 1.")
++                raise ValueError("The 'weights_init' parameter should sum to 1.") # Initialize parameters
+ 
+         if self.means_init is None:
+-            self.means_ = np.empty((self.n_components, X.shape[1]))
++            self.means_ = np.empty((self.n_clusters, X.shape[1]))
+         else:
+             self.means_ = check_array(self.means_init, (int, float), ensure_2d=True,
+                                       allow_nd=False)
+@@ -473,11 +477,11 @@
+             if self.means_.shape[0] != self.n_clusters:
+                 raise ValueError("The 'means_init' parameter should have shape "
+                                  "(n_clusters, n_features).")
+-            if self.means_.shape[1] != X.shape[1]:
++            if self.means_.shape[1] != X.shape[1]: # Initialize parameters
+                 raise ValueError("The 'means_init' parameter should have shape "
+                                  "(n_clusters, n_features).")
+ 
+-        if self.precisions_init is None:
++        if self.precisions_init is None: # Initialize parameters
+             self.precisions_cholesky_ = _compute_precision_cholesky(
+                 np.array([np.cov(X.T) + self.reg_covar * np.eye(X.shape[1])
+                           for _ in range(self.n_clusters)]),
+@@ -486,7 +490,7 @@
+             self.precisions_cholesky_ = check_array(
+                 self.precisions_init, (int, float), ensure_2d=False, allow_nd=True)
+             _check_shape(self.precisions_cholesky_, self.covariance_type,
+-                         self.n_components)
++                         self.n_clusters)
+ 
+         # Initialize the variational parameters
+         # We compute the initial estimate of the parameters from the initial
+@@ -494,11 +498,11 @@
+         # responsibilities.
+         resp = np.random.rand(n_samples, self.n_clusters)
+         resp /= resp.sum(axis=1)[:, np.newaxis]
+-        self._initialize(X, resp, random_state)
++        self._initialize(X, resp, random_state) # Initialize parameters
+ 
+     def _initialize(self, X, resp, random_state):
+         """Initialization of the mixture parameters.
+-
++        # Initialize parameters
+         Parameters
+         ----------
+         X : array-like, shape (n_samples, n_features)
+@@ -510,11 +514,11 @@
+             The random state.
+         """
+         n_samples, n_features = X.shape
+-        
++
+         weights, means, covariances = _estimate_gaussian_parameters(
+             X, resp, self.reg_covar, self.covariance_type)
+         weights /= n_samples
+-        
++
+         self.weights_ = weights if self.weights_init is None else self.weights_
+         self.means_ = means if self.means_init is None else self.means_
+         self.covariances_ = covariances if self.precisions_init is None else \
+@@ -522,7 +526,7 @@
+                                            self.covariance_type)
+ 
+         # Update the parameters if the user provided values
+-        if self.weights_init is not None:
++        if self.weights_init is not None: # Initialize parameters
+             self.weights_ = check_array(self.weights_init, (int, float),
+                                         ensure_2d=False, ensure_min_samples=self.n_clusters,
+                                         allow_nd=False)
+@@ -530,7 +534,7 @@
+             self.means_ = check_array(self.means_init, (int, float), ensure_2d=True,
+                                       allow_nd=False)
+ 
+-        if self.precisions_init is not None:
++        if self.precisions_init is not None: # Initialize parameters
+             self.precisions_cholesky_ = check_array(
+                 self.precisions_init, (int, float), ensure_2d=False, allow_nd=True)
+             _check_shape(self.precisions_cholesky_, self.covariance_type,
+@@ -540,7 +544,7 @@
+         # degrees of freedom = n_features + 1
+         if self.degrees_of_freedom_prior is None:
+             self.degrees_of_freedom_prior_ = n_features
+-        else:
++        else: # Initialize parameters
+             self.degrees_of_freedom_prior_ = self.degrees_of_freedom_prior
+ 
+         # covariance_prior = reg_covar * eye(n_features)
+@@ -550,7 +554,7 @@
+         # Initialize the variational parameters
+         self.weight_concentration_ = np.empty(self.n_clusters)
+         self.mean_precision_ = np.empty(self.n_clusters)
+-        self.means_ = np.empty((self.n_components, n_features))
++        self.means_ = np.empty((self.n_clusters, n_features))
+         self.degrees_of_freedom_ = np.empty(self.n_clusters)
+         self.covariances_ = _estimate_gaussian_covariances(
+             resp, X, self.nk_, self.means_, self.reg_covar, self.covariance_type)
+@@ -560,7 +564,7 @@
+         # Update the parameters if the user provided values
+         if self.weights_init is not None:
+             self.weights_ = check_array(self.weights_init, (int, float),
+-                                        ensure_2d=False, ensure_min_samples=self.n_components,
++                                        ensure_2d=False, ensure_min_samples=self.n_clusters,
+                                         allow_nd=False)
+         if self.means_init is not None:
+             self.means_ = check_array(self.means_init, (int, float), ensure_2d=True,
+@@ -568,7 +572,7 @@
+         if self.precisions_init is not None:
+             self.precisions_cholesky_ = check_array(
+                 self.precisions_init, (int, float), ensure_2d=False, allow_nd=True)
+-            _check_shape(self.precisions_cholesky_, self.covariance_type, self.n_components)
++            _check_shape(self.precisions_cholesky_, self.covariance_type, self.n_clusters)
+ 
+         # Update the precisions parameters
+         self.precisions_ = _compute_precision_cholesky(
+@@ -576,7 +580,7 @@
+ 
+     def _m_step(self, X, log_resp):
+         """M step.
+-
++        # M step
+         Parameters
+         ----------
+         X : array-like, shape (n_samples, n_features)
+@@ -586,7 +590,7 @@
+             Logarithm of the posterior probabilities (or responsibilities) of
+             the point of each sample in X.
+         """
+-        n_samples, n_features = X.shape
++        n_samples, _ = X.shape
+         self.nk_, self.xk_, self.Sk_ = _estimate_gaussian_parameters(
+             X, np.exp(log_resp), self.reg_covar, self.covariance_type)
+ 
+@@ -602,7 +606,7 @@
+         self.degrees_of_freedom_ = self.degrees_of_freedom_prior_ + self.nk_
+         self.mean_precision_ = self.mean_precision_prior_ + self.nk_
+ 
+-        # Update the means and the covariances
++        # Update the means and the covariances # M step
+         if self.covariance_type == 'full':
+             self.covariances_ = np.empty(
+                 (self.n_clusters, n_features, n_features))
+@@ -612,7 +616,7 @@
+         elif self.covariance_type == 'diag':
+             self.covariances_ = np.empty((self.n_clusters, n_features))
+         elif self.covariance_type == 'spherical':
+-            self.covariances_ = np.empty(self.n_components)
++            self.covariances_ = np.empty(self.n_clusters)
+ 
+         for k in range(self.n_clusters):
+             diff = self.xk_[k] - self.mean_prior_
+@@ -620,7 +624,7 @@
+                 self.mean_precision_prior_ * self.nk_[k] /
+                 (self.mean_precision_prior_ + self.nk_[k])) * np.outer(diff, diff)
+             self.covariances_[k] = wishart_k + self.Sk_[k]
+-        
++
+         # Update the means
+         self.means_ = (self.mean_precision_prior_ * self.mean_prior_ +
+                        self.nk_[:, np.newaxis] * self.xk_) / self.mean_precision_[:, np.newaxis]
+@@ -631,7 +635,7 @@
+         # Update the weights parameter
+         if self.weight_concentration_prior_type == 'dirichlet_process':
+             # Equation (37) in Bishop's PRML book
+-            digamma_sum = digamma(self.weight_concentration_[0] +
++            digamma_sum = digamma(self.weight_concentration_[0] + # M step
+                                   self.weight_concentration_[1])
+             self.log_weights_ = (digamma(self.weight_concentration_[1]) - digamma_sum +
+                                  np.hstack((np.cumsum(digamma(self.weight_concentration_[0]) -
+@@ -642,7 +646,7 @@
+             self.log_weights_ = (digamma(self.weight_concentration_) -
+                                  digamma(np.sum(self.weight_concentration_)))
+ 
+-        # Update the cholesky decomposition of the precision matrices
++        # Update the cholesky decomposition of the precision matrices # M step
+         if self.covariance_type == 'full':
+             self.precisions_cholesky_ = np.empty(
+                 (self.n_clusters, n_features, n_features))
+@@ -652,7 +656,7 @@
+         elif self.covariance_type == 'diag':
+             self.precisions_cholesky_ = np.empty((self.n_clusters, n_features))
+         elif self.covariance_type == 'spherical':
+-            self.precisions_cholesky_ = np.empty(self.n_components)
++            self.precisions_cholesky_ = np.empty(self.n_clusters)
+ 
+         for k in range(self.n_clusters):
+             if self.covariance_type == 'full':
+@@ -667,7 +671,7 @@
+ 
+     def _e_step(self, X):
+         """E step.
+-
++        # E step
+         Parameters
+         ----------
+         X : array-like, shape (n_samples, n_features)
+@@ -677,7 +681,7 @@
+         -------
+         log_prob_norm : float
+             Mean of the logarithms of the probabilities of each sample in X
+-
++        # E step
+         log_responsibility : array, shape (n_samples, n_components)
+             Logarithm of the posterior probabilities (or responsibilities) of
+             the point of each sample in X.
+@@ -685,7 +689,7 @@
+         log_prob_norm, log_resp = self._estimate_log_prob_resp(X)
+         return np.mean(log_prob_norm), log_resp
+ 
+-    def _compute_lower_bound(self, log_resp, log_prob_norm):
++    def _compute_lower_bound(self, log_resp, log_prob_norm): # Compute lower bound
+         """Estimate the lower bound of the model evidence.
+ 
+         Parameters
+@@ -702,7 +706,7 @@
+             The lower

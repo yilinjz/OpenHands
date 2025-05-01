@@ -1,0 +1,28 @@
+```patch
+--- a/django/db/models/base.py
++++ b/django/db/models/base.py
+@@ -434,6 +434,16 @@
+         errors.extend(cls._check_local_fields(fields, 'indexes'))
+         return errors
+ 
++    @classmethod
++    def _check_constraints(cls):
++        """Check fields listed in constraints."""
++        errors = []
++        for constraint in cls._meta.constraints:
++            if isinstance(constraint, UniqueConstraint):
++                errors.extend(cls._check_local_fields(constraint.fields, "constraints"))
++        return errors
++
+     @classmethod
+     def _check_managers(cls, **kwargs):
+         """Perform all manager checks."""
+@@ -505,6 +515,7 @@
+         errors.extend(cls._check_ordering())
+         errors.extend(cls._check_unique_together())
+         errors.extend(cls._check_indexes(databases=kwargs.get('databases')))
++        errors.extend(cls._check_constraints())
+ 
+         # System checks for related fields. These checks are separated because
+         # related fields depend on the model being checked and the related
+```

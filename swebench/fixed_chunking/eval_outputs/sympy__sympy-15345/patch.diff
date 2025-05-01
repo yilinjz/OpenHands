@@ -1,0 +1,19 @@
+```patch
+--- a/sympy/printing/mathematica.py
++++ b/sympy/printing/mathematica.py
+@@ -100,6 +100,14 @@
+         #        return self._print(expr.args[0])
+         return "%s[%s]" % (fname, self._print_seq(expr.args))
+ 
++    def _print_Max(self, expr):
++        # Mathematica Max uses square brackets.
++        # The CodePrinter base class uses parentheses.
++        return self._print_Function(expr)
++
++    def _print_Min(self, expr):
++        # Mathematica Min uses square brackets.
++        return self._print_Function(expr)
+ 
+     def _print_Pow(self, expr, rational=False):
+         if expr.exp == S.Half and not rational:
+```

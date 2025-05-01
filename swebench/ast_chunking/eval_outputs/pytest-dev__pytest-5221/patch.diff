@@ -1,0 +1,36 @@
+```diff
+--- a/src/_pytest/python.py
++++ b/src/_pytest/python.py
+@@ -17,10 +17,11 @@
+ 15             return
+ 16         if verbose > 0:
+ 17             bestrel = get_best_relpath(fixture_def.func)
+-18             funcargspec = "{} -- {}".format(argname, bestrel)
++19             funcargspec = "{argname} [{scope}] -- {bestrel}".format(
++20                 argname=argname, scope=fixture_def.scope, bestrel=bestrel
++21             )
+ 19         else:
+-20             funcargspec = argname
+-21         tw.line(funcargspec, green=True)
++22             funcargspec = "{argname} [{scope}]".format(argname=argname, scope=fixture_def.scope)
++23         tw.line(funcargspec, green=True)
+ 22         fixture_doc = fixture_def.func.__doc__
+ 23         if fixture_doc:
+ 24             write_docstring(tw, fixture_doc)
+@@ -100,10 +101,11 @@
+ 41             continue
+ 42         if verbose > 0:
+ 43             funcargspec = "%s -- %s" % (argname, bestrel)
++44             funcargspec = "{argname} [{scope}] -- {bestrel}".format(
++45                 argname=argname, scope=fixturedef.scope, bestrel=bestrel
++46             )
+ 44         else:
+-45             funcargspec = argname
+-46         tw.line(funcargspec, green=True)
++47             funcargspec = "{argname} [{scope}]".format(argname=argname, scope=fixturedef.scope)
++48         tw.line(funcargspec, green=True)
+ 47         loc = getlocation(fixturedef.func, curdir)
+ 48         doc = fixturedef.func.__doc__ or ""
+ 49         if doc:
+
+```

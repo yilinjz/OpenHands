@@ -1,0 +1,15 @@
+```diff
+--- a/src/_pytest/terminal.py
++++ b/src/_pytest/terminal.py
+@@ -700,7 +700,8 @@
+             lineno = reprcrash.lineno
+             try:
+                 # Display path relative to startpath if possible.
+-                displaypath = str(path.relto(self.startpath))  # type: ignore[union-attr]
++                # Use os.path.relpath to prevent CWD influence (issue #6428)
++                displaypath = os.path.relpath(str(path), str(self.startpath))
+                 if self.config.getoption("short_test_summary"):
+                     displaypath = os.path.basename(displaypath)
+             except ValueError:
+
+```

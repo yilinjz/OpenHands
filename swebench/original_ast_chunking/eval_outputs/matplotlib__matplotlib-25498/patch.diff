@@ -1,0 +1,207 @@
+```patch
+--- a/lib/matplotlib/colorbar.py
++++ b/lib/matplotlib/colorbar.py
+@@ -1,5 +1,6 @@
+ import matplotlib as mpl
+ from matplotlib import _api, cbook, colors, cm, contour, ticker
++from matplotlib import scale as mscale
+ import matplotlib.artist as martist
+ import matplotlib.collections as collections
+ import matplotlib.lines as mlines
+@@ -24,6 +25,7 @@
+ 
+ _log = logging.getLogger(__name__)
+ 
++
+ class _ColorbarAxesLocator:
+     """Mixin to provide Axes locator for colorbar."""
+     def __init__(self, cbar):
+@@ -129,6 +131,7 @@
+         self.stale = True
+ 
+ 
++# Note: The Colorbar object inherits from ColorbarBase.
+ class Colorbar(ColorbarBase):
+     def __init__(self, ax, mappable=None, *, cmap=None, norm=None,
+                  alpha=None, values=None, boundaries=None,
+@@ -220,6 +223,10 @@
+         mappable.colorbar = self
+         mappable.colorbar_cid = mappable.callbacks.connect(
+             'changed', self.update_normal)
++        # Store the user-provided ticks and format in private attributes
++        # to check later if they should be reset when norm changes.
++        self._user_locator = ticks is not None
++        self._user_formatter = format is not None
+ 
+         location_orientation = _get_orientation_from_location(location)
+ 
+@@ -267,46 +274,18 @@
+             spine.set_visible(False)
+         self.outline = self.ax.spines['outline'] = _ColorbarSpine(self.ax)
+ 
+-        # Set up the default ticker and formatter.
+-        if isinstance(self.norm, colors.LogNorm):
+-            _log.debug('colorbar set locator to LogLocator')
+-            locator = ticker.LogLocator()
+-            formatter = ticker.LogFormatterSciNotation()
+-        elif isinstance(self.norm, colors.SymLogNorm):
+-            _log.debug('colorbar set locator to SymLogLocator')
+-            locator = ticker.SymLogLocator(linthresh=self.norm.linthresh,
+-                                           linscale=self.norm.linscale,
+-                                           base=self.norm.base)
+-            formatter = ticker.LogFormatterSciNotation(base=self.norm.base)
+-        elif isinstance(self.norm, colors.NoNorm):
+-            # Produce integer ticks labelling the color indices.
+-            locator = ticker.FixedLocator(np.arange(len(self.cmap.colors)),
+-                                          nbins=len(self.cmap.colors) + 1)
+-            formatter = ticker.FixedFormatter(np.arange(len(self.cmap.colors)))
+-        elif isinstance(self.norm, colors.BoundaryNorm):
+-            b = self.boundaries
+-            _log.debug('colorbar set locator to FixedLocator')
+-            locator = ticker.FixedLocator(b, nbins=10)
+-            formatter = ticker.FixedFormatter(["{:.3g}".format(x) for x in b])
+-        elif isinstance(self.norm, colors.CenteredNorm):
+-            _log.debug('colorbar set locator to MaxNLocator')
+-            # Make sure center is a tick
+-            locator = ticker.MaxNLocator(nbins=10, symmetric=True)
+-            formatter = ticker.ScalarFormatter()
+-        elif isinstance(self.norm, colors.TwoSlopeNorm):
+-            _log.debug('colorbar set locator to MaxNLocator')
+-            # Make sure center is a tick
+-            locator = ticker.MaxNLocator(nbins=10, symmetric=True)
+-            formatter = ticker.ScalarFormatter()
+-        # Other normalizations.
+-        else:
+-            # Default is MaxNLocator, unless ticks are None. In which case,
+-            # defaults are handled in ColorbarBase._process_values()
+-            _log.debug('colorbar set locator to MaxNLocator')
+-            locator = ticker.MaxNLocator()
+-            formatter = ticker.ScalarFormatter()
+-
+-        self.locator = ticks if ticks is not None else locator
+-        self.formatter = format if format is not None else formatter
++        # Set up the locator and formatter.
++        if not self._user_locator or not self._user_formatter:
++            dlocator, dformatter = self._get_default_locator_formatter()
++            if not self._user_locator:
++                self.locator = dlocator
++            if not self._user_formatter:
++                self.formatter = dformatter
++        # Apply user-provided locator/formatter if they exist.
++        if self._user_locator:
++            self.locator = ticks
++        if self._user_formatter:
++            self.formatter = format
+         # For ContourSet, override the default locator with FixedLocator
+         # using contour levels.
+         if isinstance(mappable, contour.ContourSet) and ticks is None:
+@@ -314,10 +293,6 @@
+             self.locator = ticker.FixedLocator(cs.levels, nbins=10)
+             self.formatter = ticker.FixedFormatter(cs.levels)
+ 
+-        # Store the user-provided ticks and format in private attributes
+-        self._user_locator = ticks is not None
+-        self._user_formatter = format is not None
+-
+         self.set_label(label, **kw)
+ 
+         # Dummy variable for determining if the mouse is currently dragging
+@@ -326,6 +301,57 @@
+ 
+         self._ticker = None  # Store the configured ticker instance.
+ 
++    def _get_default_locator_formatter(self):
++        """Determine the default locator and formatter for the colorbar."""
++        locator = None
++        formatter = None
++        # Set up the default ticker and formatter.
++        if isinstance(self.norm, colors.LogNorm):
++            _log.debug('colorbar set locator to LogLocator')
++            # Ensure base is handled correctly.
++            base = getattr(self.norm, 'base', 10)
++            locator = ticker.LogLocator(base=base)
++            formatter = ticker.LogFormatterSciNotation(base=base)
++        elif isinstance(self.norm, colors.SymLogNorm):
++            _log.debug('colorbar set locator to SymLogLocator')
++            locator = ticker.SymLogLocator(linthresh=self.norm.linthresh,
++                                           linscale=self.norm.linscale,
++                                           base=self.norm.base)
++            formatter = ticker.LogFormatterSciNotation(base=self.norm.base)
++        elif isinstance(self.norm, colors.NoNorm):
++            # Produce integer ticks labelling the color indices.
++            locator = ticker.FixedLocator(np.arange(len(self.cmap.colors)),
++                                          nbins=len(self.cmap.colors) + 1)
++            formatter = ticker.FixedFormatter(np.arange(len(self.cmap.colors)))
++        elif isinstance(self.norm, colors.BoundaryNorm):
++            b = self.boundaries
++            _log.debug('colorbar set locator to FixedLocator')
++            locator = ticker.FixedLocator(b, nbins=10)
++            # Use StrMethodFormatter for auto-formatting that respects precision.
++            formatter = ticker.StrMethodFormatter("{x:.3g}")
++        elif isinstance(self.norm, colors.CenteredNorm):
++            _log.debug('colorbar set locator to MaxNLocator')
++            # Make sure center is a tick
++            locator = ticker.MaxNLocator(nbins=10, symmetric=True)
++            formatter = ticker.ScalarFormatter(useMathText=True)
++        elif isinstance(self.norm, colors.TwoSlopeNorm):
++            _log.debug('colorbar set locator to MaxNLocator')
++            # Make sure center is a tick
++            locator = ticker.MaxNLocator(nbins=10, symmetric=True)
++            formatter = ticker.ScalarFormatter(useMathText=True)
++        # Other normalizations.
++        else:
++            _log.debug('colorbar set locator to MaxNLocator')
++            locator = ticker.MaxNLocator()
++            formatter = ticker.ScalarFormatter(useMathText=True)
++
++        # For ContourSet, override the default locator/formatter if levels exist.
++        if isinstance(self.mappable, contour.ContourSet):
++            cs = self.mappable
++            if cs.levels is not None:
++                locator = ticker.FixedLocator(cs.levels, nbins=10)
++                formatter = ticker.StrMethodFormatter("{x:.3g}")
++
++        return locator, formatter
++
+     @property
+     def locator(self):
+         if self._ticker is None:
+@@ -937,11 +963,55 @@
+         self.stale = True
+ 
+     def update_normal(self, mappable):
+-        """Update the colormapping normalization."""
+-        # We need to update the norm limits via the mappable.
+-        # Calling autoscale_None is the easiest way to do this.
+-        self.mappable.autoscale_None()
+-        # Update the ticks and ticklabels.
++        """
++        Update the colormapping normalization and scales.
++
++        This is called when the mappable notifies a change via the 'changed'
++        signal. It ensures the colorbar reflects the mappable's current
++        norm and cmap, autoscales the norm based on the mappable's data,
++        updates boundaries for discrete norms, and resets ticks/formatters
++        to defaults if the norm/cmap changed (unless the user specified them).
++        """
++        _api.check_isinstance(cm.ScalarMappable, mappable=mappable)
++        if self.mappable is not mappable:
++            # This should not happen if the callback is installed correctly
++            _log.warning("update_normal received call from non-associated mappable")
++            return
++
++        norm_changed = self.norm is not mappable.norm
++        cmap_changed = self.cmap is not mappable.cmap
++
++        # Update the colorbar's norm and cmap references.
++        self.norm = mappable.norm
++        self.cmap = mappable.cmap
++
++        # Ensure the norm has valid limits based on the mappable's data.
++        # This handles both norm changes and data changes in the mappable.
++        # Crucially, this autoscales the *new* norm if norm_changed is True.
++        if self.mappable.get_array() is not None:
++            # Use autoscale_None to avoid overriding potential user-set limits
++            # unless they were None.
++            self.norm.autoscale_None(self.mappable.get_array())
++

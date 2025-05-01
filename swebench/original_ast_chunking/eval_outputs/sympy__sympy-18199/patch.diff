@@ -1,0 +1,43 @@
+```patch
+--- a/sympy/ntheory/residue_ntheory.py
++++ b/sympy/ntheory/residue_ntheory.py
+@@ -1,4 +1,5 @@
+ from sympy.core.numbers import igcdex, as_int
++from sympy.ntheory.primetest import isprime
+ from sympy.ntheory.factor_ import factorint, trailing, multiplicity, \
+     primitive_root, totient, is_primitive_root
+ from sympy.ntheory.generate import nextprime
+@@ -22,8 +23,16 @@
+     >>> nthroot_mod(11, 4, 19, True)
+     [8, 11]
+     >>> nthroot_mod(68, 3, 109)
+-    23
++    23
++    >>> nthroot_mod(0, 3, 7) # Check a=0 case
++    0
++    >>> nthroot_mod(49, 5, 7) # Check a divisible by p case
++    0
++    >>> nthroot_mod(0, 3, 7, True)
++    [0]
++    >>> nthroot_mod(49, 5, 7, True)
++    [0]
+     """
+-    from sympy.core.numbers import igcdex
+     a, n, p = as_int(a), as_int(n), as_int(p)
+     if n == 2:
+         return sqrt_mod(a, p, all_roots)
+@@ -31,6 +40,13 @@
+     if not is_nthpow_residue(a, n, p):
+         return None
+     if not isprime(p):
++        # Handle the trivial case x**n = 0 mod p
++        # This check needs to be after is_nthpow_residue for composite p
++        # because is_nthpow_residue handles the logic for composite modulus.
++        if a % p == 0:
++            if all_roots: return [0]
++            else: return 0
++
+         raise NotImplementedError("Not implemented for composite p")
+ 
+     if (p - 1) % n == 0:
+```

@@ -1,0 +1,71 @@
+```patch
+--- a/django/templatetags/static.py
++++ b/django/templatetags/static.py
+@@ -1,10 +1,21 @@
++from urllib.parse import quote, urljoin
++
++from django.apps import apps
++from django.conf import settings
++from django import template
++from django.utils.html import conditional_escape
++try:
++    from django.contrib.staticfiles.storage import staticfiles_storage
++    HAS_STATICFILES = True
++except ImportError:
++    HAS_STATICFILES = False
+
+- [start of django/templatetags/static.py]
+-0 class StaticNode(template.Node):
+-1     def __init__(self, varname=None, path=None):
+-2         if path is None:
+-3             raise template.TemplateSyntaxError(
+-4                 "Static template nodes must be given a path to return.")
+-5         self.path = path
+-6         self.varname = varname
+-7
+-8     def url(self, context):
+-9         path = self.path.resolve(context)
+-10         return self.handle_simple(path)
+-11
+-12     def render(self, context):
+-13         url = self.url(context)
+-14         if context.autoescape:
+-15             url = conditional_escape(url)
+-16         if self.varname is None:
+-17             return url
+-18         context[self.varname] = url
+-19         return ''
+-20
+-21     @classmethod
+-22     def handle_simple(cls, path):
+-23         if apps.is_installed('django.contrib.staticfiles'):
+-24             from django.contrib.staticfiles.storage import staticfiles_storage
+-25             return staticfiles_storage.url(path)
+-26         else:
+-27             return urljoin(PrefixNode.handle_simple("STATIC_URL"), quote(path))
+-28
+-29     @classmethod
+-30     def handle_token(cls, parser, token):
+-31         """
+-32         Class method to parse prefix node and return a Node.
+-33         """
+-34         bits = token.split_contents()
+-35
+-36         if len(bits) < 2:
+-37             raise template.TemplateSyntaxError(
+-38                 "'%s' takes at least one argument (path to file)" % bits[0])
+-39
+-40         path = parser.compile_filter(bits[1])
+-41
+-42         if len(bits) >= 2 and bits[-2] == 'as':
+-43             varname = bits[3]
+-44         else:
+-45             varname = None
+-46
+-47         return cls(varname, path)
+-48
+-49
+-50 @register.tag('static')
+-51 def do_static(parser, token):
+-52     """
+-

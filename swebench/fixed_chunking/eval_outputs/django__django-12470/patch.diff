@@ -1,0 +1,32 @@
+```patch
+--- a/django/db/models/options.py
++++ b/django/db/models/options.py
+@@ -36,6 +36,27 @@
+         else:
+             self.order_with_respect_to = None
+ 
++        # If the ordering refers to the primary key and the primary key is
++        # inherited from a parent model, update the ordering to refer explicitly
++        # to the parent primary key field. This prevents the ordering logic
++        # from resolving the child's PK name (e.g., parent_ptr) incorrectly
++        # in the context of the Meta.ordering defined on the parent.
++        if self.ordering and self.pk and self.parents and self.pk in self.parents.values():
++            # The PK field is a pointer to a parent model.
++            # Get the name of the actual primary key field on the parent model.
++            parent_pk_name = self.pk.remote_field.get_related_field().name
++            new_ordering = []
++            for item in self.ordering:
++                if isinstance(item, str):
++                    prefix = '-' if item.startswith('-') else ''
++                    field_name = item[len(prefix):]
++                    if field_name == 'pk':
++                        # Replace 'pk' with the actual parent PK field name.
++                        new_ordering.append(prefix + parent_pk_name)
++                        continue
++                new_ordering.append(item)
++            self.ordering = new_ordering
++
+         if self.pk is None:
+             if self.parents:
+                 # Promote the first parent link in lieu of adding yet another
+```

@@ -1,0 +1,27 @@
+```patch
+--- a/django/db/models/query_utils.py
++++ b/django/db/models/query_utils.py
+@@ -1,5 +1,4 @@
+ import copy
+-import functools
+ from collections import namedtuple
+ from concurrent.futures import Future
+ 
+@@ -11,7 +10,14 @@
+     conditional = True
+ 
+     def __init__(self, *args, _connector=None, _negated=False, **kwargs):
+-        super().__init__(children=[*args, *sorted(kwargs.items())], connector=_connector, negated=_negated)
++        # Convert dict view objects to lists to avoid pickle errors with deepcopy.
++        # Refs #34163.
++        view_types = (type({}.keys()), type({}.values()))
++        processed_kwargs = []
++        for key, value in kwargs.items():
++            if isinstance(value, view_types):
++                value = list(value)
++            processed_kwargs.append((key, value))
++        super().__init__(children=[*args, *sorted(processed_kwargs)], connector=_connector, negated=_negated)
+ 
+     def _combine(self, other, conn):
+         if not isinstance(other, Q):
+```

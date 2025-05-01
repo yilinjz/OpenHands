@@ -1,0 +1,14 @@
+```patch
+--- a/django/db/migrations/autodetector.py
++++ b/django/db/migrations/autodetector.py
+@@ -150,8 +150,8 @@
+         self._detect_unique_together_changes()
+         self._detect_index_together_changes()
+         self._detect_constraints_changes()
++        self._detect_alter_order_with_respect_to_changes()
+         self._detect_index_changes()
+-        self._detect_alter_order_with_respect_to_changes()
+         self._detect_alter_db_table_changes()
+         self._detect_alter_db_table_comment_changes()
+         self._detect_alter_managed_changes()
+```

@@ -1,0 +1,63 @@
+2025-04-30 20:17:52,797 - INFO - Creating container for pytest-dev__pytest-8365...
+2025-04-30 20:17:52,826 - INFO - Container for pytest-dev__pytest-8365 created: 05e0de01e6fde70c3c5c7ca93b126d228e54ed5010faae7ebd8436ca2516947f
+2025-04-30 20:17:53,108 - INFO - Container for pytest-dev__pytest-8365 started: 05e0de01e6fde70c3c5c7ca93b126d228e54ed5010faae7ebd8436ca2516947f
+2025-04-30 20:17:53,108 - INFO - Intermediate patch for pytest-dev__pytest-8365 written to logs/run_evaluation/20250430_200121/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/pytest-dev__pytest-8365/patch.diff, now applying to container...
+2025-04-30 20:17:53,222 - INFO - >>>>> Applied Patch:
+Checking patch src/_pytest/tmpdir.py...
+Hunk #1 succeeded at 101 (offset -9 lines).
+Hunk #2 succeeded at 113 (offset -9 lines).
+Applied patch src/_pytest/tmpdir.py cleanly.
+
+2025-04-30 20:17:53,397 - INFO - Git diff before:
+diff --git a/src/_pytest/tmpdir.py b/src/_pytest/tmpdir.py
+index 29c7e19d7..31925edc2 100644
+--- a/src/_pytest/tmpdir.py
++++ b/src/_pytest/tmpdir.py
+@@ -101,6 +101,7 @@ class TempPathFactory:
+ 
+     def getbasetemp(self) -> Path:
+         """Return base temporary directory."""
++        import re
+         if self._basetemp is not None:
+             return self._basetemp
+ 
+@@ -112,6 +113,8 @@ class TempPathFactory:
+             from_env = os.environ.get("PYTEST_DEBUG_TEMPROOT")
+             temproot = Path(from_env or tempfile.gettempdir()).resolve()
+             user = get_user() or "unknown"
++            # Sanitize user name for path creation (similar to how node names are sanitized)
++            user = re.sub(r"[\W]", "_", user)
+             # use a sub-directory in the temproot to speed-up
+             # make_numbered_dir() call
+             rootdir = temproot.joinpath(f"pytest-of-{user}")
+2025-04-30 20:17:53,398 - INFO - Eval script for pytest-dev__pytest-8365 written to logs/run_evaluation/20250430_200121/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/pytest-dev__pytest-8365/eval.sh; copying to container...
+2025-04-30 20:18:02,044 - INFO - Test runtime: 8.59 seconds
+2025-04-30 20:18:02,044 - INFO - Test output for pytest-dev__pytest-8365 written to logs/run_evaluation/20250430_200121/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/pytest-dev__pytest-8365/test_output.txt
+2025-04-30 20:18:02,117 - INFO - Git diff after:
+diff --git a/src/_pytest/tmpdir.py b/src/_pytest/tmpdir.py
+index 29c7e19d7..31925edc2 100644
+--- a/src/_pytest/tmpdir.py
++++ b/src/_pytest/tmpdir.py
+@@ -101,6 +101,7 @@ class TempPathFactory:
+ 
+     def getbasetemp(self) -> Path:
+         """Return base temporary directory."""
++        import re
+         if self._basetemp is not None:
+             return self._basetemp
+ 
+@@ -112,6 +113,8 @@ class TempPathFactory:
+             from_env = os.environ.get("PYTEST_DEBUG_TEMPROOT")
+             temproot = Path(from_env or tempfile.gettempdir()).resolve()
+             user = get_user() or "unknown"
++            # Sanitize user name for path creation (similar to how node names are sanitized)
++            user = re.sub(r"[\W]", "_", user)
+             # use a sub-directory in the temproot to speed-up
+             # make_numbered_dir() call
+             rootdir = temproot.joinpath(f"pytest-of-{user}")
+2025-04-30 20:18:02,117 - INFO - Grading answer for pytest-dev__pytest-8365...
+2025-04-30 20:18:02,119 - INFO - report: {'pytest-dev__pytest-8365': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['testing/test_tmpdir.py::test_tmp_path_factory_handles_invalid_dir_characters']}, 'PASS_TO_PASS': {'success': ['testing/test_tmpdir.py::TestTempdirHandler::test_mktemp', 'testing/test_tmpdir.py::TestTempdirHandler::test_tmppath_relative_basetemp_absolute', 'testing/test_tmpdir.py::test_get_user_uid_not_found', 'testing/test_tmpdir.py::TestNumberedDir::test_make', 'testing/test_tmpdir.py::TestNumberedDir::test_cleanup_lock_create', 'testing/test_tmpdir.py::TestNumberedDir::test_lock_register_cleanup_removal', 'testing/test_tmpdir.py::TestNumberedDir::test_cleanup_keep', 'testing/test_tmpdir.py::TestNumberedDir::test_cleanup_locked', 'testing/test_tmpdir.py::TestNumberedDir::test_cleanup_ignores_symlink', 'testing/test_tmpdir.py::TestNumberedDir::test_removal_accepts_lock', 'testing/test_tmpdir.py::TestRmRf::test_rm_rf', 'testing/test_tmpdir.py::TestRmRf::test_rm_rf_with_read_only_file', 'testing/test_tmpdir.py::TestRmRf::test_rm_rf_with_read_only_directory', 'testing/test_tmpdir.py::TestRmRf::test_on_rm_rf_error', 'testing/test_tmpdir.py::test_tmpdir_equals_tmp_path', 'testing/test_tmpdir.py::test_tmpdir_fixture', 'testing/test_tmpdir.py::TestConfigTmpdir::test_getbasetemp_custom_removes_old', 'testing/test_tmpdir.py::test_mktemp[mypath-True]', 'testing/test_tmpdir.py::test_mktemp[/mypath1-False]', 'testing/test_tmpdir.py::test_mktemp[./mypath1-True]', 'testing/test_tmpdir.py::test_mktemp[../mypath3-False]', 'testing/test_tmpdir.py::test_mktemp[../../mypath4-False]', 'testing/test_tmpdir.py::test_mktemp[mypath5/..-False]', 'testing/test_tmpdir.py::test_mktemp[mypath6/../mypath6-True]', 'testing/test_tmpdir.py::test_mktemp[mypath7/../mypath7/..-False]', 'testing/test_tmpdir.py::test_tmpdir_always_is_realpath', 'testing/test_tmpdir.py::test_tmp_path_always_is_realpath', 'testing/test_tmpdir.py::test_tmpdir_too_long_on_parametrization', 'testing/test_tmpdir.py::test_tmpdir_factory', 'testing/test_tmpdir.py::test_tmpdir_fallback_tox_env', 'testing/test_tmpdir.py::test_tmpdir_fallback_uid_not_found', 'testing/test_tmpdir.py::test_basetemp_with_read_only_files'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for pytest-dev__pytest-8365: resolved: False
+2025-04-30 20:18:02,119 - INFO - Attempting to stop container sweb.eval.pytest-dev__pytest-8365.20250430_200121...
+2025-04-30 20:18:17,387 - INFO - Attempting to remove container sweb.eval.pytest-dev__pytest-8365.20250430_200121...
+2025-04-30 20:18:17,419 - INFO - Container sweb.eval.pytest-dev__pytest-8365.20250430_200121 removed.

@@ -1,0 +1,67 @@
+2025-04-30 20:05:14,276 - INFO - Creating container for django__django-12983...
+2025-04-30 20:05:14,311 - INFO - Container for django__django-12983 created: 144a1d49e7f6752a3d71f4e109c30303b840f11011bc1fdce8d9824c7d77932a
+2025-04-30 20:05:14,706 - INFO - Container for django__django-12983 started: 144a1d49e7f6752a3d71f4e109c30303b840f11011bc1fdce8d9824c7d77932a
+2025-04-30 20:05:14,706 - INFO - Intermediate patch for django__django-12983 written to logs/run_evaluation/20250430_200121/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/django__django-12983/patch.diff, now applying to container...
+2025-04-30 20:05:14,863 - INFO - Failed to apply patch to container: git apply --verbose
+2025-04-30 20:05:14,922 - INFO - Failed to apply patch to container: git apply --verbose --reject
+2025-04-30 20:05:14,984 - INFO - >>>>> Applied Patch:
+patching file django/utils/text.py
+Hunk #1 succeeded at 393 with fuzz 3 (offset 392 lines).
+
+2025-04-30 20:05:16,282 - INFO - Git diff before:
+diff --git a/django/utils/text.py b/django/utils/text.py
+index fb5f6298c4..e9bb8e0f08 100644
+--- a/django/utils/text.py
++++ b/django/utils/text.py
+@@ -393,16 +393,16 @@ def unescape_string_literal(s):
+ @keep_lazy_text
+ def slugify(value, allow_unicode=False):
+     """
+-    Convert to ASCII if 'allow_unicode' is False. Convert spaces to hyphens.
+-    Remove characters that aren't alphanumerics, underscores, or hyphens.
+-    Convert to lowercase. Also strip leading and trailing whitespace.
++    Convert to ASCII if 'allow_unicode' is False. Convert spaces, underscores
++    and consecutive hyphens to single hyphens. Remove characters that aren't
++    alphanumerics or hyphens. Convert to lowercase. Also strip leading/trailing
++    whitespace and hyphens.
+     """
+     value = str(value)
+     if allow_unicode:
+         value = unicodedata.normalize('NFKC', value)
+     else:
+         value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore').decode('ascii')
+-    value = re.sub(r'[^\w\s-]', '', value.lower()).strip()
+     return re.sub(r'[-\s]+', '-', value)
+2025-04-30 20:05:16,282 - INFO - Eval script for django__django-12983 written to logs/run_evaluation/20250430_200121/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/django__django-12983/eval.sh; copying to container...
+2025-04-30 20:05:25,416 - INFO - Test runtime: 9.08 seconds
+2025-04-30 20:05:25,417 - INFO - Test output for django__django-12983 written to logs/run_evaluation/20250430_200121/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/django__django-12983/test_output.txt
+2025-04-30 20:05:25,487 - INFO - Git diff after:
+diff --git a/django/utils/text.py b/django/utils/text.py
+index fb5f6298c4..e9bb8e0f08 100644
+--- a/django/utils/text.py
++++ b/django/utils/text.py
+@@ -393,16 +393,16 @@ def unescape_string_literal(s):
+ @keep_lazy_text
+ def slugify(value, allow_unicode=False):
+     """
+-    Convert to ASCII if 'allow_unicode' is False. Convert spaces to hyphens.
+-    Remove characters that aren't alphanumerics, underscores, or hyphens.
+-    Convert to lowercase. Also strip leading and trailing whitespace.
++    Convert to ASCII if 'allow_unicode' is False. Convert spaces, underscores
++    and consecutive hyphens to single hyphens. Remove characters that aren't
++    alphanumerics or hyphens. Convert to lowercase. Also strip leading/trailing
++    whitespace and hyphens.
+     """
+     value = str(value)
+     if allow_unicode:
+         value = unicodedata.normalize('NFKC', value)
+     else:
+         value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore').decode('ascii')
+-    value = re.sub(r'[^\w\s-]', '', value.lower()).strip()
+     return re.sub(r'[-\s]+', '-', value)
+2025-04-30 20:05:25,487 - INFO - Grading answer for django__django-12983...
+2025-04-30 20:05:25,487 - INFO - report: {'django__django-12983': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_slugify (utils_tests.test_text.TestUtilsText)']}, 'PASS_TO_PASS': {'success': ['test_compress_sequence (utils_tests.test_text.TestUtilsText)', 'test_format_lazy (utils_tests.test_text.TestUtilsText)', 'test_get_text_list (utils_tests.test_text.TestUtilsText)', 'test_get_valid_filename (utils_tests.test_text.TestUtilsText)', 'test_normalize_newlines (utils_tests.test_text.TestUtilsText)', 'test_phone2numeric (utils_tests.test_text.TestUtilsText)', 'test_smart_split (utils_tests.test_text.TestUtilsText)', 'test_truncate_chars (utils_tests.test_text.TestUtilsText)', 'test_truncate_chars_html (utils_tests.test_text.TestUtilsText)', 'test_truncate_html_words (utils_tests.test_text.TestUtilsText)', 'test_truncate_words (utils_tests.test_text.TestUtilsText)', 'test_unescape_entities (utils_tests.test_text.TestUtilsText)', 'test_unescape_entities_deprecated (utils_tests.test_text.TestUtilsText)', 'test_unescape_string_literal (utils_tests.test_text.TestUtilsText)', 'test_wrap (utils_tests.test_text.TestUtilsText)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-12983: resolved: False
+2025-04-30 20:05:25,488 - INFO - Attempting to stop container sweb.eval.django__django-12983.20250430_200121...
+2025-04-30 20:05:40,765 - INFO - Attempting to remove container sweb.eval.django__django-12983.20250430_200121...
+2025-04-30 20:05:40,800 - INFO - Container sweb.eval.django__django-12983.20250430_200121 removed.

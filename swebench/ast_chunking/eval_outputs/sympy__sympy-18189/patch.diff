@@ -1,0 +1,32 @@
+```patch
+--- a/sympy/solvers/diophantine.py
++++ b/sympy/solvers/diophantine.py
+@@ -1,5 +1,6 @@
+ from collections.abc import Iterable
+ 
++from sympy.utilities.misc import filldedent
+ from sympy.core import Add, Mul, Pow, Symbol, symbols, sympify, Integer, Rational
+ from sympy.core.compatibility import is_sequence
+ from sympy.core.exprtools import factor_terms
+@@ -17,10 +18,13 @@
+                  raise TypeError(
+                      'syms should be given as a sequence, e.g. a list')
+              syms = [i for i in syms if i in var]
+-             if syms != var:
+-                 dict_sym_index = dict(zip(syms, range(len(syms))))
+-                 return {tuple([t[dict_sym_index[i]] for i in var])
+-                             for t in diophantine(eq, param)}
++             # If syms is given, use it to order the results.
++             # Solve with the default variable order first.
++             if set(syms) != set(var):
++                 # Ensure all variables are present, raise error if not.
++                 raise ValueError(filldedent(f"syms {syms} must contain all variables {var}"))
++             if list(syms) != var: # Check if the order is different
++                 var_map = dict(zip(var, range(len(var)))) # Map default-ordered vars to indices
++                 solutions_default_order = diophantine(eq, param, permute=permute) # Solve with default order, pass permute
++                 return {tuple(t[var_map[s]] for s in syms) for t in solutions_default_order} # Reorder results
+          n, d = eq.as_numer_denom()
+          if n.is_number:
+              return set()
+
+```

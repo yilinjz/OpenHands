@@ -1,0 +1,19 @@
+```patch
+--- a/sympy/utilities/lambdify.py
++++ b/sympy/utilities/lambdify.py
+@@ -46,8 +46,12 @@
+ 
+         try:
+             expr = sympify(expr).xreplace(dummies_dict)
+-        except Exception:
+-            if isinstance(expr, DeferredVector):
++        except Exception: # xreplace might fail for e.g. MatrixSymbols with names like '{M}'
++            # If xreplace failed, check if expr itself is in the dict, and substitute
++            if expr in dummies_dict:
++                 return dummies_dict[expr]
++
++            if isinstance(expr, DeferredVector): # Or other known non-mappable types
+                 pass
+             elif isinstance(expr, dict):
+                 k = [self._subexpr(sympify(a), dummies_dict) for a in expr.keys()]
+```

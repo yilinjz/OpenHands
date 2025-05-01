@@ -1,0 +1,31 @@
+```patch
+--- a/requests/hooks.py
++++ b/requests/hooks.py
+@@ -36,13 +36,18 @@
+ 
+     if key in hooks:
+         hooks = hooks.get(key)
+-
++        
++        # Flatten list if it's a list containing a single list.
++        # This condition occurs if Request.__init__ incorrectly
++        # wraps hooks specified as lists.
++        if isinstance(hooks, list) and len(hooks) == 1 and isinstance(hooks[0], list):
++            hooks = hooks[0]
++            
+         if hasattr(hooks, '__call__'):
+             hooks = [hooks]
+ 
+-        for hook in hooks:
+-            _hook_data = hook(hook_data)
+-            if _hook_data is not None:
+-                hook_data = _hook_data
++        if isinstance(hooks, list):
++            for hook in hooks:
++                _hook_data = hook(hook_data)
++                if _hook_data is not None:
++                    hook_data = _hook_data
+ 
+ 
+     return hook_data
+```

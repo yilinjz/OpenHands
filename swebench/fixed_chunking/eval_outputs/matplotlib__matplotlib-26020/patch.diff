@@ -1,0 +1,65 @@
+```patch
+--- a/lib/mpl_toolkits/axes_grid1/axes_grid.py
++++ b/lib/mpl_toolkits/axes_grid1/axes_grid.py
+@@ -3,6 +3,7 @@
+ from matplotlib import ticker
+
+ from . import axes_divider
++from . import mpl_axes  # For isinstance check in _tick_only
+ from .mpl_axes import Axes  # Default axes class
+
+
+@@ -20,17 +21,34 @@
+     return ax
+
+
+-def _tick_only(ax, bottom_on, left_on):
++def _tick_only(ax, bottom_on, left_on):
+     # A helper function to make axes only draw ticks and ticklabels without
+     # the axes spines.
++    # This is tricky as the implementation depends on the axes class.
++    # - For mpl_toolkits.axes_grid1.mpl_axes.Axes, ax.axis is a dict-like
++    #   object mapping {"left", "bottom", "right", "top"} to AxisArtist
++    #   instances.
++    # - For standard matplotlib.axes.Axes (and subclasses like GeoAxes),
++    #   ax.axis is a method, and control is via ax.xaxis, ax.yaxis, ax.spines.
+
+     bottom_off = not bottom_on
+     left_off = not left_on
+
+-    # Calling ax.axis('off') hides all spines, ticks, ticklabels and labels.
+-    # We need to turn spines off, and ticks, ticklabels, and labels on or off
+-    # selectively.
+-    # ax.axis["left"] is the Y axis, ax.axis["bottom"] is the X axis
+-    ax.axis["left"].toggle(ticklabels=left_off, label=left_off)
+-    ax.axis["bottom"].toggle(ticklabels=bottom_off, label=bottom_off)
+-    ax.axis["right"].set_visible(False)
+-    ax.axis["top"].set_visible(False)
++    if isinstance(ax, mpl_axes.Axes):
++        # Original behavior for axes_grid1 internal axes using AxisDict
++        # ax.axis["left"] is the Y axis, ax.axis["bottom"] is the X axis
++        ax.axis["left"].toggle(ticklabels=left_off, label=left_off)
++        ax.axis["bottom"].toggle(ticklabels=bottom_off, label=bottom_off)
++        ax.axis["right"].set_visible(False)
++        ax.axis["top"].set_visible(False)
++    else:
++        # Fallback for standard matplotlib axes and subclasses (like GeoAxes)
++        # Hide top and right axes elements completely
++        ax.spines['right'].set_visible(False)
++        ax.spines['top'].set_visible(False)
++        ax.xaxis.set_ticks_position('bottom')  # Ensure ticks are only on bottom
++        ax.yaxis.set_ticks_position('left')    # Ensure ticks are only on left
++        ax.xaxis.set_tick_params(which='both', top=False, labeltop=False)
++        ax.yaxis.set_tick_params(which='both', right=False, labelright=False)
++        # Control bottom axis elements (spine, ticks, tick labels, axis label)
++        ax.spines['bottom'].set_visible(bottom_on)
++        ax.xaxis.set_tick_params(which='both', bottom=bottom_on, labelbottom=bottom_on)
++        ax.xaxis.label.set_visible(bottom_on)
++        # Control left axis elements (spine, ticks, tick labels, axis label)
++        ax.spines['left'].set_visible(left_on)
++        ax.yaxis.set_tick_params(which='both', left=left_on, labelleft=left_on)
++        ax.yaxis.label.set_visible(left_on)
+
+
+ class Grid:
+```

@@ -1,0 +1,72 @@
+```patch
+--- a/django/db/migrations/serializer.py
++++ b/django/db/migrations/serializer.py
+@@ -1,10 +1,11 @@
++import builtins
+ import collections.abc
+ import datetime
+ import decimal
++import enum
+ import functools
+ import math
+ import os
+-import pathlib
+ import re
+ import types
+ import uuid
+@@ -12,6 +13,7 @@
+ from django.conf import SettingsReference
+ from django.db import models
+ from django.db.migrations.operations.base import Operation
++import pathlib
+ from django.db.migrations.utils import COMPILED_REGEX_TYPE, RegexObject
+ from django.utils.functional import LazyObject, Promise
+ from django.utils.version import get_docs_version
+@@ -71,3 +73,40 @@
+         imports = ["import datetime"]
+         return repr(self.value), set(imports)
+ 
++
++class EnumSerializer(BaseSerializer):
++    def serialize(self):
++        enum_type = type(self.value)
++        module = enum_type.__module__
++        imports = set()
++
++        # Handle enums defined directly in the 'enum' or 'builtins' module.
++        if module in (enum.__name__, builtins.__name__):
++            # We can't rely on import lines for these standard enums.
++            # repr() is usually sufficient (e.g., enum.IntEnum.MEMBER).
++            return repr(self.value), imports
++
++        # For user-defined or library enums (like re.RegexFlag).
++        imports.add("import %s" % module)
++        name = getattr(self.value, "name", None)
++
++        if name is not None:
++            # Simple enum member, serialize as Module.EnumType.MemberName
++            string = f"{module}.{enum_type.__name__}.{name}"
++        elif issubclass(enum_type, enum.Flag):
++            # This is potentially a combination of flags.
++            try:
++                # _decompose is the intended way for this, despite the underscore.
++                members, not_covered = enum._decompose(enum_type, self.value)
++            except TypeError:  # _decompose raises TypeError for non-integer flags
++                string = repr(self.value)  # Fallback
++            else:
++                if not members and not self.value:
++                    string = repr(self.value)  # Zero flag value
++                elif not not_covered and members:
++                    # Construct the OR expression: Module.EnumType.MEMBER1 | ...
++                    string = " | ".join(
++                        f"{module}.{enum_type.__name__}.{member.name}"
++                        for member in members
++                    )
++                else:
++                    string = repr(self.value)  # Couldn't decompose fully.
++        else:
++            # Non-flag enum with a value not corresponding to a named member.
++            string = repr(self.value)
++
++        return string, imports
+```

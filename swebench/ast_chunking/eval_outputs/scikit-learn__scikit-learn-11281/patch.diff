@@ -1,0 +1,130 @@
+```patch
+--- a/sklearn/mixture/base.py
++++ b/sklearn/mixture/base.py
+@@ -8,14 +8,14 @@
+ from __future__ import print_function
+
+ import warnings
+-from abc import ABCMeta, abstractmethod
++from abc import ABCMeta, abstractmethod
+ from time import time
+
+ import numpy as np
+
+ from .. import cluster
+ from ..base import BaseEstimator
+-from ..base import DensityMixin
++from ..base import DensityMixin # Keep this import
+ from ..externals import six
+ from ..exceptions import ConvergenceWarning
+ from ..utils import check_array, check_random_state
+@@ -64,3 +64,44 @@
+                           "but got %d features"
+                           % (n_features, X.shape[1]))
+      return X
++
++
++class _BaseMixture(six.with_metaclass(ABCMeta, BaseEstimator,
++                                      DensityMixin)):
++    """Base class for mixture models.
++
++    This abstract class specifies an interface for all mixture classes and
++    provides basic common methods for mixture models.
++    """
++
++    @abstractmethod
++    def _get_parameters(self):
++        pass
++
++    @abstractmethod
++    def _set_parameters(self, params):
++        pass
++
++    @abstractmethod
++    def fit(self, X, y=None):
++        """Estimate model parameters."""
++        pass
++
++    @abstractmethod
++    def predict(self, X):
++        """Predict the labels for the data samples in X using trained model."""
++        pass
++
++    def fit_predict(self, X, y=None):
++        """Estimate model parameters using X and predict the labels for X.
++
++        Parameters
++        ----------
++        X : array-like, shape (n_samples, n_features)
++            List of n_features-dimensional data points. Each row
++            corresponds to a single data point.
++
++        Returns
++        -------
++        labels : array, shape (n_samples,)
++            Component labels.
++        """
++        self.fit(X, y=y)
++        return self.labels_
+--- a/sklearn/mixture/bayesian_mixture.py
++++ b/sklearn/mixture/bayesian_mixture.py
+@@ -14,7 +14,7 @@
+ from ..utils.validation import check_is_fitted
+ from ._gaussian_mixture import _compute_precision_cholesky
+ from ._gaussian_mixture import _estimate_gaussian_parameters
+-from .base import _check_X
++from .base import _check_X, _BaseMixture
+
+
+ # Values used in the model. We can't change this constants !
+@@ -22,7 +22,7 @@
+ LOG_2 = np.log(2.)
+
+
+-class BayesianGaussianMixture(BaseEstimator, DensityMixin):
++class BayesianGaussianMixture(_BaseMixture):
+     """Variational Bayesian estimation of a Gaussian mixture.
+
+     This class allows to infer an approximate posterior distribution over the
+@@ -280,6 +280,9 @@
+         self.converged_ = is_converged
+         self.n_iter_ = n_iter + 1
+
++        # Store labels for fit_predict compatibility
++        self.labels_ = self.predict(X)
++
+         return self
+
+     def _e_step(self, X):
+--- a/sklearn/mixture/gaussian_mixture.py
++++ b/sklearn/mixture/gaussian_mixture.py
+@@ -13,7 +13,7 @@
+ from ..utils.validation import check_is_fitted
+ from ._gaussian_mixture import _estimate_gaussian_parameters
+ from ._gaussian_mixture import _estimate_log_gaussian_prob
+-from .base import _check_X
++from .base import _check_X, _BaseMixture
+
+
+ warnings.filterwarnings("ignore", category=DeprecationWarning)
+@@ -21,7 +21,7 @@
+ # XXX remove in 0.20
+ warnings.filterwarnings("ignore", message="The covariance matrix is singular")
+
+
+-class GaussianMixture(BaseEstimator, DensityMixin):
++class GaussianMixture(_BaseMixture):
+     """Gaussian Mixture.
+
+     Representation of a Gaussian mixture model probability distribution.
+@@ -258,6 +258,9 @@
+             self.precisions_cholesky_ = _compute_precision_cholesky(
+                 self.covariances_, self.covariance_type)
+
++        # Store labels for fit_predict compatibility
++        self.labels_ = self.predict(X)
++
+         return self
+
+     def _e_step(self, X):
+```

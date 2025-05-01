@@ -1,0 +1,36 @@
+```patch
+--- a/sklearn/utils/validation.py
++++ b/sklearn/utils/validation.py
+@@ -115,12 +115,18 @@
+ 
+     if dtype_numeric:
+         if dtype_orig is not None and dtype_orig.kind == "O":
+-            # if input is object, convert to float.
++            # if input is object, and force_all_finite isn't False,
++            # convert to float. Let user know with a warning.
+             dtype = np.float64
++            if warn_on_dtype:
++                warnings.warn("Data with input dtype %s was converted to %s%s."
++                              % (dtype_orig, dtype, context),
++                              DataConversionWarning)
+         else:
+             dtype = None
+ 
+     if isinstance(dtype, (list, tuple)):
++        # Deprecated in 0.20, removed in 0.22
+         if dtype_orig is not None and dtype_orig in dtype:
+             # no dtype conversion required
+             dtype = None
+@@ -128,6 +134,11 @@
+             # dtype conversion required. Let's select the first element of the
+             # list of accepted types.
+             dtype = dtype[0]
++            if warn_on_dtype:
++                warnings.warn(
++                    "Data with input dtype %s was converted to %s%s."
++                    % (dtype_orig, dtype, context), DataConversionWarning)
++
+ 
+     if force_all_finite not in (True, False, 'allow-nan'):
+         raise ValueError('force_all_finite should be a bool or "allow-nan"'
+```

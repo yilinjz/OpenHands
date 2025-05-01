@@ -1,0 +1,13 @@
+```patch
+--- a/sympy/matrices/dense.py
++++ b/sympy/matrices/dense.py
+@@ -405,7 +405,7 @@
+         for i in range(rows):
+             mat.extend(self._mat[start:start + pos])
+             mat.extend(other._mat[i*other.cols:(i + 1)*other.cols])
+-            mat.extend(self._mat[start:start + self.cols - pos])
++            mat.extend(self._mat[start + pos:start + self.cols])
+             start += self.cols
+         return self._new(rows, cols, mat)
+ 
+```

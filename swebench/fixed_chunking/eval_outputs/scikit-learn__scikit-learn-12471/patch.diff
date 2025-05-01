@@ -1,0 +1,46 @@
+```patch
+--- a/sklearn/preprocessing/_encoders.py
++++ b/sklearn/preprocessing/_encoders.py
+@@ -113,6 +113,39 @@
+     def _transform(self, X, handle_unknown='error'):
+         X = self._check_X(X)
+ 
++        X_original_dtype = X.dtype
++        n_samples, n_features = X.shape
++
++        # If handle_unknown='ignore', we will replace unknown categories
++        # with the first category. Check if the first category is string
++        # and longer than the max length of the current dtype. If so,
++        # cast to object dtype to avoid truncation errors / ValueError.
++        needs_object_dtype = False
++        if handle_unknown == 'ignore' and X.dtype.kind in ('S', 'U'):
++            dtype_str = X.dtype.str
++
++            # Check if dtype string matches pattern like <U5 or <S10
++            is_fixed_length = False
++            if len(dtype_str) > 2 and dtype_str[1] in ('S', 'U'):
++                try:
++                    # Extract the number N from '<U<N>' or '<S<N>'
++                    max_len = int(dtype_str[2:])
++                    if max_len > 0: # Ensure N is positive, ignore '<U0' etc.
++                        is_fixed_length = True
++                except ValueError:
++                    is_fixed_length = False # Not a fixed-length string dtype
++
++            if is_fixed_length:
++                for i in range(n_features):
++                    # Ensure categories exist and are not empty for the check
++                    if i < len(self.categories_) and len(self.categories_[i]) > 0:
++                        first_category = self.categories_[i][0]
++                        # Check character/byte length against max allowed (N)
++                        if isinstance(first_category, (str, bytes)) and \
++                           len(first_category) > max_len:
++                            needs_object_dtype = True
++                            break
++        if needs_object_dtype:
++            X = X.astype(object, copy=True)
++
+         _, n_features = X.shape
+         X_int = np.zeros_like(X, dtype=np.int)
+         X_mask = np.ones_like(X, dtype=np.bool)
+```

@@ -1,0 +1,104 @@
+```patch
+--- a/sympy/matrices/expressions/matexpr.py
++++ b/sympy/matrices/expressions/matexpr.py
+@@ -1,6 +1,7 @@
+ from __future__ import print_function, division
+ 
+ from sympy.core import Basic, S, Symbol, Integer, Tuple
++from sympy.core.sympify import sympify
+ from sympy.core.compatibility import range
+ from sympy.core.decorators import call_highest_priority
+ from sympy.functions import conjugate, adjoint
+@@ -10,6 +11,7 @@
+ from sympy.matrices.expressions.transpose import transpose
+ from sympy.matrices.expressions.trace import trace
+ from sympy.matrices.expressions.determinant import det
++from sympy.matrices.matrices import MatrixBase
+ 
+ 
+ class MatrixExpr(Basic):
+@@ -142,9 +144,13 @@
+ 
+     @call_highest_priority('__matmul__')
+     def __matmul__(self, other):
++        from .matmul import MatMul
++        # sympify is needed because this method is called by Basic.__matmul__
++        other = sympify(other)
++        if not isinstance(other, (MatrixExpr, MatrixBase)):
++            raise TypeError("Scalar operands are not allowed for matrix multiplication, use '*' instead")
+         return MatMul(self, other)
+ 
+-    @call_highest_priority('__rmatmul__')
+     def __rmatmul__(self, other):
+         # As __rmatmul__ is not decorated with @call_highest_priority,
+         # this method will be called only if `other` does not know how
+@@ -152,6 +158,10 @@
+         # If `other` is a matrix, this method will not be called.
+         # See the implementation of Basic.__matmul__.
+         from .matmul import MatMul
++        # sympify is needed because this method is called by Basic.__rmatmul__
++        other = sympify(other)
++        if not isinstance(other, (MatrixExpr, MatrixBase)):
++            raise TypeError("Scalar operands are not allowed for matrix multiplication, use '*' instead")
+         return MatMul(other, self)
+ 
+     def __pow__(self, exp):
+--- a/sympy/matrices/matrices.py
++++ b/sympy/matrices/matrices.py
+@@ -39,6 +39,7 @@
+ from sympy.utilities.iterables import is_sequence, NotIterable
+ from sympy.utilities.misc import filldedent
+ from sympy.matrices.expressions import MatrixExpr, Identity, ZeroMatrix
++from sympy.matrices.expressions.matexpr import MatrixExpr
+ 
+ 
+ class ShapeError(ValueError):
+@@ -530,10 +531,14 @@
+ 
+     @call_highest_priority('__matmul__')
+     def __matmul__(self, other):
+-        """Return self @ other """
++        """Return self @ other."""
++        # sympify is needed because this method is called by Basic.__matmul__
++        other = _sympify(other)
++        if not isinstance(other, (MatrixExpr, MatrixBase)):
++            raise TypeError("Scalar operands are not allowed for matrix multiplication, use '*' instead")
+         return self._eval_matrix_mul(other)
+ 
+-    @call_highest_priority('__rmatmul__')
++    # No @call_highest_priority because we want this to be called only if
++    # other.__matmul__(self) returns NotImplemented. See Basic.__rmatmul__.
+     def __rmatmul__(self, other):
+         """Return other @ self """
+         # Both classes that derive from MatrixExpr and MatrixBase implement
+@@ -541,21 +546,10 @@
+         # SymPy matrix type.
+         # If `other` is a NumPy array, we should let NumPy handle the
+         # multiplication. Otherwise, raise a TypeError.
+-        if hasattr(other, '__array_interface__'):
+-            # If `other` is a NumPy array, we should let NumPy handle the
+-            # multiplication.
+-            return NotImplemented
+-        elif isinstance(other, (list, tuple)):
+-            # If `other` is a list or tuple, convert it to a Matrix and retry.
+-            # This is necessary for compatibility with previous versions of
+-            # SymPy.
+-            # XXX: This should be deprecated and removed eventually.
+-            from .dense import Matrix
+-            return Matrix(other) @ self
+-        else:
+-            # Otherwise, raise a TypeError.
+-            # TODO: Add a check for scalars and raise a more specific error
+-            # message like NumPy does.
+-            raise TypeError("Matrix multiplication is not defined between "
+-                            "Matrix and type %s" % type(other))
++        # sympify is needed because this method is called by Basic.__rmatmul__
++        other = _sympify(other)
++        if not isinstance(other, (MatrixExpr, MatrixBase)):
++            # We only end up here if `other` is not a SymPy matrix type.
++            raise TypeError("Scalar operands are not allowed for matrix multiplication, use '*' instead")
++        return other._eval_matrix_mul(self)
+ 
+     def __neg__(self):
+         """Return -self """
+```

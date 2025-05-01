@@ -1,0 +1,86 @@
+```patch
+--- a/sklearn/preprocessing/_encoders.py
++++ b/sklearn/preprocessing/_encoders.py
+@@ -111,10 +111,21 @@
+     # The dtype of the converted X will be the same as the categories_
+     # XXX: We need to find a better solution, see
+     # https://github.com/numpy/numpy/issues/11799
+-    X_copy = X.copy()
++
++    # Determine the dtype for the copy of X
++    # Default to the dtype of the categories
++    X_dtype = categories_[0].dtype
++
++    # Check if original X has string-like dtype
++    is_string_like = (X.dtype.kind in ('S', 'U', 'O'))
++
++    # If ignoring unknowns and dealing with strings/objects,
++    # use object dtype for the copy to prevent truncation issues.
++    if handle_unknown == 'ignore' and is_string_like:
++        X_dtype = object
++    X_copy = X.astype(X_dtype, copy=True)
++
+     diff, valid_mask = _check_unknown(X_copy, categories_, handle_unknown)
+-
+-    # Compute numerical representation of X
+     X_int = np.zeros(X.shape, dtype=int)
+     X_mask = np.ones(X.shape, dtype=bool)
+ 
+@@ -122,41 +133,30 @@
+         Xi = X_copy[:, i]
+         valid_mask_i = valid_mask[:, i]
+ 
++        # Use dictionary mapping if X_copy is object type, otherwise searchsorted
++        use_dict_mapping = (X_dtype == object)
++
++        if use_dict_mapping:
++            map_to = {cat: k for k, cat in enumerate(categories_[i])}
++
+         if diff is None:
+             # All categories are known, avoid overhead of checking unknown
+             # categories
+             # categories_ is already sorted
+-            if categories_[i].dtype.kind == 'O':
+-                # searchsorted has known bug with object type
+-                map_to = {cat: k for k, cat in enumerate(categories_[i])}
++            if use_dict_mapping:
+                 X_int[:, i] = np.array([map_to[x] for x in Xi])
+             else:
+                 X_int[:, i] = np.searchsorted(categories_[i], Xi)
+         else:
+             # Some categories are unknown, handle them accordingly
+             # Assign index to known categories, leave unknown categories (-1)
+-            # Masking is needed because searchsorted does not handle -1
+             X_int[:, i] = -1
+-            valid_mask_i = valid_mask[:, i]
+-            X_mask[:, i] = valid_mask_i
+-            # searchsorted has known bug with object type
+-            if categories_[i].dtype.kind == 'O':
+-                X_int[:, i] = -1
+-                # Create map for faster lookup
+-                map_to = {cat: k for k, cat in enumerate(categories_[i])}
+-                # Assign indices only for valid rows
+-                ix = np.where(valid_mask_i)[0]
+-                for j in ix:
++            valid_indices = np.where(valid_mask_i)[0]
++            X_mask[:, i] = valid_mask_i # Update overall mask
++
++            if use_dict_mapping:
++                for j in valid_indices:
+                     X_int[j, i] = map_to[Xi[j]]
+             else:
+-                # Assign indices only for valid rows
+-                X_int[:, i][valid_mask_i] = np.searchsorted(categories_[i],
+-                                                            Xi[valid_mask_i])
+-
+-    # 2. Perform encoding
+-    mask = valid_mask.ravel()
+-    n_values = [len(cats) for cats in categories_]
++                X_int[valid_indices, i] = np.searchsorted(categories_[i], Xi[valid_mask_i])
+ 
++    # 2. Perform encoding
++    mask = X_mask.ravel()
++    n_values = [len(cats) for cats in categories_]
+     feature_indices = np.cumsum([0] + n_values)
+     indices = (X_int + feature_indices[:-1]).ravel()[mask]
+```

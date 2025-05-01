@@ -1,0 +1,26 @@
+```patch
+--- a/django/db/models/sql/compiler.py
++++ b/django/db/models/sql/compiler.py
+@@ -50,11 +50,14 @@
+                 else:
+                     expressions.append(expr)
+         # Note that even if the group_by is set, it is only the minimal
+-        # set to group by. So, we need to add cols in select, order_by, and
+-        # having into the select in any case.
+-        for expr, _, _ in select:
+-            cols = expr.get_group_by_cols()
+-            for col in cols:
+-                expressions.append(col)
++        # set to group by. Columns mentioned in select, order_by, and
++        # having clauses must be added to the GROUP BY clause.
++        # However, if group_by is set explicitly (e.g. via .values()), then
++        # we don't need to add the select columns here, as the explicit
++        # group_by should already cover them or they are aggregates.
++        if self.query.group_by is True:
++            for expr, _, _ in select:
++                cols = expr.get_group_by_cols()
++                for col in cols:
++                    expressions.append(col)
+         # TODO: Add order_by and having expressions to the group by clause?
+         # It is needed in some cases (see test_regress_17600). In other
+```

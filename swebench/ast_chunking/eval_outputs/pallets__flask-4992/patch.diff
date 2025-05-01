@@ -1,0 +1,42 @@
+```diff
+--- a/src/flask/config.py
++++ b/src/flask/config.py
+@@ -58,6 +58,7 @@
+         filename: str,
+         load: t.Callable[[t.IO[t.Any]], t.Mapping],
+         silent: bool = False,
++        mode: str = "r",
+     ) -> bool:
+         """Update the values in the config from a file that is loaded
+         using the ``load`` parameter. The loaded data is passed to the
+@@ -68,8 +69,9 @@
+             import json
+             app.config.from_file("config.json", load=json.load)
+ 
+-            import toml
+-            app.config.from_file("config.toml", load=toml.load)
++            # config.toml needs to be opened in binary mode
++            import tomllib
++            app.config.from_file("config.toml", load=tomllib.load, mode="rb")
+ 
+         :param filename: The path to the data file. This can be an
+             absolute path or relative to the config root path.
+@@ -78,6 +80,7 @@
+         :type load: ``Callable[[Reader], Mapping]`` where ``Reader``
+             implements a ``read`` method.
+         :param silent: Ignore the file if it doesn't exist.
++        :param mode: The mode to open the file with, defaults to ``"r"`` (text).
+         :return: ``True`` if the file was loaded successfully.
+ 
+         .. versionadded:: 2.0
+@@ -85,7 +88,7 @@
+         filename = os.path.join(self.root_path, filename)
+ 
+         try:
+-            with open(filename) as f:
++            with open(filename, mode=mode) as f:
+                 obj = load(f)
+         except OSError as e:
+             if silent and e.errno in (errno.ENOENT, errno.EISDIR):
+
+```

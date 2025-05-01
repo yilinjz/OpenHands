@@ -1,0 +1,24 @@
+```patch
+--- a/sympy/simplify/simplify.py
++++ b/sympy/simplify/simplify.py
+@@ -32,6 +32,19 @@
+     except AttributeError:
+         pass
+ 
++    # Try nsimplify() on the expression, if it simplifies or is no more complex.
++    # This helps with cases like x**2.5 - x**(5/2) which are numerically
++    # equal but were not simplifying due to different types in the exponent.
++    from sympy.simplify.simplify import nsimplify
++    try:
++        expr_nsimp = nsimplify(expr, rational=True)
++        # If nsimplify makes it 0, take it; otherwise, only take it if
++        # the measure function determines it is no more complex.
++        if expr_nsimp == 0 or measure(expr_nsimp) <= measure(expr):
++            expr = expr_nsimp
++    except Exception:
++        pass # nsimplify decided not to process the expression or failed
++
+     original_expr = expr = signsimp(expr)
+ 
+     from sympy.simplify.hyperexpand import hyperexpand
+```

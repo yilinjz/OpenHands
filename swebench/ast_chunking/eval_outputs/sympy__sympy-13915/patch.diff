@@ -1,0 +1,37 @@
+```patch
+--- a/sympy/core/mul.py
++++ b/sympy/core/mul.py
+@@ -279,6 +279,10 @@
+                     # zoo*I = zoo
+                     # zoo*x = zoo if x != 0
+                     # zoo*0 = nan
++                    # zoo*zoo = zoo
++                    # zoo*(-zoo) = zoo
++                    # zoo/zoo = nan
++
+                     new_c = S.NaN
+                     if c.is_zero:
+                         # zoo*0 is nan
+@@ -286,6 +290,10 @@
+                     elif c is S.ComplexInfinity:
+                         # zoo*zoo = zoo
+                         new_c = S.ComplexInfinity
++                    elif c is S.NegativeInfinity:
++                        # zoo*(-oo) = zoo
++                        # This is debatable see issue #14636
++                        new_c = S.ComplexInfinity
+                     elif c.is_finite is not False:
+                         # zoo*finite != 0 is zoo
+                         new_c = S.ComplexInfinity
+@@ -293,6 +301,10 @@
+                         # zoo*oo = zoo
+                         # zoo*(-oo) = zoo
+                         new_c = S.ComplexInfinity
++                    elif isinstance(c, Pow) and c.exp is S.NegativeOne and c.base is S.ComplexInfinity:
++                        # zoo/zoo = nan
++                        new_c = S.NaN
++
+                     c = new_c
+                     if c is S.NaN:
+                         # nan*anything is nan
+```

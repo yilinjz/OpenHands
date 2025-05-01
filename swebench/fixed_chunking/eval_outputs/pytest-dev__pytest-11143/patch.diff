@@ -1,0 +1,14 @@
+```patch
+--- a/src/_pytest/assertion/rewrite.py
++++ b/src/_pytest/assertion/rewrite.py
+@@ -757,7 +757,8 @@
+         return False
+
+     def is_rewrite_disabled(self, docstring: Optional[str]) -> bool:
+-        return "PYTEST_DONT_REWRITE" in docstring
++        # Check if docstring is a string, otherwise it cannot contain the marker.
++        return isinstance(docstring, str) and "PYTEST_DONT_REWRITE" in docstring
+
+     # Implementation details.
+
+```

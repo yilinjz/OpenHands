@@ -1,0 +1,37 @@
+```patch
+<patch>
+--- a/sympy/solvers/polysys.py
++++ b/sympy/solvers/polysys.py
+@@ -216,7 +216,15 @@ def _solve_reduced_system(system, gens, entry=False):
+             return []
+
+         if len(basis) == 1:
+-            return [(zero,) for zero in zeros]
++            # Basis consists solely of f, which is univariate in gen.
++            if len(gens) == 1:
++                # Univariate system, univariate basis. Correct case.
++                return [(zero,) for zero in zeros]
++            else:
++                # Basis is [f], f univariate in gen, but len(gens) > 1. Infinite solutions.
++                raise NotImplementedError(filldedent('''
++                    only zero-dimensional systems supported
++                    (finite number of solutions)'''))
+
+         solutions = []
+
+--- a/sympy/solvers/tests/test_polysys.py
++++ b/sympy/solvers/tests/test_polysys.py
+@@ -48,6 +48,10 @@ def test_solve_poly_system():
+     raises(NotImplementedError, lambda: solve_poly_system(
+         [z, -2*x*y**2 + x + y**2*z, y**2*(-z - 4) + 2]))
+     raises(PolynomialError, lambda: solve_poly_system([1/x], x))
++    # Test detection of infinite solutions (non-zero-dimensional systems)
++    raises(NotImplementedError, lambda: solve_poly_system(
++        (x - 1,), x, y))
++    raises(NotImplementedError, lambda: solve_poly_system(
++        (y - 1,), x, y))
+
+
+ def test_solve_biquadratic():
+</patch>
+```

@@ -1,0 +1,18 @@
+```diff
+--- a/django/db/models/sql/query.py
++++ b/django/db/models/sql/query.py
+@@ -496,6 +496,12 @@
+ 
+         self.check_filterable(value)
+ 
++        # Django ticket #30972: Prevent non-bool values for isnull lookup.
++        if lookups == ['isnull'] and not isinstance(value, bool):
++            raise ValueError(
++                "The QuerySet value for an isnull lookup must be True or False."
++            )
++
+         clause = self.where_class()
+         if reffed_expression:
+             condition = self.build_lookup(lookups, reffed_expression, value)
+
+```

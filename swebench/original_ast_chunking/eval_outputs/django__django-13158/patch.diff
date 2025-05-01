@@ -1,0 +1,18 @@
+```patch
+--- a/django/db/models/query.py
++++ b/django/db/models/query.py
+@@ -900,6 +900,13 @@
+ 
+     def none(self):
+         """Return an empty QuerySet."""
++        # If this is already a combined query, cloning and setting
++        # set_empty() won't work as expected, as the combination
++        # logic might ignore the top-level WHERE clause.
++        # Return a dedicated EmptyQuerySet instead.
++        if self.query.combinator:
++            return EmptyQuerySet(model=self.model)
++
+         clone = self._chain()
+         clone._result_cache = []
+         clone.query.set_empty()
+```

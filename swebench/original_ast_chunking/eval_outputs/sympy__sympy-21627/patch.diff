@@ -1,0 +1,30 @@
+```patch
+--- a/sympy/functions/elementary/hyperbolic.py
++++ b/sympy/functions/elementary/hyperbolic.py
+@@ -431,9 +431,8 @@
+             # If we are sure it is not an integer multiple, then we are sure
+             # cosh(x) is not zero.
+             return False
+-        # Fallback to check using cos: cosh(x) = cos(x/I)
+-        # cos(y) is zero iff y = pi/2 + n*pi
+-        return cos._eval_is_zero(x / S.ImaginaryUnit)
++        # Otherwise, we are not sure.
++        return None
+ 
+     def _eval_rewrite_as_tractable(self, x, limitvar=None, **kwargs):
+         return self._eval_rewrite_as_exp(x, **kwargs)
+--- a/sympy/functions/elementary/trigonometric.py
++++ b/sympy/functions/elementary/trigonometric.py
+@@ -575,9 +575,8 @@
+             # If we are sure it is not an integer multiple, then we are sure
+             # cos(x) is not zero.
+             return False
+-        # Fallback to check using cosh: cos(x) = cosh(x*I)
+-        # cosh(y) is zero iff y = I*(pi/2 + n*pi)
+-        return cosh._eval_is_zero(x * S.ImaginaryUnit)
++        # Otherwise, we are not sure.
++        return None
+ 
+     def _eval_rewrite_as_exp(self, x, **kwargs):
+         return (exp(S.ImaginaryUnit*x) + exp(-S.ImaginaryUnit*x))/2
+```

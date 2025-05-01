@@ -1,0 +1,20 @@
+```diff
+--- a/django/db/migrations/serializer.py
++++ b/django/db/migrations/serializer.py
+@@ -48,7 +48,13 @@
+
+ class ChoicesSerializer(BaseSerializer):
+     def serialize(self):
+-        return serializer_factory(self.value.value).serialize()
++        enum_class = type(self.value)
++        module_name = enum_class.__module__
++        enum_class_name = enum_class.__qualname__
++        member_name = self.value.name
++        imports = {f"import {module_name}"}
++        representation = f"{module_name}.{enum_class_name}.{member_name}"
++        return representation, imports
+
+
+ class DateTimeSerializer(BaseSerializer):
+
+```

@@ -1,0 +1,27 @@
+```patch
+--- a/django/contrib/auth/widgets.py
++++ b/django/contrib/auth/widgets.py
+@@ -23,3 +23,10 @@
+                 summary.append({'label': gettext(key), 'value': value_})
+         context['summary'] = summary
+         return context
++
++    def id_for_label(self, id_):
++        """
++        Don't bind the 'for' attribute to the <label> tag, because this widget
++        doesn't render a labelable HTML element.
++        """
++        return None
+--- a/django/forms/boundfield.py
++++ b/django/forms/boundfield.py
+@@ -109,7 +109,7 @@
+             doesn't render it as part of its output.
+             """
+             id_ = self.id_for_label
+-            if id_:
++            if id_:  # Add the 'for' attribute only if the widget specifies an ID.
+                 attrs = {**(attrs or {}), 'for': id_}
+             if self.field.required and hasattr(self.form, 'required_css_class'):
+                 attrs = {**(attrs or {}), 'class': self.form.required_css_class}
+
+```

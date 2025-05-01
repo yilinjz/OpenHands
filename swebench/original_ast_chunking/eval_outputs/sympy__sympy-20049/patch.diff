@@ -1,0 +1,106 @@
+```patch
+--- a/sympy/physics/vector/point.py
++++ b/sympy/physics/vector/point.py
+@@ -1,5 +1,6 @@
+ from sympy.core.basic import Basic
+ from sympy.core.sympify import sympify
++from sympy.physics.vector.vector import Vector
+ 
+ 
+ class Point(Basic):
+@@ -446,14 +447,14 @@
+         return self.vel(outframe)
+ 
+     def vel(self, frame):
+-        """The velocity Vector of this Point in the ReferenceFrame.
++        """The velocity Vector of this point in the ReferenceFrame.
+ 
+-        Parameters
+-        ==========
++        If the velocity of this point in the frame is not explicitly defined,
++        it will attempt to calculate it based on the position relationships
++        between points and the velocities of other points. It assumes that
++        a point with no defined position relative to any other point and no
++        explicitly set velocity is fixed in the frame (has zero velocity).
+ 
+-        frame : ReferenceFrame
+-            The frame in which the returned velocity vector will be defined in
+ 
+         Examples
+         ========
+@@ -461,18 +462,52 @@
+         >>> from sympy.physics.vector import Point, ReferenceFrame
+         >>> N = ReferenceFrame('N')
+         >>> p1 = Point('p1')
+-        >>> p1.set_vel(N, 10 * N.x)
++        >>> p1.set_vel(N, 10 * N.x) # Set velocity manually
+         >>> p1.vel(N)
+         10*N.x
+ 
++        >>> from sympy.physics.vector import dynamicsymbols
++        >>> O = Point('O')
++        >>> P = Point('P')
++        >>> q = dynamicsymbols('q')
++        >>> r = q * N.x
++        >>> P.set_pos(O, r) # Define P's position relative to O
++        >>> O.set_vel(N, 0*N.x) # Define O's velocity in N
++        >>> P.vel(N) # Calculate P's velocity in N
++        q'*N.x
++
++        >>> # If O's velocity was not set, it's assumed to be 0
++        >>> O2 = Point('O2')
++        >>> P2 = Point('P2')
++        >>> P2.set_pos(O2, r)
++        >>> P2.vel(N)
++        q'*N.x
++
++        >>> # Example from the issue
++        >>> A = ReferenceFrame('A')
++        >>> q = dynamicsymbols('q')
++        >>> B = A.orientnew('B', 'Axis', (q, A.x))
++        >>> P = Point('P')
++        >>> Q = Point('Q')
++        >>> r = q*A.x + 2*q*A.y
++        >>> Q.set_pos(P, r)
++        >>> Q.vel(A)
++        q'*A.x + 2*q'*A.y
++
+         """
+ 
+         _check_frame(frame)
+-        if not (frame in self._vel_dict):
+-            raise ValueError('Velocity of point ' + self.name + ' has not been'
+-                             ' defined in ReferenceFrame ' + frame.name)
+-        return self._vel_dict[frame]
++        # If velocity is already defined/cached, return it
++        if frame in self._vel_dict:
++            return self._vel_dict[frame]
++
++        # Try calculating velocity based on parent points
++        for parent_point, pos_vec in self._pos_dict.items():
++            try:
++                parent_vel = parent_point.vel(frame) # Recursive call
++                dt_pos = pos_vec.dt(frame)
++                calculated_vel = parent_vel + dt_pos
++                self.set_vel(frame, calculated_vel) # Cache the result
++                return calculated_vel
++            except ValueError:
++                # If parent velocity calculation fails, try another parent
++                continue
++
++        # If no parent velocity could be determined:
++        # Check if this point is a root (no parents)
++        if not self._pos_dict:
++            # Assume zero velocity for root points if not set
++            zero_vel = Vector(0)
++            self.set_vel(frame, zero_vel)
++            return zero_vel
++        else:
++            # If it has parents but their velocities couldn't be found, raise error
++            raise ValueError('Velocity of point {} has not been defined in '
++                             'ReferenceFrame {} and could not be calculated '
++                             'from parent points.'.format(self.name, frame.name))
+ 
+     def set_vel(self, frame, value):
+         """Sets the velocity Vector of this Point in a ReferenceFrame.
+```

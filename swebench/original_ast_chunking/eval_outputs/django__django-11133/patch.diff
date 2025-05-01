@@ -1,0 +1,18 @@
+```patch
+--- a/django/http/response.py
++++ b/django/http/response.py
+@@ -9,8 +9,11 @@
+         # - Python attempts str conversion first
+         # - when self._charset != 'utf-8' it re-encodes the content
+         if isinstance(value, bytes):
+-            return bytes(value)
+-        if isinstance(value, str):
++            return bytes(value)  # Ensure bytes, not subclass.
++        # Handle memoryview efficiently.
++        elif isinstance(value, memoryview):
++            return bytes(value)
++        elif isinstance(value, str):
+             return bytes(value.encode(self.charset))
+         # Handle non-string types.
+         return str(value).encode(self.charset)
+```

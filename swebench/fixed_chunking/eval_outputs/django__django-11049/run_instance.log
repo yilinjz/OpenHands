@@ -1,0 +1,46 @@
+2025-05-01 01:39:15,123 - INFO - Creating container for django__django-11049...
+2025-05-01 01:39:15,164 - INFO - Container for django__django-11049 created: 6ccb81ff71ca6bae932ccf34cc9e6a9fd46c7ed55830b8dc8c8149960c3c2fbd
+2025-05-01 01:39:15,463 - INFO - Container for django__django-11049 started: 6ccb81ff71ca6bae932ccf34cc9e6a9fd46c7ed55830b8dc8c8149960c3c2fbd
+2025-05-01 01:39:15,464 - INFO - Intermediate patch for django__django-11049 written to logs/run_evaluation/20250501_013755/swebench-lite_fixed-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/django__django-11049/patch.diff, now applying to container...
+2025-05-01 01:39:15,576 - INFO - Failed to apply patch to container: git apply --verbose
+2025-05-01 01:39:15,633 - INFO - Failed to apply patch to container: git apply --verbose --reject
+2025-05-01 01:39:15,690 - INFO - >>>>> Applied Patch:
+patching file django/forms/fields.py
+Reversed (or previously applied) patch detected!  Assuming -R.
+Hunk #1 succeeded at 469 (offset 440 lines).
+Hunk #2 succeeded at 483 (offset 438 lines).
+Hunk #3 succeeded at 489 with fuzz 3 (offset 436 lines).
+
+2025-05-01 01:39:16,831 - INFO - Git diff before:
+diff --git a/django/forms/fields.py b/django/forms/fields.py
+index a977256525..518198f9d8 100644
+--- a/django/forms/fields.py
++++ b/django/forms/fields.py
+@@ -489,8 +489,6 @@ class DurationField(Field):
+                 min_days=datetime.timedelta.min.days,
+                 max_days=datetime.timedelta.max.days,
+             ), code='overflow')
+-        if value is None:
+-            raise ValidationError(self.error_messages['invalid'], code='invalid')
+         return value
+2025-05-01 01:39:16,832 - INFO - Eval script for django__django-11049 written to logs/run_evaluation/20250501_013755/swebench-lite_fixed-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/django__django-11049/eval.sh; copying to container...
+2025-05-01 01:39:26,028 - INFO - Test runtime: 9.14 seconds
+2025-05-01 01:39:26,028 - INFO - Test output for django__django-11049 written to logs/run_evaluation/20250501_013755/swebench-lite_fixed-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/django__django-11049/test_output.txt
+2025-05-01 01:39:26,109 - INFO - Git diff after:
+diff --git a/django/forms/fields.py b/django/forms/fields.py
+index a977256525..518198f9d8 100644
+--- a/django/forms/fields.py
++++ b/django/forms/fields.py
+@@ -489,8 +489,6 @@ class DurationField(Field):
+                 min_days=datetime.timedelta.min.days,
+                 max_days=datetime.timedelta.max.days,
+             ), code='overflow')
+-        if value is None:
+-            raise ValidationError(self.error_messages['invalid'], code='invalid')
+         return value
+2025-05-01 01:39:26,109 - INFO - Grading answer for django__django-11049...
+2025-05-01 01:39:26,111 - INFO - report: {'django__django-11049': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_invalid_string (model_fields.test_durationfield.TestValidation)']}, 'PASS_TO_PASS': {'success': ['test_dumping (model_fields.test_durationfield.TestSerialization)', 'test_loading (model_fields.test_durationfield.TestSerialization)', 'test_formfield (model_fields.test_durationfield.TestFormField)', 'test_exact (model_fields.test_durationfield.TestQuerying)', 'test_gt (model_fields.test_durationfield.TestQuerying)', 'test_create_empty (model_fields.test_durationfield.TestSaveLoad)', 'test_fractional_seconds (model_fields.test_durationfield.TestSaveLoad)', 'test_simple_roundtrip (model_fields.test_durationfield.TestSaveLoad)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-11049: resolved: False
+2025-05-01 01:39:26,112 - INFO - Attempting to stop container sweb.eval.django__django-11049.20250501_013755...
+2025-05-01 01:39:41,407 - INFO - Attempting to remove container sweb.eval.django__django-11049.20250501_013755...
+2025-05-01 01:39:41,443 - INFO - Container sweb.eval.django__django-11049.20250501_013755 removed.

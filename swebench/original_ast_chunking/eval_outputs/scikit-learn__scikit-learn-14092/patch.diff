@@ -1,0 +1,43 @@
+```patch
+--- a/sklearn/neighbors/nca.py
++++ b/sklearn/neighbors/nca.py
+@@ -12,6 +12,7 @@
+ from warnings import warn
+ import numpy as np
+ import sys
++import numbers
+ import time
+ from scipy.optimize import minimize
+ from ..utils.extmath import softmax
+@@ -39,7 +40,10 @@
+ 38         # Check the preferred dimensionality of the projected space
+ 39         if self.n_components is not None:
+ 40             check_scalar(self.n_components, 'n_components', int, 1)
+-41 
++41             if not isinstance(self.n_components, numbers.Integral):
++42                 raise TypeError('`n_components` has to be of type integer.')
++43             if self.n_components <= 0:
++44                 raise ValueError('`n_components` has to be a positive integer.')
+ 42             if self.n_components > X.shape[1]:
+ 43                 raise ValueError('The preferred dimensionality of the '
+ 44                                  'projected space `n_components` ({}) cannot '
+@@ -59,8 +63,16 @@
+ 58 
+ 59         check_scalar(self.max_iter, 'max_iter', int, 1)
+ 60         check_scalar(self.tol, 'tol', float, 0.)
+-61         check_scalar(self.verbose, 'verbose', int, 0)
+-62 
++61         if not isinstance(self.max_iter, numbers.Integral):
++62             raise TypeError('`max_iter` has to be of type integer.')
++63         if self.max_iter <= 0:
++64             raise ValueError('`max_iter` has to be a positive integer.')
++65         if not isinstance(self.tol, numbers.Real):
++66             raise TypeError('`tol` has to be of type float.')
++67         if self.tol < 0.:
++68             raise ValueError('`tol` has to be non-negative.')
++69         check_scalar(self.verbose, 'verbose', (int, numbers.Integral), 0)
++70 
+ 63         if self.callback is not None:
+ 64             if not callable(self.callback):
+ 65                 raise ValueError('`callback` is not callable.')
+```

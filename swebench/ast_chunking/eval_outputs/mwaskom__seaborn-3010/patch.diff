@@ -1,0 +1,15 @@
+```patch
+--- a/seaborn/_stats/regression.py
++++ b/seaborn/_stats/regression.py
+@@ -22,6 +22,10 @@
+         self.gridsize = gridsize
+
+     def _fit_predict(self, data):
++
++        # Drop rows with missing data
++        data = data.dropna(subset=["x", "y"])
++
+         x = data["x"].to_numpy()
+         y = data["y"].to_numpy()
+         if not x.size:
+```

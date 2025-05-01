@@ -1,0 +1,61 @@
+```patch
+--- a/sympy/assumptions/refine.py
++++ b/sympy/assumptions/refine.py
+@@ -1,8 +1,8 @@
+ from typing import Dict, Callable
+ 
+-from sympy.core import S, Add, Expr, Basic, Mul
++from sympy.core import S, Add, Expr, Basic, Mul, pi
+ from sympy.logic.boolalg import Boolean
+-
++# No need to import functions like Abs, im, re here, they are handled via expr.func or specific methods
+ from sympy.assumptions import ask, Q  # type: ignore
+ 
+ 
+@@ -72,6 +72,37 @@
+             return expr
+         return MatrixElement(matrix, j, i)
+ 
++def refine_arg(expr, assumptions):
++    """
++    Handler for the function arg().
++    """
++    # S, pi, ask, Q should be available from module imports
++    from sympy.functions.elementary.complexes import im # Import im here
++
++    arg_ = expr.args[0]
++
++    # Case 1: Argument is positive
++    if ask(Q.positive(arg_), assumptions):
++        return S.Zero
++
++    # Case 2: Argument is negative
++    if ask(Q.negative(arg_), assumptions):
++        # Note: Q.negative implies real and non-zero
++        return S.Pi
++
++    # Case 3: Argument is purely imaginary
++    if ask(Q.imaginary(arg_), assumptions):
++        # Q.imaginary implies non-zero
++        # Check the sign of the imaginary part.
++        imag_part = im(arg_)
++        if ask(Q.positive(imag_part), assumptions):
++            return S.Pi / 2
++        if ask(Q.negative(imag_part), assumptions):
++            return -S.Pi / 2
++
++    # If no simplification is possible, return the original expression.
++    return expr
++
+ handlers_dict = {
+     'Abs': refine_abs,
+     'Pow': refine_Pow,
+@@ -79,6 +110,7 @@
+     're': refine_re,
+     'im': refine_im,
+     'sign': refine_sign,
++    'arg': refine_arg,
+     'MatrixElement': refine_matrixelement
+ }  # type: Dict[str, Callable[[Expr, Boolean], Expr]]
+ 
+```

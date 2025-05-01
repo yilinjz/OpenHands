@@ -1,0 +1,44 @@
+```patch
+--- a/lib/matplotlib/figure.py
++++ b/lib/matplotlib/figure.py
+@@ -1,5 +1,7 @@
+ import logging
+ import pathlib
++from collections import defaultdict
++import weakref
+ 
+ import numpy as np
+ 
+@@ -10,7 +12,7 @@
+ from matplotlib import axes, gridspec as mgridspec, legend as mlegend
+ from matplotlib.artist import Artist, artist_inspector, allow_rasterization
+ from matplotlib.cbook import _setattr_cm, _warn_external
+-from matplotlib.backend_bases import (
++from matplotlib.cbook import Grouper
+     _Backend, FigureCanvasBase, FigureManagerBase, NavigationToolbar2,
+     RendererBase)
+ from matplotlib.colors import Colormap, Normalize
+@@ -38,6 +40,22 @@
+         self.align_xlabels(axs=axs)
+         self.align_ylabels(axs=axs)
+ 
++    def __getstate__(self):
++        # Get the state from the FigureBase, which handles the canvas and observers
++        state = super().__getstate__()
++        # Remove the _align_label_groups entry, as it uses Grouper which holds
++        # weak references, which are not pickleable. The alignment state will
++        # be lost on unpickling.
++        state.pop('_align_label_groups', None)
++        return state
++
++    def __setstate__(self, state):
++        # Restore the state using FigureBase's __setstate__
++        super().__setstate__(state)
++        # Re-initialize the _align_label_groups attribute to its default state,
++        # as it was removed in __getstate__.
++        self._align_label_groups = defaultdict(Grouper)
++
+     def add_gridspec(self, nrows=1, ncols=1, **kwargs):
+         """
+         Return a `.GridSpec` that has this figure as a parent.  This allows
+```

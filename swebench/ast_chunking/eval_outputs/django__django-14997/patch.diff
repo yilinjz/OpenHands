@@ -1,0 +1,62 @@
+```patch
+--- a/django/db/backends/sqlite3/schema.py
++++ b/django/db/backends/sqlite3/schema.py
+@@ -1,6 +1,7 @@
+ import copy
+ import logging
+ 
++from django.db.backends.base.schema import BaseDatabaseSchemaEditor
+ from django.db.backends.ddl_references import Statement
+ from django.db.backends.sqlite3.introspection import DatabaseIntrospection
+ from django.db.models.fields.related import ManyToManyField
+@@ -9,7 +10,7 @@
+ logger = logging.getLogger('django.db.backends.schema')
+ 
+ 
+-class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
++class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
+ 
+     sql_rename_table = "ALTER TABLE %(old_table)s RENAME TO %(new_table)s"
+     sql_drop_table = "DROP TABLE %(table)s"
+@@ -148,6 +149,26 @@
+         # Roll back the temporary table rename.
+         self.execute(self.sql_rename_table % {'old_table': self.quote_name(temp_table_name), 'new_table': table})
+ 
++    def execute(self, sql, params=()):
++        # Override execute to handle Statements containing column expressions
++        # which may need unqualified column names in index definitions.
++        if isinstance(sql, Statement) and \
++           (sql.template == self.sql_create_unique_index or sql.template == self.sql_create_index):
++            # Importing here avoids potential circular import errors.
++            from django.db.models.sql.datastructures import Expressions
++            columns_part = sql.parts.get('columns')
++            if isinstance(columns_part, Expressions) and columns_part.expressions:
++                compiler = columns_part.compiler
++                setattr(compiler, 'omit_col_alias', True)
++                try:
++                    # Compile the statement with the modified compiler context.
++                    sql, params = sql.as_sql(self.connection)
++                finally:
++                    delattr(compiler, 'omit_col_alias')
++                # Execute the compiled SQL string.
++                super().execute(sql, params)
++                return  # Don't execute again below.
++        super().execute(sql, params)
++
+     def quote_value(self, value):
+         # The backend's make_debug_cursor wrapper creates Database.Cursor objects
+         # which have quote_value().
+--- a/django/db/models/expressions.py
++++ b/django/db/models/expressions.py
+@@ -409,6 +409,9 @@
+ 
+     def as_sql(self, compiler, connection):
+         qn = compiler.quote_name_unless_alias
++        # Some backends (SQLite) don't support qualified column names in
++        # index expressions.
++        if getattr(compiler, 'omit_col_alias', False):
++            return qn(self.target.column)
+         if self.alias:
+             return '%s.%s' % (qn(self.alias), qn(self.target.column))
+         return qn(self.target.column)
+```

@@ -1,0 +1,14 @@
+```patch
+--- a/django/views/static.py
++++ b/django/views/static.py
+@@ -23,6 +23,9 @@
+     size is the size of the resource.
+     """
+     try:
++        # Ignore empty header value.
++        if not header:
++            return True
+         # RFC 7232 section 3.3 says that If-Modified-Since can only be handled
+         # by servers when the date is valid. If the date is invalid, the header
+         # MUST be ignored.
+```

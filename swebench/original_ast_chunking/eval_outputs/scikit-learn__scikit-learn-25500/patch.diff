@@ -1,0 +1,16 @@
+```patch
+--- a/sklearn/calibration.py
++++ b/sklearn/calibration.py
+@@ -761,7 +761,10 @@
+                 this_pred = predictions[:, class_idx]
+ 
+             calibrator = self.calibrators_[class_idx]
+-            proba[:, class_idx] = calibrator.predict(this_pred)
++            # Ensure the output is a numpy array for assignment
++            calibrated_pred = np.asarray(calibrator.predict(this_pred))
++            # Reshape if needed to ensure it's 1D for assignment
++            proba[:, class_idx] = calibrated_pred.reshape(-1)
+ 
+         # Normalize the probabilities
+         if n_classes > 2:
+```

@@ -1,0 +1,19 @@
+```patch
+--- a/lib/mpl_toolkits/mplot3d/art3d.py
++++ b/lib/mpl_toolkits/mplot3d/art3d.py
+@@ -212,7 +212,13 @@
+         self.stale = True
+ 
+     def draw(self, renderer):
+-        xs3d, ys3d, zs3d = self._verts3d
++        # Check if _verts3d exists. It might be missing if the object
++        # was not fully initialized, e.g. due to an error during
++        # line_2d_to_3d conversion.
++        if not hasattr(self, '_verts3d'):
++            # Don't draw the line if essential data is missing.
++            return
++        xs3d, ys3d, zs3d = self._verts3d
+         xs, ys, zs = proj3d.proj_transform(xs3d, ys3d, zs3d, self.axes.M)
+         # Check for nan values.
+         # Save the NAN states flags, revert when done.
+```

@@ -1,0 +1,65 @@
+2025-04-30 20:25:30,702 - INFO - Creating container for sympy__sympy-20212...
+2025-04-30 20:25:30,732 - INFO - Container for sympy__sympy-20212 created: 8f691620fbe5eaf47ece6bfa2dc2a370366952f507e7523d01e8eac184aeb245
+2025-04-30 20:25:31,013 - INFO - Container for sympy__sympy-20212 started: 8f691620fbe5eaf47ece6bfa2dc2a370366952f507e7523d01e8eac184aeb245
+2025-04-30 20:25:31,013 - INFO - Intermediate patch for sympy__sympy-20212 written to logs/run_evaluation/20250430_200121/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/sympy__sympy-20212/patch.diff, now applying to container...
+2025-04-30 20:25:31,126 - INFO - >>>>> Applied Patch:
+Checking patch sympy/core/power.py...
+Hunk #1 succeeded at 292 (offset 181 lines).
+Hunk #2 succeeded at 301 (offset 181 lines).
+Applied patch sympy/core/power.py cleanly.
+
+2025-04-30 20:25:31,819 - INFO - Git diff before:
+diff --git a/sympy/core/power.py b/sympy/core/power.py
+index 984398c760..aba8f56f35 100644
+--- a/sympy/core/power.py
++++ b/sympy/core/power.py
+@@ -292,6 +292,8 @@ def __new__(cls, b, e, evaluate=None):
+ 
+         if evaluate:
+             if e is S.ComplexInfinity:
++                # zoo as exponent is always NaN, even 1**zoo, 0**zoo
++                # see discussion in https://github.com/sympy/sympy/issues/6916
+                 return S.NaN
+             if e is S.Zero:
+                 return S.One
+@@ -299,6 +301,8 @@ def __new__(cls, b, e, evaluate=None):
+                 return b
+             elif e == -1 and not b:
+                 return S.ComplexInfinity
++            elif b is S.Zero and e is S.NegativeInfinity:
++                return S.ComplexInfinity # 0**-oo is zoo
+             # Only perform autosimplification if exponent or base is a Symbol or number
+             elif (b.is_Symbol or b.is_number) and (e.is_Symbol or e.is_number) and\
+                 e.is_integer and _coeff_isneg(b):
+2025-04-30 20:25:31,819 - INFO - Eval script for sympy__sympy-20212 written to logs/run_evaluation/20250430_200121/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/sympy__sympy-20212/eval.sh; copying to container...
+2025-04-30 20:26:12,678 - INFO - Test runtime: 40.80 seconds
+2025-04-30 20:26:12,678 - INFO - Test output for sympy__sympy-20212 written to logs/run_evaluation/20250430_200121/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/sympy__sympy-20212/test_output.txt
+2025-04-30 20:26:12,735 - INFO - Git diff after:
+diff --git a/sympy/core/power.py b/sympy/core/power.py
+index 984398c760..aba8f56f35 100644
+--- a/sympy/core/power.py
++++ b/sympy/core/power.py
+@@ -292,6 +292,8 @@ def __new__(cls, b, e, evaluate=None):
+ 
+         if evaluate:
+             if e is S.ComplexInfinity:
++                # zoo as exponent is always NaN, even 1**zoo, 0**zoo
++                # see discussion in https://github.com/sympy/sympy/issues/6916
+                 return S.NaN
+             if e is S.Zero:
+                 return S.One
+@@ -299,6 +301,8 @@ def __new__(cls, b, e, evaluate=None):
+                 return b
+             elif e == -1 and not b:
+                 return S.ComplexInfinity
++            elif b is S.Zero and e is S.NegativeInfinity:
++                return S.ComplexInfinity # 0**-oo is zoo
+             # Only perform autosimplification if exponent or base is a Symbol or number
+             elif (b.is_Symbol or b.is_number) and (e.is_Symbol or e.is_number) and\
+                 e.is_integer and _coeff_isneg(b):
+2025-04-30 20:26:12,735 - INFO - Grading answer for sympy__sympy-20212...
+2025-04-30 20:26:12,736 - INFO - report: {'sympy__sympy-20212': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_zero'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_rational', 'test_large_rational', 'test_negative_real', 'test_expand', 'test_issue_3449', 'test_issue_3866', 'test_negative_one', 'test_issue_4362', 'test_Pow_Expr_args', 'test_Pow_signs', 'test_power_with_noncommutative_mul_as_base', 'test_power_rewrite_exp', 'test_pow_as_base_exp', 'test_nseries', 'test_issue_6100_12942_4473', 'test_issue_6208', 'test_issue_6990', 'test_issue_6068', 'test_issue_6782', 'test_issue_6653', 'test_issue_6429', 'test_issue_7638', 'test_issue_8582', 'test_issue_8650', 'test_issue_13914', 'test_better_sqrt', 'test_issue_2993', 'test_issue_17450', 'test_issue_18190', 'test_issue_14815', 'test_issue_18509', 'test_issue_18762'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-20212: resolved: True
+2025-04-30 20:26:12,736 - INFO - Attempting to stop container sweb.eval.sympy__sympy-20212.20250430_200121...
+2025-04-30 20:26:27,999 - INFO - Attempting to remove container sweb.eval.sympy__sympy-20212.20250430_200121...
+2025-04-30 20:26:28,063 - INFO - Container sweb.eval.sympy__sympy-20212.20250430_200121 removed.

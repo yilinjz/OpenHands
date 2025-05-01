@@ -1,0 +1,106 @@
+```patch
+--- a/django/utils/autoreload.py
++++ b/django/utils/autoreload.py
+@@ -10,7 +10,7 @@
+ import sys
+ import threading
+ import time
+-from pathlib import Path
++from pathlib import Path, PurePath
+ from types import ModuleType
+ 
+ from django.apps import apps
+@@ -36,6 +36,22 @@
+ # Set of files that shouldn't trigger a reload.
+ IGNORED_FILES = frozenset({".pyc", ".pyo", ".pyd", ".so", ".dll"})
+ 
++# Set of directory names that shouldn't be watched recursively.
++IGNORED_DIRECTORIES = {
++    ".git",
++    ".hg",
++    ".svn",
++    "__pycache__",
++    # Python virtual environments
++    "venv",
++    ".venv",
++    # Node virtual environments
++    "node_modules",
++    # Build directories
++    "build",
++    "dist",
++    ".tox",
++}
+ 
+ # Watchable file extensions. Lowercase is required.
+ WATCHABLE_EXTENSIONS = {"py", "html", "css", "js", "yaml", "yml"}
+@@ -326,10 +342,25 @@
+         observer = Observer()
+         changed_files = queue.Queue()
+ 
++        # Reduce setup time for projects with lots of static files.
++        # Limit the number of paths watched by the underlying watchdog observer.
++        # It's necessary to explicitly check for parent directories, see #31725.
++        watched_roots_set = {
++            str(p)
++            for p in self.watched_roots(self.watched_files(include_globs=False))
++        }
++        watched_paths = set()
++        for path in watched_roots_set:
++            if not any(path.startswith(p + os.path.sep) for p in watched_paths):
++                watched_paths.add(path)
++
+         class EventHandler(FileSystemEventHandler):
+             """Watchdog file system event handler."""
+ 
+             def __init__(self, changed_files_queue):
++                """
++                changed_files_queue: A queue to add paths that changed to.
++                """
+                 self.changed_files = changed_files_queue
+                 super().__init__()
+ 
+@@ -337,13 +368,24 @@
+                 """Dispatch events to the appropriate methods."""
+                 # Filter events for paths in ignored directories early.
+                 path_str = getattr(event, "src_path", None)
++                # Some watchdog backends may emit None for src_path, ignore them.
++                # See https://github.com/gorakhargosh/watchdog/issues/908
+                 if path_str:
+-                    # Put Path object onto the queue for StatReloader.tick.
+-                    self.changed_files.put(Path(path_str))
++                    path = Path(path_str)
++                    # Check path components against IGNORED_DIRECTORIES.
++                    # Use PurePath.parts to avoid disk access.
++                    if any(part in IGNORED_DIRECTORIES for part in PurePath(path_str).parts):
++                        logger.debug(
++                            "Ignoring event %s for path in ignored directory: %s",
++                            event.event_type,
++                            path,
++                        )
++                        return  # Skip dispatching this event.
++                    # Put Path object onto the queue for StatReloader.tick.
++                    self.changed_files.put(path)
+ 
+         event_handler = EventHandler(changed_files)
+ 
+-        watched_files_set = self.watched_files(include_globs=False)
+         # Reduce setup time for projects with lots of static files.
+         # Limit the number of paths watched by the underlying watchdog observer.
+         # It's necessary to explicitly check for parent directories, see #31725.
+@@ -351,13 +393,9 @@
+         # watched_roots() requires the watched files to be computed, as it uses
+         # the parent directories of the watched files.
+         # watched_files() is expensive, so keep the result.
+-        watched_roots_set = self.watched_roots(watched_files_set)
+-        watched_paths = set()
+-        for path in watched_roots_set:
+-            if not any(str(path).startswith(str(p) + os.path.sep) for p in watched_paths):
+-                watched_paths.add(path)
++        # This was moved up before the EventHandler definition.
+ 
+-        logger.info("Watching for file changes with WatchdogReloader")
++        logger.debug("Watching %s files for changes with WatchdogReloader", len(watched_paths))
+         for path in watched_paths:
+             try:
+                 observer.schedule(event_handler, str(path), recursive=True)
+```

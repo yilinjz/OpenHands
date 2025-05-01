@@ -1,0 +1,36 @@
+```diff
+--- a/pylint/lint/expand_modules.py
++++ b/pylint/lint/expand_modules.py
+@@ -15,8 +15,10 @@
+                     modname = os.path.splitext(basename)[0]
+                 if os.path.isdir(something):
+                     filepath = os.path.join(something, "__init__.py")
++                    is_arg_package = os.path.exists(filepath)
+                 else:
+                     filepath = something
++                    is_arg_package = False # Input is a file, not a package directory
+             else:
+                 # suppose it's a module or package
+                 modname = something
+@@ -27,6 +29,7 @@
+                     if filepath is None:
+                         continue
+                 except (ImportError, SyntaxError) as ex:
++                    is_arg_package = False # Module path, not a directory argument
+                     # The SyntaxError is a Python bug and should be
+                     # removed once we move away from imp.find_module: https://bugs.python.org/issue10588
+                     errors.append({"key": "fatal", "mod": modname, "ex": ex})
+@@ -47,7 +50,10 @@
+             is_namespace = modutils.is_namespace(spec)
+             is_directory = modutils.is_directory(spec)
+             is_package = is_directory and not is_namespace
+-        if not is_namespace:
++
++        # Add the initial argument to the result list, but only if it's
++        # a file, a module/package found via import, or an actual package directory.
++        if not (os.path.isdir(something) and not is_arg_package):
+             result.append(
+                 {
+                     "path": filepath,
+
+```

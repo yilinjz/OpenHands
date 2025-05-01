@@ -1,0 +1,4048 @@
++ source /opt/miniconda3/bin/activate
+++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z '' ']'
++++ export CONDA_SHLVL=0
++++ CONDA_SHLVL=0
++++ '[' -n '' ']'
++++++ dirname /opt/miniconda3/bin/conda
+++++ dirname /opt/miniconda3/bin
++++ PATH=/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export PATH
++++ '[' -z '' ']'
++++ PS1=
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
++++ PS1=
++++ __conda_exe shell.posix activate
++++ /opt/miniconda3/bin/conda shell.posix activate
+++ ask_conda='PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval 'PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''1'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=1
++++ CONDA_SHLVL=1
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
++++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ __conda_hashr
+++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
++ conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
++ '[' -n '' ']'
++ local ask_conda
+++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+++ /opt/miniconda3/bin/conda shell.posix activate testbed
++ ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++ eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''2'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_1='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ export CONDA_SHLVL=2
+++ CONDA_SHLVL=2
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_1=/opt/miniconda3
+++ CONDA_PREFIX_1=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ cd /testbed
++ git config --global --add safe.directory /testbed
++ cd /testbed
++ git status
+On branch master
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   seaborn/axisgrid.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	seaborn/axisgrid.py.orig
+	seaborn/axisgrid.py.rej
+
+no changes added to commit (use "git add" and/or "git commit -a")
++ git show
+commit 94621cef29f80282436d73e8d2c0aa76dab81273
+Author: Michael Waskom <mwaskom@users.noreply.github.com>
+Date:   Sat Jun 11 14:04:50 2022 -0400
+
+    Fix PairGrid with hue passed in map method (#2847)
+
+diff --git a/doc/releases/v0.12.0.txt b/doc/releases/v0.12.0.txt
+index c2e006a4..82881a3b 100644
+--- a/doc/releases/v0.12.0.txt
++++ b/doc/releases/v0.12.0.txt
+@@ -59,6 +59,8 @@ Other updates
+ 
+ - |Fix| Fixed a bug in :func:`violinplot` where inner boxes/points could be missing with unpaired split violins (:pr:`2814`).
+ 
++- |Fix| Fixed a bug in :class:`PairGrid` where and error would be raised when defining `hue` only in the mapping methods (:pr:`2847`).
++
+ - |Fix| Subplot titles will no longer be reset when calling :meth:`FacetGrid.map` or :meth:`FacetGrid.map_dataframe` (:pr:`2705`).
+ 
+ - |Fix| In :func:`lineplot`, allowed the `dashes` keyword to set the style of a line without mapping a `style` variable (:pr:`2449`).
+diff --git a/seaborn/axisgrid.py b/seaborn/axisgrid.py
+index 7e513f03..8526f44b 100644
+--- a/seaborn/axisgrid.py
++++ b/seaborn/axisgrid.py
+@@ -1565,9 +1565,10 @@ class PairGrid(Grid):
+         else:
+             hue = data.get(self._hue_var)
+ 
+-        kwargs.setdefault("hue", hue)
+-        kwargs.setdefault("hue_order", self._hue_order)
+-        kwargs.setdefault("palette", self._orig_palette)
++        if "hue" not in kwargs:
++            kwargs.update({
++                "hue": hue, "hue_order": self._hue_order, "palette": self._orig_palette,
++            })
+         func(x=x, y=y, **kwargs)
+ 
+         self._update_legend_data(ax)
+diff --git a/tests/test_axisgrid.py b/tests/test_axisgrid.py
+index 906aab0d..40d591f1 100644
+--- a/tests/test_axisgrid.py
++++ b/tests/test_axisgrid.py
+@@ -1170,6 +1170,14 @@ class TestPairGrid:
+ 
+         plt.close("all")
+ 
++    def test_hue_in_map(self, long_df):
++
++        g = ag.PairGrid(long_df, vars=["x", "y"])
++        g.map(scatterplot, hue=long_df["a"])
++        ax = g.axes.flat[0]
++        points = ax.collections[0]
++        assert len(set(map(tuple, points.get_facecolors()))) == 3
++
+     def test_nondefault_index(self):
+ 
+         df = self.df.copy().set_index("b")
++ git -c core.fileMode=false diff 94621cef29f80282436d73e8d2c0aa76dab81273
+diff --git a/seaborn/axisgrid.py b/seaborn/axisgrid.py
+index 8526f44b..c3f2c4b8 100644
+--- a/seaborn/axisgrid.py
++++ b/seaborn/axisgrid.py
+@@ -171,6 +171,11 @@ class Grid(_BaseGrid):
+             self._space_needed = margin + space_needed
+             right = 1 - self._space_needed
+ 
++            # Filter the data frame to prevent error further down
++            # when hue_order does not include all unique values GH#2375
++            mask = data[hue].isin(hue_order)
++            data = data[mask]
++
+             # Place the subplot axes to give space for the legend
+             self._figure.subplots_adjust(right=right)
+             self._tight_layout_rect[2] = right
++ source /opt/miniconda3/bin/activate
+++ _CONDA_ROOT=/opt/miniconda3
+++ . /opt/miniconda3/etc/profile.d/conda.sh
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ '[' -z x ']'
+++ conda activate
+++ local cmd=activate
+++ case "$cmd" in
+++ __conda_activate activate
+++ '[' -n '' ']'
+++ local ask_conda
++++ PS1='(testbed) '
++++ __conda_exe shell.posix activate
++++ /opt/miniconda3/bin/conda shell.posix activate
+++ ask_conda='PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''3'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_2='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ eval 'PS1='\''(base) '\''
+export PATH='\''/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3'\''
+export CONDA_SHLVL='\''3'\''
+export CONDA_DEFAULT_ENV='\''base'\''
+export CONDA_PROMPT_MODIFIER='\''(base) '\''
+export CONDA_PREFIX_2='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++++ PS1='(base) '
++++ export PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ PATH=/opt/miniconda3/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++++ export CONDA_PREFIX=/opt/miniconda3
++++ CONDA_PREFIX=/opt/miniconda3
++++ export CONDA_SHLVL=3
++++ CONDA_SHLVL=3
++++ export CONDA_DEFAULT_ENV=base
++++ CONDA_DEFAULT_ENV=base
++++ export 'CONDA_PROMPT_MODIFIER=(base) '
++++ CONDA_PROMPT_MODIFIER='(base) '
++++ export CONDA_PREFIX_2=/opt/miniconda3/envs/testbed
++++ CONDA_PREFIX_2=/opt/miniconda3/envs/testbed
++++ export CONDA_EXE=/opt/miniconda3/bin/conda
++++ CONDA_EXE=/opt/miniconda3/bin/conda
++++ export _CE_M=
++++ _CE_M=
++++ export _CE_CONDA=
++++ _CE_CONDA=
++++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ __conda_hashr
+++ '[' -n '' ']'
+++ '[' -n '' ']'
+++ hash -r
++ conda activate testbed
++ local cmd=activate
++ case "$cmd" in
++ __conda_activate activate testbed
++ '[' -n '' ']'
++ local ask_conda
+++ PS1='(base) '
+++ __conda_exe shell.posix activate testbed
+++ /opt/miniconda3/bin/conda shell.posix activate testbed
++ ask_conda='PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''4'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_3='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
++ eval 'PS1='\''(testbed) '\''
+export PATH='\''/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'\''
+export CONDA_PREFIX='\''/opt/miniconda3/envs/testbed'\''
+export CONDA_SHLVL='\''4'\''
+export CONDA_DEFAULT_ENV='\''testbed'\''
+export CONDA_PROMPT_MODIFIER='\''(testbed) '\''
+export CONDA_PREFIX_3='\''/opt/miniconda3'\''
+export CONDA_EXE='\''/opt/miniconda3/bin/conda'\''
+export _CE_M='\'''\''
+export _CE_CONDA='\'''\''
+export CONDA_PYTHON_EXE='\''/opt/miniconda3/bin/python'\'''
+++ PS1='(testbed) '
+++ export PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ PATH=/opt/miniconda3/envs/testbed/bin:/opt/miniconda3/condabin:/opt/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+++ export CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ CONDA_PREFIX=/opt/miniconda3/envs/testbed
+++ export CONDA_SHLVL=4
+++ CONDA_SHLVL=4
+++ export CONDA_DEFAULT_ENV=testbed
+++ CONDA_DEFAULT_ENV=testbed
+++ export 'CONDA_PROMPT_MODIFIER=(testbed) '
+++ CONDA_PROMPT_MODIFIER='(testbed) '
+++ export CONDA_PREFIX_3=/opt/miniconda3
+++ CONDA_PREFIX_3=/opt/miniconda3
+++ export CONDA_EXE=/opt/miniconda3/bin/conda
+++ CONDA_EXE=/opt/miniconda3/bin/conda
+++ export _CE_M=
+++ _CE_M=
+++ export _CE_CONDA=
+++ _CE_CONDA=
+++ export CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
+++ CONDA_PYTHON_EXE=/opt/miniconda3/bin/python
++ __conda_hashr
++ '[' -n '' ']'
++ '[' -n '' ']'
++ hash -r
++ python -m pip install -e '.[dev]'
+Obtaining file:///testbed
+  Preparing metadata (setup.py): started
+  Preparing metadata (setup.py): finished with status 'done'
+Requirement already satisfied: numpy>=1.17 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from seaborn==0.12.0.dev0) (1.25.2)
+Requirement already satisfied: pandas>=0.25 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from seaborn==0.12.0.dev0) (2.0.0)
+Requirement already satisfied: matplotlib>=3.1 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from seaborn==0.12.0.dev0) (3.7.2)
+WARNING: seaborn 0.12.0.dev0 does not provide the extra 'dev'
+Requirement already satisfied: contourpy>=1.0.1 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from matplotlib>=3.1->seaborn==0.12.0.dev0) (1.1.0)
+Requirement already satisfied: cycler>=0.10 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from matplotlib>=3.1->seaborn==0.12.0.dev0) (0.11.0)
+Requirement already satisfied: fonttools>=4.22.0 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from matplotlib>=3.1->seaborn==0.12.0.dev0) (4.42.1)
+Requirement already satisfied: kiwisolver>=1.0.1 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from matplotlib>=3.1->seaborn==0.12.0.dev0) (1.4.5)
+Requirement already satisfied: packaging>=20.0 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from matplotlib>=3.1->seaborn==0.12.0.dev0) (23.1)
+Requirement already satisfied: pillow>=6.2.0 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from matplotlib>=3.1->seaborn==0.12.0.dev0) (10.0.0)
+Requirement already satisfied: pyparsing<3.1,>=2.3.1 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from matplotlib>=3.1->seaborn==0.12.0.dev0) (3.0.9)
+Requirement already satisfied: python-dateutil>=2.7 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from matplotlib>=3.1->seaborn==0.12.0.dev0) (2.8.2)
+Requirement already satisfied: importlib-resources>=3.2.0 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from matplotlib>=3.1->seaborn==0.12.0.dev0) (6.0.1)
+Requirement already satisfied: pytz>=2020.1 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from pandas>=0.25->seaborn==0.12.0.dev0) (2023.3.post1)
+Requirement already satisfied: tzdata>=2022.1 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from pandas>=0.25->seaborn==0.12.0.dev0) (2023.1)
+Requirement already satisfied: zipp>=3.1.0 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from importlib-resources>=3.2.0->matplotlib>=3.1->seaborn==0.12.0.dev0) (3.16.2)
+Requirement already satisfied: six>=1.5 in /opt/miniconda3/envs/testbed/lib/python3.9/site-packages (from python-dateutil>=2.7->matplotlib>=3.1->seaborn==0.12.0.dev0) (1.16.0)
+Installing collected packages: seaborn
+  Attempting uninstall: seaborn
+    Found existing installation: seaborn 0.12.0.dev0
+    Uninstalling seaborn-0.12.0.dev0:
+  DEPRECATION: Legacy editable install of seaborn[dev]==0.12.0.dev0 from file:///testbed (setup.py develop) is deprecated. pip 25.0 will enforce this behaviour change. A possible replacement is to add a pyproject.toml or enable --use-pep517, and use setuptools >= 64. If the resulting installation is not behaving as expected, try using --config-settings editable_mode=compat. Please consult the setuptools documentation for more information. Discussion can be found at https://github.com/pypa/pip/issues/11457
+      Successfully uninstalled seaborn-0.12.0.dev0
+  Running setup.py develop for seaborn
+Successfully installed seaborn
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable.It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
++ git checkout 94621cef29f80282436d73e8d2c0aa76dab81273 tests/test_relational.py
+Updated 0 paths from 1517b395
++ git apply -v -
+Checking patch tests/test_relational.py...
+Applied patch tests/test_relational.py cleanly.
++ : '>>>>> Start Test Output'
++ pytest --no-header -rA tests/test_relational.py
+============================= test session starts ==============================
+collected 73 items
+
+tests/test_relational.py ............FFFFFFFFFFFF..F..F.FFFFFFFFFFFFFFFF [ 64%]
+F.......F...F...FFFFFFFFF.                                               [100%]
+
+=================================== FAILURES ===================================
+__________________ TestRelationalPlotter.test_relplot_simple ___________________
+
+self = <tests.test_relational.TestRelationalPlotter object at 0x7fedc08294f0>
+long_df =      x         y         z  a  b  ...  s    f a_cat  s_cat  s_str
+0   12  0.449243  6.611886  b  p  ...  2  0.2     b ...  8  0.3     a      8      8
+99  15  0.073484  1.036343  c  p  ...  8  0.2     c      8      8
+
+[100 rows x 13 columns]
+
+    def test_relplot_simple(self, long_df):
+    
+        g = relplot(data=long_df, x="x", y="y", kind="scatter")
+        x, y = g.ax.collections[0].get_offsets().T
+        assert_array_equal(x, long_df["x"])
+        assert_array_equal(y, long_df["y"])
+    
+>       g = relplot(data=long_df, x="x", y="y", kind="line")
+
+tests/test_relational.py:453: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:976: in relplot
+    g.map_dataframe(func, **plot_kws)
+seaborn/axisgrid.py:778: in map_dataframe
+    self._facet_plot(func, ax, args, kwargs)
+seaborn/axisgrid.py:807: in _facet_plot
+    func(*plot_args, **plot_kwargs)
+seaborn/relational.py:646: in lineplot
+    p.plot(ax, kwargs)
+seaborn/relational.py:422: in plot
+    for sub_vars, sub_data in self.iter_data(grouping_vars, from_comp_data=True):
+seaborn/_oldcore.py:1005: in iter_data
+    data = self.comp_data
+seaborn/_oldcore.py:1096: in comp_data
+    with pd.option_context('mode.use_inf_as_null', True):
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in __enter__
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in <listcomp>
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:135: in _get_option
+    key = _get_single_key(pat, silent)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+pat = 'mode.use_inf_as_null', silent = True
+
+    def _get_single_key(pat: str, silent: bool) -> str:
+        keys = _select_options(pat)
+        if len(keys) == 0:
+            if not silent:
+                _warn_if_deprecated(pat)
+>           raise OptionError(f"No such keys(s): {repr(pat)}")
+E           pandas._config.config.OptionError: "No such keys(s): 'mode.use_inf_as_null'"
+
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:121: OptionError
+__________________ TestRelationalPlotter.test_relplot_complex __________________
+
+self = <tests.test_relational.TestRelationalPlotter object at 0x7fedc0829a00>
+long_df =      x         y         z  a  b  ...  s    f a_cat  s_cat  s_str
+0   12  0.449243  6.611886  b  p  ...  2  0.2     b ...  8  0.3     a      8      8
+99  15  0.073484  1.036343  c  p  ...  8  0.2     c      8      8
+
+[100 rows x 13 columns]
+
+    def test_relplot_complex(self, long_df):
+    
+        for sem in ["hue", "size", "style"]:
+>           g = relplot(data=long_df, x="x", y="y", **{sem: "a"})
+
+tests/test_relational.py:465: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:988: in relplot
+    g.add_legend(legend_data=p.legend_data,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <seaborn.axisgrid.FacetGrid object at 0x7fedb883fdc0>
+legend_data = {('a', 'a'): <matplotlib.collections.PathCollection object at 0x7fedb8a35b50>, ('a', 'b'): <matplotlib.collections.PathCollection object at 0x7fedb8b1a6d0>, ('a', 'c'): <matplotlib.collections.PathCollection object at 0x7fedb8a43790>}
+title = 'a', label_order = [('a', 'b'), ('a', 'a'), ('a', 'c')]
+adjust_subtitles = True
+kwargs = {'frameon': False, 'loc': 'center right', 'scatterpoints': 1}
+handles = [<matplotlib.collections.PathCollection object at 0x7fedb8b1a6d0>, <matplotlib.collections.PathCollection object at 0x7fedb8a35b50>, <matplotlib.collections.PathCollection object at 0x7fedb8a43790>]
+title_size = None, labels = ['b', 'a', 'c'], entry = ('a', 'c'), _ = 'a'
+label = 'c', figlegend = <matplotlib.legend.Legend object at 0x7fedb8b1a8b0>
+
+    def add_legend(self, legend_data=None, title=None, label_order=None,
+                   adjust_subtitles=False, **kwargs):
+        """Draw a legend, maybe placing it outside axes and resizing the figure.
+    
+        Parameters
+        ----------
+        legend_data : dict
+            Dictionary mapping label names (or two-element tuples where the
+            second element is a label name) to matplotlib artist handles. The
+            default reads from ``self._legend_data``.
+        title : string
+            Title for the legend. The default reads from ``self._hue_var``.
+        label_order : list of labels
+            The order that the legend entries should appear in. The default
+            reads from ``self.hue_names``.
+        adjust_subtitles : bool
+            If True, modify entries with invisible artists to left-align
+            the labels and set the font size to that of a title.
+        kwargs : key, value pairings
+            Other keyword arguments are passed to the underlying legend methods
+            on the Figure or Axes object.
+    
+        Returns
+        -------
+        self : Grid instance
+            Returns self for easy chaining.
+    
+        """
+        # Find the data for the legend
+        if legend_data is None:
+            legend_data = self._legend_data
+        if label_order is None:
+            if self.hue_names is None:
+                label_order = list(legend_data.keys())
+            else:
+                label_order = list(map(utils.to_utf8, self.hue_names))
+    
+        blank_handle = mpl.patches.Patch(alpha=0, linewidth=0)
+        handles = [legend_data.get(l, blank_handle) for l in label_order]
+        title = self._hue_var if title is None else title
+        title_size = mpl.rcParams["legend.title_fontsize"]
+    
+        # Unpack nested labels from a hierarchical legend
+        labels = []
+        for entry in label_order:
+            if isinstance(entry, tuple):
+                _, label = entry
+            else:
+                label = entry
+            labels.append(label)
+    
+        # Set default legend kwargs
+        kwargs.setdefault("scatterpoints", 1)
+    
+        if self._legend_out:
+    
+            kwargs.setdefault("frameon", False)
+            kwargs.setdefault("loc", "center right")
+    
+            # Draw a full-figure legend outside the grid
+            figlegend = self._figure.legend(handles, labels, **kwargs)
+    
+            self._legend = figlegend
+            figlegend.set_title(title, prop={"size": title_size})
+    
+            if adjust_subtitles:
+                adjust_legend_subtitles(figlegend)
+    
+            # Draw the plot to set the bounding boxes correctly
+            _draw_figure(self._figure)
+    
+            # Calculate and set the new width of the figure so the legend fits
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            fig_width, fig_height = self._figure.get_size_inches()
+            self._figure.set_size_inches(fig_width + legend_width, fig_height)
+    
+            # Draw the plot again to get the new transformations
+            _draw_figure(self._figure)
+    
+            # Now calculate how much space we need on the right side
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            space_needed = legend_width / (fig_width + legend_width)
+            margin = .04 if self._margin_titles else .01
+            self._space_needed = margin + space_needed
+            right = 1 - self._space_needed
+    
+            # Filter the data frame to prevent error further down
+            # when hue_order does not include all unique values GH#2375
+>           mask = data[hue].isin(hue_order)
+E           UnboundLocalError: local variable 'data' referenced before assignment
+
+seaborn/axisgrid.py:176: UnboundLocalError
+______________ TestRelationalPlotter.test_relplot_vectors[series] ______________
+
+self = <tests.test_relational.TestRelationalPlotter object at 0x7fedc0829e20>
+long_df =      x         y         z  a  b  ...  s    f a_cat  s_cat  s_str
+0   12  0.449243  6.611886  b  p  ...  2  0.2     b ...  8  0.3     a      8      8
+99  15  0.073484  1.036343  c  p  ...  8  0.2     c      8      8
+
+[100 rows x 13 columns]
+vector_type = 'series'
+
+    @pytest.mark.parametrize("vector_type", ["series", "numpy", "list"])
+    def test_relplot_vectors(self, long_df, vector_type):
+    
+        semantics = dict(x="x", y="y", hue="f", col="c")
+        kws = {key: long_df[val] for key, val in semantics.items()}
+        if vector_type == "numpy":
+            kws = {k: v.to_numpy() for k, v in kws.items()}
+        elif vector_type == "list":
+            kws = {k: v.to_list() for k, v in kws.items()}
+>       g = relplot(data=long_df, **kws)
+
+tests/test_relational.py:510: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:988: in relplot
+    g.add_legend(legend_data=p.legend_data,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <seaborn.axisgrid.FacetGrid object at 0x7fedb875c1f0>
+legend_data = {('f', 0.2): <matplotlib.collections.PathCollection object at 0x7fedc04110a0>, ('f', 0.3): <matplotlib.collections.PathCollection object at 0x7fedb8630cd0>}
+title = 'f', label_order = [('f', 0.2), ('f', 0.3)], adjust_subtitles = True
+kwargs = {'frameon': False, 'loc': 'center right', 'scatterpoints': 1}
+handles = [<matplotlib.collections.PathCollection object at 0x7fedc04110a0>, <matplotlib.collections.PathCollection object at 0x7fedb8630cd0>]
+title_size = None, labels = [0.2, 0.3], entry = ('f', 0.3), _ = 'f', label = 0.3
+figlegend = <matplotlib.legend.Legend object at 0x7fedc04111f0>
+
+    def add_legend(self, legend_data=None, title=None, label_order=None,
+                   adjust_subtitles=False, **kwargs):
+        """Draw a legend, maybe placing it outside axes and resizing the figure.
+    
+        Parameters
+        ----------
+        legend_data : dict
+            Dictionary mapping label names (or two-element tuples where the
+            second element is a label name) to matplotlib artist handles. The
+            default reads from ``self._legend_data``.
+        title : string
+            Title for the legend. The default reads from ``self._hue_var``.
+        label_order : list of labels
+            The order that the legend entries should appear in. The default
+            reads from ``self.hue_names``.
+        adjust_subtitles : bool
+            If True, modify entries with invisible artists to left-align
+            the labels and set the font size to that of a title.
+        kwargs : key, value pairings
+            Other keyword arguments are passed to the underlying legend methods
+            on the Figure or Axes object.
+    
+        Returns
+        -------
+        self : Grid instance
+            Returns self for easy chaining.
+    
+        """
+        # Find the data for the legend
+        if legend_data is None:
+            legend_data = self._legend_data
+        if label_order is None:
+            if self.hue_names is None:
+                label_order = list(legend_data.keys())
+            else:
+                label_order = list(map(utils.to_utf8, self.hue_names))
+    
+        blank_handle = mpl.patches.Patch(alpha=0, linewidth=0)
+        handles = [legend_data.get(l, blank_handle) for l in label_order]
+        title = self._hue_var if title is None else title
+        title_size = mpl.rcParams["legend.title_fontsize"]
+    
+        # Unpack nested labels from a hierarchical legend
+        labels = []
+        for entry in label_order:
+            if isinstance(entry, tuple):
+                _, label = entry
+            else:
+                label = entry
+            labels.append(label)
+    
+        # Set default legend kwargs
+        kwargs.setdefault("scatterpoints", 1)
+    
+        if self._legend_out:
+    
+            kwargs.setdefault("frameon", False)
+            kwargs.setdefault("loc", "center right")
+    
+            # Draw a full-figure legend outside the grid
+            figlegend = self._figure.legend(handles, labels, **kwargs)
+    
+            self._legend = figlegend
+            figlegend.set_title(title, prop={"size": title_size})
+    
+            if adjust_subtitles:
+                adjust_legend_subtitles(figlegend)
+    
+            # Draw the plot to set the bounding boxes correctly
+            _draw_figure(self._figure)
+    
+            # Calculate and set the new width of the figure so the legend fits
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            fig_width, fig_height = self._figure.get_size_inches()
+            self._figure.set_size_inches(fig_width + legend_width, fig_height)
+    
+            # Draw the plot again to get the new transformations
+            _draw_figure(self._figure)
+    
+            # Now calculate how much space we need on the right side
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            space_needed = legend_width / (fig_width + legend_width)
+            margin = .04 if self._margin_titles else .01
+            self._space_needed = margin + space_needed
+            right = 1 - self._space_needed
+    
+            # Filter the data frame to prevent error further down
+            # when hue_order does not include all unique values GH#2375
+>           mask = data[hue].isin(hue_order)
+E           UnboundLocalError: local variable 'data' referenced before assignment
+
+seaborn/axisgrid.py:176: UnboundLocalError
+______________ TestRelationalPlotter.test_relplot_vectors[numpy] _______________
+
+self = <tests.test_relational.TestRelationalPlotter object at 0x7fedc0829d60>
+long_df =      x         y         z  a  b  ...  s    f a_cat  s_cat  s_str
+0   12  0.449243  6.611886  b  p  ...  2  0.2     b ...  8  0.3     a      8      8
+99  15  0.073484  1.036343  c  p  ...  8  0.2     c      8      8
+
+[100 rows x 13 columns]
+vector_type = 'numpy'
+
+    @pytest.mark.parametrize("vector_type", ["series", "numpy", "list"])
+    def test_relplot_vectors(self, long_df, vector_type):
+    
+        semantics = dict(x="x", y="y", hue="f", col="c")
+        kws = {key: long_df[val] for key, val in semantics.items()}
+        if vector_type == "numpy":
+            kws = {k: v.to_numpy() for k, v in kws.items()}
+        elif vector_type == "list":
+            kws = {k: v.to_list() for k, v in kws.items()}
+>       g = relplot(data=long_df, **kws)
+
+tests/test_relational.py:510: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:988: in relplot
+    g.add_legend(legend_data=p.legend_data,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <seaborn.axisgrid.FacetGrid object at 0x7fedb8ac9c70>
+legend_data = {(None, 0.2): <matplotlib.collections.PathCollection object at 0x7fedb8a81b50>, (None, 0.3): <matplotlib.collections.PathCollection object at 0x7fedb877c9d0>}
+title = '', label_order = [(None, 0.2), (None, 0.3)], adjust_subtitles = True
+kwargs = {'frameon': False, 'loc': 'center right', 'scatterpoints': 1}
+handles = [<matplotlib.collections.PathCollection object at 0x7fedb8a81b50>, <matplotlib.collections.PathCollection object at 0x7fedb877c9d0>]
+title_size = None, labels = [0.2, 0.3], entry = (None, 0.3), _ = None
+label = 0.3, figlegend = <matplotlib.legend.Legend object at 0x7fedb8630af0>
+
+    def add_legend(self, legend_data=None, title=None, label_order=None,
+                   adjust_subtitles=False, **kwargs):
+        """Draw a legend, maybe placing it outside axes and resizing the figure.
+    
+        Parameters
+        ----------
+        legend_data : dict
+            Dictionary mapping label names (or two-element tuples where the
+            second element is a label name) to matplotlib artist handles. The
+            default reads from ``self._legend_data``.
+        title : string
+            Title for the legend. The default reads from ``self._hue_var``.
+        label_order : list of labels
+            The order that the legend entries should appear in. The default
+            reads from ``self.hue_names``.
+        adjust_subtitles : bool
+            If True, modify entries with invisible artists to left-align
+            the labels and set the font size to that of a title.
+        kwargs : key, value pairings
+            Other keyword arguments are passed to the underlying legend methods
+            on the Figure or Axes object.
+    
+        Returns
+        -------
+        self : Grid instance
+            Returns self for easy chaining.
+    
+        """
+        # Find the data for the legend
+        if legend_data is None:
+            legend_data = self._legend_data
+        if label_order is None:
+            if self.hue_names is None:
+                label_order = list(legend_data.keys())
+            else:
+                label_order = list(map(utils.to_utf8, self.hue_names))
+    
+        blank_handle = mpl.patches.Patch(alpha=0, linewidth=0)
+        handles = [legend_data.get(l, blank_handle) for l in label_order]
+        title = self._hue_var if title is None else title
+        title_size = mpl.rcParams["legend.title_fontsize"]
+    
+        # Unpack nested labels from a hierarchical legend
+        labels = []
+        for entry in label_order:
+            if isinstance(entry, tuple):
+                _, label = entry
+            else:
+                label = entry
+            labels.append(label)
+    
+        # Set default legend kwargs
+        kwargs.setdefault("scatterpoints", 1)
+    
+        if self._legend_out:
+    
+            kwargs.setdefault("frameon", False)
+            kwargs.setdefault("loc", "center right")
+    
+            # Draw a full-figure legend outside the grid
+            figlegend = self._figure.legend(handles, labels, **kwargs)
+    
+            self._legend = figlegend
+            figlegend.set_title(title, prop={"size": title_size})
+    
+            if adjust_subtitles:
+                adjust_legend_subtitles(figlegend)
+    
+            # Draw the plot to set the bounding boxes correctly
+            _draw_figure(self._figure)
+    
+            # Calculate and set the new width of the figure so the legend fits
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            fig_width, fig_height = self._figure.get_size_inches()
+            self._figure.set_size_inches(fig_width + legend_width, fig_height)
+    
+            # Draw the plot again to get the new transformations
+            _draw_figure(self._figure)
+    
+            # Now calculate how much space we need on the right side
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            space_needed = legend_width / (fig_width + legend_width)
+            margin = .04 if self._margin_titles else .01
+            self._space_needed = margin + space_needed
+            right = 1 - self._space_needed
+    
+            # Filter the data frame to prevent error further down
+            # when hue_order does not include all unique values GH#2375
+>           mask = data[hue].isin(hue_order)
+E           UnboundLocalError: local variable 'data' referenced before assignment
+
+seaborn/axisgrid.py:176: UnboundLocalError
+_______________ TestRelationalPlotter.test_relplot_vectors[list] _______________
+
+self = <tests.test_relational.TestRelationalPlotter object at 0x7fedc0829340>
+long_df =      x         y         z  a  b  ...  s    f a_cat  s_cat  s_str
+0   12  0.449243  6.611886  b  p  ...  2  0.2     b ...  8  0.3     a      8      8
+99  15  0.073484  1.036343  c  p  ...  8  0.2     c      8      8
+
+[100 rows x 13 columns]
+vector_type = 'list'
+
+    @pytest.mark.parametrize("vector_type", ["series", "numpy", "list"])
+    def test_relplot_vectors(self, long_df, vector_type):
+    
+        semantics = dict(x="x", y="y", hue="f", col="c")
+        kws = {key: long_df[val] for key, val in semantics.items()}
+        if vector_type == "numpy":
+            kws = {k: v.to_numpy() for k, v in kws.items()}
+        elif vector_type == "list":
+            kws = {k: v.to_list() for k, v in kws.items()}
+>       g = relplot(data=long_df, **kws)
+
+tests/test_relational.py:510: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:988: in relplot
+    g.add_legend(legend_data=p.legend_data,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <seaborn.axisgrid.FacetGrid object at 0x7fedc086b2e0>
+legend_data = {(None, 0.2): <matplotlib.collections.PathCollection object at 0x7fedc074b3d0>, (None, 0.3): <matplotlib.collections.PathCollection object at 0x7fedc081af70>}
+title = '', label_order = [(None, 0.2), (None, 0.3)], adjust_subtitles = True
+kwargs = {'frameon': False, 'loc': 'center right', 'scatterpoints': 1}
+handles = [<matplotlib.collections.PathCollection object at 0x7fedc074b3d0>, <matplotlib.collections.PathCollection object at 0x7fedc081af70>]
+title_size = None, labels = [0.2, 0.3], entry = (None, 0.3), _ = None
+label = 0.3, figlegend = <matplotlib.legend.Legend object at 0x7fedc074be80>
+
+    def add_legend(self, legend_data=None, title=None, label_order=None,
+                   adjust_subtitles=False, **kwargs):
+        """Draw a legend, maybe placing it outside axes and resizing the figure.
+    
+        Parameters
+        ----------
+        legend_data : dict
+            Dictionary mapping label names (or two-element tuples where the
+            second element is a label name) to matplotlib artist handles. The
+            default reads from ``self._legend_data``.
+        title : string
+            Title for the legend. The default reads from ``self._hue_var``.
+        label_order : list of labels
+            The order that the legend entries should appear in. The default
+            reads from ``self.hue_names``.
+        adjust_subtitles : bool
+            If True, modify entries with invisible artists to left-align
+            the labels and set the font size to that of a title.
+        kwargs : key, value pairings
+            Other keyword arguments are passed to the underlying legend methods
+            on the Figure or Axes object.
+    
+        Returns
+        -------
+        self : Grid instance
+            Returns self for easy chaining.
+    
+        """
+        # Find the data for the legend
+        if legend_data is None:
+            legend_data = self._legend_data
+        if label_order is None:
+            if self.hue_names is None:
+                label_order = list(legend_data.keys())
+            else:
+                label_order = list(map(utils.to_utf8, self.hue_names))
+    
+        blank_handle = mpl.patches.Patch(alpha=0, linewidth=0)
+        handles = [legend_data.get(l, blank_handle) for l in label_order]
+        title = self._hue_var if title is None else title
+        title_size = mpl.rcParams["legend.title_fontsize"]
+    
+        # Unpack nested labels from a hierarchical legend
+        labels = []
+        for entry in label_order:
+            if isinstance(entry, tuple):
+                _, label = entry
+            else:
+                label = entry
+            labels.append(label)
+    
+        # Set default legend kwargs
+        kwargs.setdefault("scatterpoints", 1)
+    
+        if self._legend_out:
+    
+            kwargs.setdefault("frameon", False)
+            kwargs.setdefault("loc", "center right")
+    
+            # Draw a full-figure legend outside the grid
+            figlegend = self._figure.legend(handles, labels, **kwargs)
+    
+            self._legend = figlegend
+            figlegend.set_title(title, prop={"size": title_size})
+    
+            if adjust_subtitles:
+                adjust_legend_subtitles(figlegend)
+    
+            # Draw the plot to set the bounding boxes correctly
+            _draw_figure(self._figure)
+    
+            # Calculate and set the new width of the figure so the legend fits
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            fig_width, fig_height = self._figure.get_size_inches()
+            self._figure.set_size_inches(fig_width + legend_width, fig_height)
+    
+            # Draw the plot again to get the new transformations
+            _draw_figure(self._figure)
+    
+            # Now calculate how much space we need on the right side
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            space_needed = legend_width / (fig_width + legend_width)
+            margin = .04 if self._margin_titles else .01
+            self._space_needed = margin + space_needed
+            right = 1 - self._space_needed
+    
+            # Filter the data frame to prevent error further down
+            # when hue_order does not include all unique values GH#2375
+>           mask = data[hue].isin(hue_order)
+E           UnboundLocalError: local variable 'data' referenced before assignment
+
+seaborn/axisgrid.py:176: UnboundLocalError
+___________________ TestRelationalPlotter.test_relplot_wide ____________________
+
+self = <tests.test_relational.TestRelationalPlotter object at 0x7fedc0886f40>
+wide_df =                    a         b         c
+wide_index                              
+10          1.449377  0.547052 -1.23...        -0.305246 -1.329569  0.624981
+46          0.272567 -0.936631 -0.986104
+48          0.813041 -1.076465  0.829330
+
+    def test_relplot_wide(self, wide_df):
+    
+>       g = relplot(data=wide_df)
+
+tests/test_relational.py:520: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:988: in relplot
+    g.add_legend(legend_data=p.legend_data,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <seaborn.axisgrid.FacetGrid object at 0x7fedb890efd0>
+legend_data = {(None, 'a'): <matplotlib.collections.PathCollection object at 0x7fedb887a430>, (None, 'b'): <matplotlib.collections.PathCollection object at 0x7fedb8b65970>, (None, 'c'): <matplotlib.collections.PathCollection object at 0x7fedb8bd9a90>}
+title = '', label_order = [(None, 'a'), (None, 'b'), (None, 'c')]
+adjust_subtitles = True
+kwargs = {'frameon': False, 'loc': 'center right', 'scatterpoints': 1}
+handles = [<matplotlib.collections.PathCollection object at 0x7fedb887a430>, <matplotlib.collections.PathCollection object at 0x7fedb8b65970>, <matplotlib.collections.PathCollection object at 0x7fedb8bd9a90>]
+title_size = None, labels = ['a', 'b', 'c'], entry = (None, 'c'), _ = None
+label = 'c', figlegend = <matplotlib.legend.Legend object at 0x7fedb886a520>
+
+    def add_legend(self, legend_data=None, title=None, label_order=None,
+                   adjust_subtitles=False, **kwargs):
+        """Draw a legend, maybe placing it outside axes and resizing the figure.
+    
+        Parameters
+        ----------
+        legend_data : dict
+            Dictionary mapping label names (or two-element tuples where the
+            second element is a label name) to matplotlib artist handles. The
+            default reads from ``self._legend_data``.
+        title : string
+            Title for the legend. The default reads from ``self._hue_var``.
+        label_order : list of labels
+            The order that the legend entries should appear in. The default
+            reads from ``self.hue_names``.
+        adjust_subtitles : bool
+            If True, modify entries with invisible artists to left-align
+            the labels and set the font size to that of a title.
+        kwargs : key, value pairings
+            Other keyword arguments are passed to the underlying legend methods
+            on the Figure or Axes object.
+    
+        Returns
+        -------
+        self : Grid instance
+            Returns self for easy chaining.
+    
+        """
+        # Find the data for the legend
+        if legend_data is None:
+            legend_data = self._legend_data
+        if label_order is None:
+            if self.hue_names is None:
+                label_order = list(legend_data.keys())
+            else:
+                label_order = list(map(utils.to_utf8, self.hue_names))
+    
+        blank_handle = mpl.patches.Patch(alpha=0, linewidth=0)
+        handles = [legend_data.get(l, blank_handle) for l in label_order]
+        title = self._hue_var if title is None else title
+        title_size = mpl.rcParams["legend.title_fontsize"]
+    
+        # Unpack nested labels from a hierarchical legend
+        labels = []
+        for entry in label_order:
+            if isinstance(entry, tuple):
+                _, label = entry
+            else:
+                label = entry
+            labels.append(label)
+    
+        # Set default legend kwargs
+        kwargs.setdefault("scatterpoints", 1)
+    
+        if self._legend_out:
+    
+            kwargs.setdefault("frameon", False)
+            kwargs.setdefault("loc", "center right")
+    
+            # Draw a full-figure legend outside the grid
+            figlegend = self._figure.legend(handles, labels, **kwargs)
+    
+            self._legend = figlegend
+            figlegend.set_title(title, prop={"size": title_size})
+    
+            if adjust_subtitles:
+                adjust_legend_subtitles(figlegend)
+    
+            # Draw the plot to set the bounding boxes correctly
+            _draw_figure(self._figure)
+    
+            # Calculate and set the new width of the figure so the legend fits
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            fig_width, fig_height = self._figure.get_size_inches()
+            self._figure.set_size_inches(fig_width + legend_width, fig_height)
+    
+            # Draw the plot again to get the new transformations
+            _draw_figure(self._figure)
+    
+            # Now calculate how much space we need on the right side
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            space_needed = legend_width / (fig_width + legend_width)
+            margin = .04 if self._margin_titles else .01
+            self._space_needed = margin + space_needed
+            right = 1 - self._space_needed
+    
+            # Filter the data frame to prevent error further down
+            # when hue_order does not include all unique values GH#2375
+>           mask = data[hue].isin(hue_order)
+E           UnboundLocalError: local variable 'data' referenced before assignment
+
+seaborn/axisgrid.py:176: UnboundLocalError
+___________________ TestRelationalPlotter.test_relplot_hues ____________________
+
+self = <tests.test_relational.TestRelationalPlotter object at 0x7fedc0886340>
+long_df =      x         y         z  a  b  ...  s    f a_cat  s_cat  s_str
+0   12  0.449243  6.611886  b  p  ...  2  0.2     b ...  8  0.3     a      8      8
+99  15  0.073484  1.036343  c  p  ...  8  0.2     c      8      8
+
+[100 rows x 13 columns]
+
+    def test_relplot_hues(self, long_df):
+    
+        palette = ["r", "b", "g"]
+>       g = relplot(
+            x="x", y="y", hue="a", style="b", col="c",
+            palette=palette, data=long_df
+        )
+
+tests/test_relational.py:528: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:988: in relplot
+    g.add_legend(legend_data=p.legend_data,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <seaborn.axisgrid.FacetGrid object at 0x7fedb8630ee0>
+legend_data = {(('a', 'title'), 'a'): <matplotlib.collections.PathCollection object at 0x7fedb8a43310>, ('a', 'b'): <matplotlib.coll...ollection object at 0x7fedb8bcbc10>, ('a', 'c'): <matplotlib.collections.PathCollection object at 0x7fedb8a434c0>, ...}
+title = ''
+label_order = [(('a', 'title'), 'a'), ('a', 'b'), ('a', 'a'), ('a', 'c'), (('b', 'title'), 'b'), ('b', 'p'), ...]
+adjust_subtitles = True
+kwargs = {'frameon': False, 'loc': 'center right', 'scatterpoints': 1}
+handles = [<matplotlib.collections.PathCollection object at 0x7fedb8a43310>, <matplotlib.collections.PathCollection object at 0x...ctions.PathCollection object at 0x7fedb8a35e20>, <matplotlib.collections.PathCollection object at 0x7fedb8452190>, ...]
+title_size = None, labels = ['a', 'b', 'a', 'c', 'b', 'p', ...]
+entry = ('b', 'm'), _ = 'b', label = 'm'
+figlegend = <matplotlib.legend.Legend object at 0x7fedb84522b0>
+
+    def add_legend(self, legend_data=None, title=None, label_order=None,
+                   adjust_subtitles=False, **kwargs):
+        """Draw a legend, maybe placing it outside axes and resizing the figure.
+    
+        Parameters
+        ----------
+        legend_data : dict
+            Dictionary mapping label names (or two-element tuples where the
+            second element is a label name) to matplotlib artist handles. The
+            default reads from ``self._legend_data``.
+        title : string
+            Title for the legend. The default reads from ``self._hue_var``.
+        label_order : list of labels
+            The order that the legend entries should appear in. The default
+            reads from ``self.hue_names``.
+        adjust_subtitles : bool
+            If True, modify entries with invisible artists to left-align
+            the labels and set the font size to that of a title.
+        kwargs : key, value pairings
+            Other keyword arguments are passed to the underlying legend methods
+            on the Figure or Axes object.
+    
+        Returns
+        -------
+        self : Grid instance
+            Returns self for easy chaining.
+    
+        """
+        # Find the data for the legend
+        if legend_data is None:
+            legend_data = self._legend_data
+        if label_order is None:
+            if self.hue_names is None:
+                label_order = list(legend_data.keys())
+            else:
+                label_order = list(map(utils.to_utf8, self.hue_names))
+    
+        blank_handle = mpl.patches.Patch(alpha=0, linewidth=0)
+        handles = [legend_data.get(l, blank_handle) for l in label_order]
+        title = self._hue_var if title is None else title
+        title_size = mpl.rcParams["legend.title_fontsize"]
+    
+        # Unpack nested labels from a hierarchical legend
+        labels = []
+        for entry in label_order:
+            if isinstance(entry, tuple):
+                _, label = entry
+            else:
+                label = entry
+            labels.append(label)
+    
+        # Set default legend kwargs
+        kwargs.setdefault("scatterpoints", 1)
+    
+        if self._legend_out:
+    
+            kwargs.setdefault("frameon", False)
+            kwargs.setdefault("loc", "center right")
+    
+            # Draw a full-figure legend outside the grid
+            figlegend = self._figure.legend(handles, labels, **kwargs)
+    
+            self._legend = figlegend
+            figlegend.set_title(title, prop={"size": title_size})
+    
+            if adjust_subtitles:
+                adjust_legend_subtitles(figlegend)
+    
+            # Draw the plot to set the bounding boxes correctly
+            _draw_figure(self._figure)
+    
+            # Calculate and set the new width of the figure so the legend fits
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            fig_width, fig_height = self._figure.get_size_inches()
+            self._figure.set_size_inches(fig_width + legend_width, fig_height)
+    
+            # Draw the plot again to get the new transformations
+            _draw_figure(self._figure)
+    
+            # Now calculate how much space we need on the right side
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            space_needed = legend_width / (fig_width + legend_width)
+            margin = .04 if self._margin_titles else .01
+            self._space_needed = margin + space_needed
+            right = 1 - self._space_needed
+    
+            # Filter the data frame to prevent error further down
+            # when hue_order does not include all unique values GH#2375
+>           mask = data[hue].isin(hue_order)
+E           UnboundLocalError: local variable 'data' referenced before assignment
+
+seaborn/axisgrid.py:176: UnboundLocalError
+___________________ TestRelationalPlotter.test_relplot_sizes ___________________
+
+self = <tests.test_relational.TestRelationalPlotter object at 0x7fedc0886d60>
+long_df =      x         y         z  a  b  ...  s    f a_cat  s_cat  s_str
+0   12  0.449243  6.611886  b  p  ...  2  0.2     b ...  8  0.3     a      8      8
+99  15  0.073484  1.036343  c  p  ...  8  0.2     c      8      8
+
+[100 rows x 13 columns]
+
+    def test_relplot_sizes(self, long_df):
+    
+        sizes = [5, 12, 7]
+>       g = relplot(
+            data=long_df,
+            x="x", y="y", size="a", hue="b", col="c",
+            sizes=sizes,
+        )
+
+tests/test_relational.py:543: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:988: in relplot
+    g.add_legend(legend_data=p.legend_data,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <seaborn.axisgrid.FacetGrid object at 0x7fedb88f8b20>
+legend_data = {(('b', 'title'), 'b'): <matplotlib.collections.PathCollection object at 0x7fedb87d5ca0>, ('b', 'p'): <matplotlib.coll...ollection object at 0x7fedb8aa4070>, ('b', 'o'): <matplotlib.collections.PathCollection object at 0x7fedb89ffd90>, ...}
+title = ''
+label_order = [(('b', 'title'), 'b'), ('b', 'p'), ('b', 'n'), ('b', 'o'), ('b', 'm'), (('a', 'title'), 'a'), ...]
+adjust_subtitles = True
+kwargs = {'frameon': False, 'loc': 'center right', 'scatterpoints': 1}
+handles = [<matplotlib.collections.PathCollection object at 0x7fedb87d5ca0>, <matplotlib.collections.PathCollection object at 0x...ctions.PathCollection object at 0x7fedb89ff940>, <matplotlib.collections.PathCollection object at 0x7fedb8413250>, ...]
+title_size = None, labels = ['b', 'p', 'n', 'o', 'm', 'a', ...]
+entry = ('a', 'c'), _ = 'a', label = 'c'
+figlegend = <matplotlib.legend.Legend object at 0x7fedfea25670>
+
+    def add_legend(self, legend_data=None, title=None, label_order=None,
+                   adjust_subtitles=False, **kwargs):
+        """Draw a legend, maybe placing it outside axes and resizing the figure.
+    
+        Parameters
+        ----------
+        legend_data : dict
+            Dictionary mapping label names (or two-element tuples where the
+            second element is a label name) to matplotlib artist handles. The
+            default reads from ``self._legend_data``.
+        title : string
+            Title for the legend. The default reads from ``self._hue_var``.
+        label_order : list of labels
+            The order that the legend entries should appear in. The default
+            reads from ``self.hue_names``.
+        adjust_subtitles : bool
+            If True, modify entries with invisible artists to left-align
+            the labels and set the font size to that of a title.
+        kwargs : key, value pairings
+            Other keyword arguments are passed to the underlying legend methods
+            on the Figure or Axes object.
+    
+        Returns
+        -------
+        self : Grid instance
+            Returns self for easy chaining.
+    
+        """
+        # Find the data for the legend
+        if legend_data is None:
+            legend_data = self._legend_data
+        if label_order is None:
+            if self.hue_names is None:
+                label_order = list(legend_data.keys())
+            else:
+                label_order = list(map(utils.to_utf8, self.hue_names))
+    
+        blank_handle = mpl.patches.Patch(alpha=0, linewidth=0)
+        handles = [legend_data.get(l, blank_handle) for l in label_order]
+        title = self._hue_var if title is None else title
+        title_size = mpl.rcParams["legend.title_fontsize"]
+    
+        # Unpack nested labels from a hierarchical legend
+        labels = []
+        for entry in label_order:
+            if isinstance(entry, tuple):
+                _, label = entry
+            else:
+                label = entry
+            labels.append(label)
+    
+        # Set default legend kwargs
+        kwargs.setdefault("scatterpoints", 1)
+    
+        if self._legend_out:
+    
+            kwargs.setdefault("frameon", False)
+            kwargs.setdefault("loc", "center right")
+    
+            # Draw a full-figure legend outside the grid
+            figlegend = self._figure.legend(handles, labels, **kwargs)
+    
+            self._legend = figlegend
+            figlegend.set_title(title, prop={"size": title_size})
+    
+            if adjust_subtitles:
+                adjust_legend_subtitles(figlegend)
+    
+            # Draw the plot to set the bounding boxes correctly
+            _draw_figure(self._figure)
+    
+            # Calculate and set the new width of the figure so the legend fits
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            fig_width, fig_height = self._figure.get_size_inches()
+            self._figure.set_size_inches(fig_width + legend_width, fig_height)
+    
+            # Draw the plot again to get the new transformations
+            _draw_figure(self._figure)
+    
+            # Now calculate how much space we need on the right side
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            space_needed = legend_width / (fig_width + legend_width)
+            margin = .04 if self._margin_titles else .01
+            self._space_needed = margin + space_needed
+            right = 1 - self._space_needed
+    
+            # Filter the data frame to prevent error further down
+            # when hue_order does not include all unique values GH#2375
+>           mask = data[hue].isin(hue_order)
+E           UnboundLocalError: local variable 'data' referenced before assignment
+
+seaborn/axisgrid.py:176: UnboundLocalError
+__________________ TestRelationalPlotter.test_relplot_styles ___________________
+
+self = <tests.test_relational.TestRelationalPlotter object at 0x7fedc08295e0>
+long_df =      x         y         z  a  b  ...  s    f a_cat  s_cat  s_str
+0   12  0.449243  6.611886  b  p  ...  2  0.2     b ...  8  0.3     a      8      8
+99  15  0.073484  1.036343  c  p  ...  8  0.2     c      8      8
+
+[100 rows x 13 columns]
+
+    def test_relplot_styles(self, long_df):
+    
+        markers = ["o", "d", "s"]
+>       g = relplot(
+            data=long_df,
+            x="x", y="y", style="a", hue="b", col="c",
+            markers=markers,
+        )
+
+tests/test_relational.py:559: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:988: in relplot
+    g.add_legend(legend_data=p.legend_data,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <seaborn.axisgrid.FacetGrid object at 0x7fedb857a640>
+legend_data = {(('b', 'title'), 'b'): <matplotlib.collections.PathCollection object at 0x7fedc0427af0>, ('b', 'p'): <matplotlib.coll...ollection object at 0x7fedb857b190>, ('b', 'o'): <matplotlib.collections.PathCollection object at 0x7fedb857cdc0>, ...}
+title = ''
+label_order = [(('b', 'title'), 'b'), ('b', 'p'), ('b', 'n'), ('b', 'o'), ('b', 'm'), (('a', 'title'), 'a'), ...]
+adjust_subtitles = True
+kwargs = {'frameon': False, 'loc': 'center right', 'scatterpoints': 1}
+handles = [<matplotlib.collections.PathCollection object at 0x7fedc0427af0>, <matplotlib.collections.PathCollection object at 0x...ctions.PathCollection object at 0x7fedb84ba430>, <matplotlib.collections.PathCollection object at 0x7fedb84c3670>, ...]
+title_size = None, labels = ['b', 'p', 'n', 'o', 'm', 'a', ...]
+entry = ('a', 'c'), _ = 'a', label = 'c'
+figlegend = <matplotlib.legend.Legend object at 0x7fedb86b33a0>
+
+    def add_legend(self, legend_data=None, title=None, label_order=None,
+                   adjust_subtitles=False, **kwargs):
+        """Draw a legend, maybe placing it outside axes and resizing the figure.
+    
+        Parameters
+        ----------
+        legend_data : dict
+            Dictionary mapping label names (or two-element tuples where the
+            second element is a label name) to matplotlib artist handles. The
+            default reads from ``self._legend_data``.
+        title : string
+            Title for the legend. The default reads from ``self._hue_var``.
+        label_order : list of labels
+            The order that the legend entries should appear in. The default
+            reads from ``self.hue_names``.
+        adjust_subtitles : bool
+            If True, modify entries with invisible artists to left-align
+            the labels and set the font size to that of a title.
+        kwargs : key, value pairings
+            Other keyword arguments are passed to the underlying legend methods
+            on the Figure or Axes object.
+    
+        Returns
+        -------
+        self : Grid instance
+            Returns self for easy chaining.
+    
+        """
+        # Find the data for the legend
+        if legend_data is None:
+            legend_data = self._legend_data
+        if label_order is None:
+            if self.hue_names is None:
+                label_order = list(legend_data.keys())
+            else:
+                label_order = list(map(utils.to_utf8, self.hue_names))
+    
+        blank_handle = mpl.patches.Patch(alpha=0, linewidth=0)
+        handles = [legend_data.get(l, blank_handle) for l in label_order]
+        title = self._hue_var if title is None else title
+        title_size = mpl.rcParams["legend.title_fontsize"]
+    
+        # Unpack nested labels from a hierarchical legend
+        labels = []
+        for entry in label_order:
+            if isinstance(entry, tuple):
+                _, label = entry
+            else:
+                label = entry
+            labels.append(label)
+    
+        # Set default legend kwargs
+        kwargs.setdefault("scatterpoints", 1)
+    
+        if self._legend_out:
+    
+            kwargs.setdefault("frameon", False)
+            kwargs.setdefault("loc", "center right")
+    
+            # Draw a full-figure legend outside the grid
+            figlegend = self._figure.legend(handles, labels, **kwargs)
+    
+            self._legend = figlegend
+            figlegend.set_title(title, prop={"size": title_size})
+    
+            if adjust_subtitles:
+                adjust_legend_subtitles(figlegend)
+    
+            # Draw the plot to set the bounding boxes correctly
+            _draw_figure(self._figure)
+    
+            # Calculate and set the new width of the figure so the legend fits
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            fig_width, fig_height = self._figure.get_size_inches()
+            self._figure.set_size_inches(fig_width + legend_width, fig_height)
+    
+            # Draw the plot again to get the new transformations
+            _draw_figure(self._figure)
+    
+            # Now calculate how much space we need on the right side
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            space_needed = legend_width / (fig_width + legend_width)
+            margin = .04 if self._margin_titles else .01
+            self._space_needed = margin + space_needed
+            right = 1 - self._space_needed
+    
+            # Filter the data frame to prevent error further down
+            # when hue_order does not include all unique values GH#2375
+>           mask = data[hue].isin(hue_order)
+E           UnboundLocalError: local variable 'data' referenced before assignment
+
+seaborn/axisgrid.py:176: UnboundLocalError
+_____________ TestRelationalPlotter.test_relplot_stringy_numerics ______________
+
+self = <tests.test_relational.TestRelationalPlotter object at 0x7fedc07e7d60>
+long_df =      x         y         z  a  b  c  ...  s    f  a_cat  s_cat s_str x_str
+0   12  0.449243  6.611886  b  p  0  ...  2...      8     8    14
+99  15  0.073484  1.036343  c  p  0  ...  8  0.2      c      8     8    15
+
+[100 rows x 14 columns]
+
+    def test_relplot_stringy_numerics(self, long_df):
+    
+        long_df["x_str"] = long_df["x"].astype(str)
+    
+>       g = relplot(data=long_df, x="x", y="y", hue="x_str")
+
+tests/test_relational.py:581: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:988: in relplot
+    g.add_legend(legend_data=p.legend_data,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <seaborn.axisgrid.FacetGrid object at 0x7fedfe794af0>
+legend_data = {('x_str', '0'): <matplotlib.collections.PathCollection object at 0x7fedb8915340>, ('x_str', '1'): <matplotlib.collect...tion object at 0x7fedb88473d0>, ('x_str', '11'): <matplotlib.collections.PathCollection object at 0x7fedc0865340>, ...}
+title = 'x_str'
+label_order = [('x_str', '12'), ('x_str', '15'), ('x_str', '3'), ('x_str', '18'), ('x_str', '10'), ('x_str', '9'), ...]
+adjust_subtitles = True
+kwargs = {'frameon': False, 'loc': 'center right', 'scatterpoints': 1}
+handles = [<matplotlib.collections.PathCollection object at 0x7fedb8aa4460>, <matplotlib.collections.PathCollection object at 0x...ctions.PathCollection object at 0x7fedb88473d0>, <matplotlib.collections.PathCollection object at 0x7fedb8b65910>, ...]
+title_size = None, labels = ['12', '15', '3', '18', '10', '9', ...]
+entry = ('x_str', '19'), _ = 'x_str', label = '19'
+figlegend = <matplotlib.legend.Legend object at 0x7fedb8b65b50>
+
+    def add_legend(self, legend_data=None, title=None, label_order=None,
+                   adjust_subtitles=False, **kwargs):
+        """Draw a legend, maybe placing it outside axes and resizing the figure.
+    
+        Parameters
+        ----------
+        legend_data : dict
+            Dictionary mapping label names (or two-element tuples where the
+            second element is a label name) to matplotlib artist handles. The
+            default reads from ``self._legend_data``.
+        title : string
+            Title for the legend. The default reads from ``self._hue_var``.
+        label_order : list of labels
+            The order that the legend entries should appear in. The default
+            reads from ``self.hue_names``.
+        adjust_subtitles : bool
+            If True, modify entries with invisible artists to left-align
+            the labels and set the font size to that of a title.
+        kwargs : key, value pairings
+            Other keyword arguments are passed to the underlying legend methods
+            on the Figure or Axes object.
+    
+        Returns
+        -------
+        self : Grid instance
+            Returns self for easy chaining.
+    
+        """
+        # Find the data for the legend
+        if legend_data is None:
+            legend_data = self._legend_data
+        if label_order is None:
+            if self.hue_names is None:
+                label_order = list(legend_data.keys())
+            else:
+                label_order = list(map(utils.to_utf8, self.hue_names))
+    
+        blank_handle = mpl.patches.Patch(alpha=0, linewidth=0)
+        handles = [legend_data.get(l, blank_handle) for l in label_order]
+        title = self._hue_var if title is None else title
+        title_size = mpl.rcParams["legend.title_fontsize"]
+    
+        # Unpack nested labels from a hierarchical legend
+        labels = []
+        for entry in label_order:
+            if isinstance(entry, tuple):
+                _, label = entry
+            else:
+                label = entry
+            labels.append(label)
+    
+        # Set default legend kwargs
+        kwargs.setdefault("scatterpoints", 1)
+    
+        if self._legend_out:
+    
+            kwargs.setdefault("frameon", False)
+            kwargs.setdefault("loc", "center right")
+    
+            # Draw a full-figure legend outside the grid
+            figlegend = self._figure.legend(handles, labels, **kwargs)
+    
+            self._legend = figlegend
+            figlegend.set_title(title, prop={"size": title_size})
+    
+            if adjust_subtitles:
+                adjust_legend_subtitles(figlegend)
+    
+            # Draw the plot to set the bounding boxes correctly
+            _draw_figure(self._figure)
+    
+            # Calculate and set the new width of the figure so the legend fits
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            fig_width, fig_height = self._figure.get_size_inches()
+            self._figure.set_size_inches(fig_width + legend_width, fig_height)
+    
+            # Draw the plot again to get the new transformations
+            _draw_figure(self._figure)
+    
+            # Now calculate how much space we need on the right side
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            space_needed = legend_width / (fig_width + legend_width)
+            margin = .04 if self._margin_titles else .01
+            self._space_needed = margin + space_needed
+            right = 1 - self._space_needed
+    
+            # Filter the data frame to prevent error further down
+            # when hue_order does not include all unique values GH#2375
+>           mask = data[hue].isin(hue_order)
+E           UnboundLocalError: local variable 'data' referenced before assignment
+
+seaborn/axisgrid.py:176: UnboundLocalError
+__________________ TestRelationalPlotter.test_relplot_legend ___________________
+
+self = <tests.test_relational.TestRelationalPlotter object at 0x7fedc0886d30>
+long_df =      x         y         z  a  b  ...  s    f a_cat  s_cat  s_str
+0   12  0.449243  6.611886  b  p  ...  2  0.2     b ...  8  0.3     a      8      8
+99  15  0.073484  1.036343  c  p  ...  8  0.2     c      8      8
+
+[100 rows x 13 columns]
+
+    def test_relplot_legend(self, long_df):
+    
+        g = relplot(data=long_df, x="x", y="y")
+        assert g._legend is None
+    
+>       g = relplot(data=long_df, x="x", y="y", hue="a")
+
+tests/test_relational.py:600: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:988: in relplot
+    g.add_legend(legend_data=p.legend_data,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <seaborn.axisgrid.FacetGrid object at 0x7fedb890e280>
+legend_data = {('a', 'a'): <matplotlib.collections.PathCollection object at 0x7fedb8374c70>, ('a', 'b'): <matplotlib.collections.PathCollection object at 0x7fedb87d3a60>, ('a', 'c'): <matplotlib.collections.PathCollection object at 0x7fedb89ba910>}
+title = 'a', label_order = [('a', 'b'), ('a', 'a'), ('a', 'c')]
+adjust_subtitles = True
+kwargs = {'frameon': False, 'loc': 'center right', 'scatterpoints': 1}
+handles = [<matplotlib.collections.PathCollection object at 0x7fedb87d3a60>, <matplotlib.collections.PathCollection object at 0x7fedb8374c70>, <matplotlib.collections.PathCollection object at 0x7fedb89ba910>]
+title_size = None, labels = ['b', 'a', 'c'], entry = ('a', 'c'), _ = 'a'
+label = 'c', figlegend = <matplotlib.legend.Legend object at 0x7fedb897ff40>
+
+    def add_legend(self, legend_data=None, title=None, label_order=None,
+                   adjust_subtitles=False, **kwargs):
+        """Draw a legend, maybe placing it outside axes and resizing the figure.
+    
+        Parameters
+        ----------
+        legend_data : dict
+            Dictionary mapping label names (or two-element tuples where the
+            second element is a label name) to matplotlib artist handles. The
+            default reads from ``self._legend_data``.
+        title : string
+            Title for the legend. The default reads from ``self._hue_var``.
+        label_order : list of labels
+            The order that the legend entries should appear in. The default
+            reads from ``self.hue_names``.
+        adjust_subtitles : bool
+            If True, modify entries with invisible artists to left-align
+            the labels and set the font size to that of a title.
+        kwargs : key, value pairings
+            Other keyword arguments are passed to the underlying legend methods
+            on the Figure or Axes object.
+    
+        Returns
+        -------
+        self : Grid instance
+            Returns self for easy chaining.
+    
+        """
+        # Find the data for the legend
+        if legend_data is None:
+            legend_data = self._legend_data
+        if label_order is None:
+            if self.hue_names is None:
+                label_order = list(legend_data.keys())
+            else:
+                label_order = list(map(utils.to_utf8, self.hue_names))
+    
+        blank_handle = mpl.patches.Patch(alpha=0, linewidth=0)
+        handles = [legend_data.get(l, blank_handle) for l in label_order]
+        title = self._hue_var if title is None else title
+        title_size = mpl.rcParams["legend.title_fontsize"]
+    
+        # Unpack nested labels from a hierarchical legend
+        labels = []
+        for entry in label_order:
+            if isinstance(entry, tuple):
+                _, label = entry
+            else:
+                label = entry
+            labels.append(label)
+    
+        # Set default legend kwargs
+        kwargs.setdefault("scatterpoints", 1)
+    
+        if self._legend_out:
+    
+            kwargs.setdefault("frameon", False)
+            kwargs.setdefault("loc", "center right")
+    
+            # Draw a full-figure legend outside the grid
+            figlegend = self._figure.legend(handles, labels, **kwargs)
+    
+            self._legend = figlegend
+            figlegend.set_title(title, prop={"size": title_size})
+    
+            if adjust_subtitles:
+                adjust_legend_subtitles(figlegend)
+    
+            # Draw the plot to set the bounding boxes correctly
+            _draw_figure(self._figure)
+    
+            # Calculate and set the new width of the figure so the legend fits
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            fig_width, fig_height = self._figure.get_size_inches()
+            self._figure.set_size_inches(fig_width + legend_width, fig_height)
+    
+            # Draw the plot again to get the new transformations
+            _draw_figure(self._figure)
+    
+            # Now calculate how much space we need on the right side
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            space_needed = legend_width / (fig_width + legend_width)
+            margin = .04 if self._margin_titles else .01
+            self._space_needed = margin + space_needed
+            right = 1 - self._space_needed
+    
+            # Filter the data frame to prevent error further down
+            # when hue_order does not include all unique values GH#2375
+>           mask = data[hue].isin(hue_order)
+E           UnboundLocalError: local variable 'data' referenced before assignment
+
+seaborn/axisgrid.py:176: UnboundLocalError
+___________________ TestRelationalPlotter.test_relplot_data ____________________
+
+self = <tests.test_relational.TestRelationalPlotter object at 0x7fedc0886b80>
+long_df =      x         y         z  a  b  ...  s    f a_cat  s_cat  s_str
+0   12  0.449243  6.611886  b  p  ...  2  0.2     b ...  8  0.3     a      8      8
+99  15  0.073484  1.036343  c  p  ...  8  0.2     c      8      8
+
+[100 rows x 13 columns]
+
+    def test_relplot_data(self, long_df):
+    
+>       g = relplot(
+            data=long_df.to_dict(orient="list"),
+            x="x",
+            y=long_df["y"].rename("y_var"),
+            hue=long_df["a"].to_numpy(),
+            col="c",
+        )
+
+tests/test_relational.py:626: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:988: in relplot
+    g.add_legend(legend_data=p.legend_data,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <seaborn.axisgrid.FacetGrid object at 0x7fedb87df910>
+legend_data = {(None, 'a'): <matplotlib.collections.PathCollection object at 0x7fedb88f8dc0>, (None, 'b'): <matplotlib.collections.PathCollection object at 0x7fedb8ae3040>, (None, 'c'): <matplotlib.collections.PathCollection object at 0x7fedb877c4f0>}
+title = '', label_order = [(None, 'b'), (None, 'a'), (None, 'c')]
+adjust_subtitles = True
+kwargs = {'frameon': False, 'loc': 'center right', 'scatterpoints': 1}
+handles = [<matplotlib.collections.PathCollection object at 0x7fedb8ae3040>, <matplotlib.collections.PathCollection object at 0x7fedb88f8dc0>, <matplotlib.collections.PathCollection object at 0x7fedb877c4f0>]
+title_size = None, labels = ['b', 'a', 'c'], entry = (None, 'c'), _ = None
+label = 'c', figlegend = <matplotlib.legend.Legend object at 0x7fedb8ae3610>
+
+    def add_legend(self, legend_data=None, title=None, label_order=None,
+                   adjust_subtitles=False, **kwargs):
+        """Draw a legend, maybe placing it outside axes and resizing the figure.
+    
+        Parameters
+        ----------
+        legend_data : dict
+            Dictionary mapping label names (or two-element tuples where the
+            second element is a label name) to matplotlib artist handles. The
+            default reads from ``self._legend_data``.
+        title : string
+            Title for the legend. The default reads from ``self._hue_var``.
+        label_order : list of labels
+            The order that the legend entries should appear in. The default
+            reads from ``self.hue_names``.
+        adjust_subtitles : bool
+            If True, modify entries with invisible artists to left-align
+            the labels and set the font size to that of a title.
+        kwargs : key, value pairings
+            Other keyword arguments are passed to the underlying legend methods
+            on the Figure or Axes object.
+    
+        Returns
+        -------
+        self : Grid instance
+            Returns self for easy chaining.
+    
+        """
+        # Find the data for the legend
+        if legend_data is None:
+            legend_data = self._legend_data
+        if label_order is None:
+            if self.hue_names is None:
+                label_order = list(legend_data.keys())
+            else:
+                label_order = list(map(utils.to_utf8, self.hue_names))
+    
+        blank_handle = mpl.patches.Patch(alpha=0, linewidth=0)
+        handles = [legend_data.get(l, blank_handle) for l in label_order]
+        title = self._hue_var if title is None else title
+        title_size = mpl.rcParams["legend.title_fontsize"]
+    
+        # Unpack nested labels from a hierarchical legend
+        labels = []
+        for entry in label_order:
+            if isinstance(entry, tuple):
+                _, label = entry
+            else:
+                label = entry
+            labels.append(label)
+    
+        # Set default legend kwargs
+        kwargs.setdefault("scatterpoints", 1)
+    
+        if self._legend_out:
+    
+            kwargs.setdefault("frameon", False)
+            kwargs.setdefault("loc", "center right")
+    
+            # Draw a full-figure legend outside the grid
+            figlegend = self._figure.legend(handles, labels, **kwargs)
+    
+            self._legend = figlegend
+            figlegend.set_title(title, prop={"size": title_size})
+    
+            if adjust_subtitles:
+                adjust_legend_subtitles(figlegend)
+    
+            # Draw the plot to set the bounding boxes correctly
+            _draw_figure(self._figure)
+    
+            # Calculate and set the new width of the figure so the legend fits
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            fig_width, fig_height = self._figure.get_size_inches()
+            self._figure.set_size_inches(fig_width + legend_width, fig_height)
+    
+            # Draw the plot again to get the new transformations
+            _draw_figure(self._figure)
+    
+            # Now calculate how much space we need on the right side
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            space_needed = legend_width / (fig_width + legend_width)
+            margin = .04 if self._margin_titles else .01
+            self._space_needed = margin + space_needed
+            right = 1 - self._space_needed
+    
+            # Filter the data frame to prevent error further down
+            # when hue_order does not include all unique values GH#2375
+>           mask = data[hue].isin(hue_order)
+E           UnboundLocalError: local variable 'data' referenced before assignment
+
+seaborn/axisgrid.py:176: UnboundLocalError
+__________________________ TestLinePlotter.test_color __________________________
+
+self = <tests.test_relational.TestLinePlotter object at 0x7fedc0694ac0>
+long_df =      x         y         z  a  b  ...  s    f a_cat  s_cat  s_str
+0   12  0.449243  6.611886  b  p  ...  2  0.2     b ...  8  0.3     a      8      8
+99  15  0.073484  1.036343  c  p  ...  8  0.2     c      8      8
+
+[100 rows x 13 columns]
+
+    def test_color(self, long_df):
+    
+        ax = plt.figure().subplots()
+>       self.func(data=long_df, x="x", y="y", ax=ax)
+
+tests/test_relational.py:71: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:646: in lineplot
+    p.plot(ax, kwargs)
+seaborn/relational.py:422: in plot
+    for sub_vars, sub_data in self.iter_data(grouping_vars, from_comp_data=True):
+seaborn/_oldcore.py:1005: in iter_data
+    data = self.comp_data
+seaborn/_oldcore.py:1096: in comp_data
+    with pd.option_context('mode.use_inf_as_null', True):
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in __enter__
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in <listcomp>
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:135: in _get_option
+    key = _get_single_key(pat, silent)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+pat = 'mode.use_inf_as_null', silent = True
+
+    def _get_single_key(pat: str, silent: bool) -> str:
+        keys = _select_options(pat)
+        if len(keys) == 0:
+            if not silent:
+                _warn_if_deprecated(pat)
+>           raise OptionError(f"No such keys(s): {repr(pat)}")
+E           pandas._config.config.OptionError: "No such keys(s): 'mode.use_inf_as_null'"
+
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:121: OptionError
+________________________ TestLinePlotter.test_log_scale ________________________
+
+self = <tests.test_relational.TestLinePlotter object at 0x7fedc086bf40>
+
+    def test_log_scale(self):
+    
+        f, ax = plt.subplots()
+        ax.set_xscale("log")
+    
+        x = [1, 10, 100]
+        y = [1, 2, 3]
+    
+>       lineplot(x=x, y=y)
+
+tests/test_relational.py:1078: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:646: in lineplot
+    p.plot(ax, kwargs)
+seaborn/relational.py:422: in plot
+    for sub_vars, sub_data in self.iter_data(grouping_vars, from_comp_data=True):
+seaborn/_oldcore.py:1005: in iter_data
+    data = self.comp_data
+seaborn/_oldcore.py:1096: in comp_data
+    with pd.option_context('mode.use_inf_as_null', True):
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in __enter__
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in <listcomp>
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:135: in _get_option
+    key = _get_single_key(pat, silent)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+pat = 'mode.use_inf_as_null', silent = True
+
+    def _get_single_key(pat: str, silent: bool) -> str:
+        keys = _select_options(pat)
+        if len(keys) == 0:
+            if not silent:
+                _warn_if_deprecated(pat)
+>           raise OptionError(f"No such keys(s): {repr(pat)}")
+E           pandas._config.config.OptionError: "No such keys(s): 'mode.use_inf_as_null'"
+
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:121: OptionError
+____________________ TestLinePlotter.test_matplotlib_kwargs ____________________
+
+self = <tests.test_relational.TestLinePlotter object at 0x7fedc086b880>
+long_df =      x         y         z  a  b  ...  s    f a_cat  s_cat  s_str
+0   12  0.449243  6.611886  b  p  ...  2  0.2     b ...  8  0.3     a      8      8
+99  15  0.073484  1.036343  c  p  ...  8  0.2     c      8      8
+
+[100 rows x 13 columns]
+
+    def test_matplotlib_kwargs(self, long_df):
+    
+        kws = {
+            "linestyle": "--",
+            "linewidth": 3,
+            "color": (1, .5, .2),
+            "markeredgecolor": (.2, .5, .2),
+            "markeredgewidth": 1,
+        }
+>       ax = lineplot(data=long_df, x="x", y="y", **kws)
+
+tests/test_relational.py:1125: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:646: in lineplot
+    p.plot(ax, kwargs)
+seaborn/relational.py:422: in plot
+    for sub_vars, sub_data in self.iter_data(grouping_vars, from_comp_data=True):
+seaborn/_oldcore.py:1005: in iter_data
+    data = self.comp_data
+seaborn/_oldcore.py:1096: in comp_data
+    with pd.option_context('mode.use_inf_as_null', True):
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in __enter__
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in <listcomp>
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:135: in _get_option
+    key = _get_single_key(pat, silent)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+pat = 'mode.use_inf_as_null', silent = True
+
+    def _get_single_key(pat: str, silent: bool) -> str:
+        keys = _select_options(pat)
+        if len(keys) == 0:
+            if not silent:
+                _warn_if_deprecated(pat)
+>           raise OptionError(f"No such keys(s): {repr(pat)}")
+E           pandas._config.config.OptionError: "No such keys(s): 'mode.use_inf_as_null'"
+
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:121: OptionError
+____________________ TestLinePlotter.test_nonmapped_dashes _____________________
+
+self = <tests.test_relational.TestLinePlotter object at 0x7fedc086ba90>
+
+    def test_nonmapped_dashes(self):
+    
+>       ax = lineplot(x=[1, 2], y=[1, 2], dashes=(2, 1))
+
+tests/test_relational.py:1134: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:646: in lineplot
+    p.plot(ax, kwargs)
+seaborn/relational.py:422: in plot
+    for sub_vars, sub_data in self.iter_data(grouping_vars, from_comp_data=True):
+seaborn/_oldcore.py:1005: in iter_data
+    data = self.comp_data
+seaborn/_oldcore.py:1096: in comp_data
+    with pd.option_context('mode.use_inf_as_null', True):
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in __enter__
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in <listcomp>
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:135: in _get_option
+    key = _get_single_key(pat, silent)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+pat = 'mode.use_inf_as_null', silent = True
+
+    def _get_single_key(pat: str, silent: bool) -> str:
+        keys = _select_options(pat)
+        if len(keys) == 0:
+            if not silent:
+                _warn_if_deprecated(pat)
+>           raise OptionError(f"No such keys(s): {repr(pat)}")
+E           pandas._config.config.OptionError: "No such keys(s): 'mode.use_inf_as_null'"
+
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:121: OptionError
+______________________ TestLinePlotter.test_lineplot_axes ______________________
+
+self = <tests.test_relational.TestLinePlotter object at 0x7fedc084ed00>
+wide_df =                    a         b         c
+wide_index                              
+10          1.449377  0.547052 -1.23...        -0.305246 -1.329569  0.624981
+46          0.272567 -0.936631 -0.986104
+48          0.813041 -1.076465  0.829330
+
+    def test_lineplot_axes(self, wide_df):
+    
+        f1, ax1 = plt.subplots()
+        f2, ax2 = plt.subplots()
+    
+>       ax = lineplot(data=wide_df)
+
+tests/test_relational.py:1144: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:646: in lineplot
+    p.plot(ax, kwargs)
+seaborn/relational.py:422: in plot
+    for sub_vars, sub_data in self.iter_data(grouping_vars, from_comp_data=True):
+seaborn/_oldcore.py:1005: in iter_data
+    data = self.comp_data
+seaborn/_oldcore.py:1096: in comp_data
+    with pd.option_context('mode.use_inf_as_null', True):
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in __enter__
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in <listcomp>
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:135: in _get_option
+    key = _get_single_key(pat, silent)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+pat = 'mode.use_inf_as_null', silent = True
+
+    def _get_single_key(pat: str, silent: bool) -> str:
+        keys = _select_options(pat)
+        if len(keys) == 0:
+            if not silent:
+                _warn_if_deprecated(pat)
+>           raise OptionError(f"No such keys(s): {repr(pat)}")
+E           pandas._config.config.OptionError: "No such keys(s): 'mode.use_inf_as_null'"
+
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:121: OptionError
+__________ TestLinePlotter.test_lineplot_vs_relplot[long_semantics0] ___________
+
+self = <tests.test_relational.TestLinePlotter object at 0x7fedc07e0cd0>
+long_df =      x         y         z  a  b  ...  s    f a_cat  s_cat  s_str
+0   12  0.449243  6.611886  b  p  ...  2  0.2     b ...  8  0.3     a      8      8
+99  15  0.073484  1.036343  c  p  ...  8  0.2     c      8      8
+
+[100 rows x 13 columns]
+long_semantics = {'x': 'x', 'y': 'y'}
+
+    def test_lineplot_vs_relplot(self, long_df, long_semantics):
+    
+>       ax = lineplot(data=long_df, **long_semantics)
+
+tests/test_relational.py:1152: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:646: in lineplot
+    p.plot(ax, kwargs)
+seaborn/relational.py:422: in plot
+    for sub_vars, sub_data in self.iter_data(grouping_vars, from_comp_data=True):
+seaborn/_oldcore.py:1005: in iter_data
+    data = self.comp_data
+seaborn/_oldcore.py:1096: in comp_data
+    with pd.option_context('mode.use_inf_as_null', True):
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in __enter__
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in <listcomp>
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:135: in _get_option
+    key = _get_single_key(pat, silent)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+pat = 'mode.use_inf_as_null', silent = True
+
+    def _get_single_key(pat: str, silent: bool) -> str:
+        keys = _select_options(pat)
+        if len(keys) == 0:
+            if not silent:
+                _warn_if_deprecated(pat)
+>           raise OptionError(f"No such keys(s): {repr(pat)}")
+E           pandas._config.config.OptionError: "No such keys(s): 'mode.use_inf_as_null'"
+
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:121: OptionError
+__________ TestLinePlotter.test_lineplot_vs_relplot[long_semantics1] ___________
+
+self = <tests.test_relational.TestLinePlotter object at 0x7fedc07e0f70>
+long_df =      x         y         z  a  b  ...  s    f a_cat  s_cat  s_str
+0   12  0.449243  6.611886  b  p  ...  2  0.2     b ...  8  0.3     a      8      8
+99  15  0.073484  1.036343  c  p  ...  8  0.2     c      8      8
+
+[100 rows x 13 columns]
+long_semantics = {'x': 't', 'y': 'y'}
+
+    def test_lineplot_vs_relplot(self, long_df, long_semantics):
+    
+>       ax = lineplot(data=long_df, **long_semantics)
+
+tests/test_relational.py:1152: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:646: in lineplot
+    p.plot(ax, kwargs)
+seaborn/relational.py:422: in plot
+    for sub_vars, sub_data in self.iter_data(grouping_vars, from_comp_data=True):
+seaborn/_oldcore.py:1005: in iter_data
+    data = self.comp_data
+seaborn/_oldcore.py:1096: in comp_data
+    with pd.option_context('mode.use_inf_as_null', True):
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in __enter__
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in <listcomp>
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:135: in _get_option
+    key = _get_single_key(pat, silent)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+pat = 'mode.use_inf_as_null', silent = True
+
+    def _get_single_key(pat: str, silent: bool) -> str:
+        keys = _select_options(pat)
+        if len(keys) == 0:
+            if not silent:
+                _warn_if_deprecated(pat)
+>           raise OptionError(f"No such keys(s): {repr(pat)}")
+E           pandas._config.config.OptionError: "No such keys(s): 'mode.use_inf_as_null'"
+
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:121: OptionError
+__________ TestLinePlotter.test_lineplot_vs_relplot[long_semantics2] ___________
+
+self = <tests.test_relational.TestLinePlotter object at 0x7fedc0751880>
+long_df =      x         y         z  a  b  ...  s    f a_cat  s_cat  s_str
+0   12  0.449243  6.611886  b  p  ...  2  0.2     b ...  8  0.3     a      8      8
+99  15  0.073484  1.036343  c  p  ...  8  0.2     c      8      8
+
+[100 rows x 13 columns]
+long_semantics = {'x': 'a', 'y': 'y'}
+
+    def test_lineplot_vs_relplot(self, long_df, long_semantics):
+    
+>       ax = lineplot(data=long_df, **long_semantics)
+
+tests/test_relational.py:1152: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:646: in lineplot
+    p.plot(ax, kwargs)
+seaborn/relational.py:422: in plot
+    for sub_vars, sub_data in self.iter_data(grouping_vars, from_comp_data=True):
+seaborn/_oldcore.py:1005: in iter_data
+    data = self.comp_data
+seaborn/_oldcore.py:1096: in comp_data
+    with pd.option_context('mode.use_inf_as_null', True):
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in __enter__
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in <listcomp>
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:135: in _get_option
+    key = _get_single_key(pat, silent)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+pat = 'mode.use_inf_as_null', silent = True
+
+    def _get_single_key(pat: str, silent: bool) -> str:
+        keys = _select_options(pat)
+        if len(keys) == 0:
+            if not silent:
+                _warn_if_deprecated(pat)
+>           raise OptionError(f"No such keys(s): {repr(pat)}")
+E           pandas._config.config.OptionError: "No such keys(s): 'mode.use_inf_as_null'"
+
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:121: OptionError
+__________ TestLinePlotter.test_lineplot_vs_relplot[long_semantics3] ___________
+
+self = <tests.test_relational.TestLinePlotter object at 0x7fedc0751070>
+long_df =      x         y         z  a  b  ...  s    f a_cat  s_cat  s_str
+0   12  0.449243  6.611886  b  p  ...  2  0.2     b ...  8  0.3     a      8      8
+99  15  0.073484  1.036343  c  p  ...  8  0.2     c      8      8
+
+[100 rows x 13 columns]
+long_semantics = {'hue': 'y', 'x': 'x', 'y': 'y'}
+
+    def test_lineplot_vs_relplot(self, long_df, long_semantics):
+    
+>       ax = lineplot(data=long_df, **long_semantics)
+
+tests/test_relational.py:1152: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:646: in lineplot
+    p.plot(ax, kwargs)
+seaborn/relational.py:422: in plot
+    for sub_vars, sub_data in self.iter_data(grouping_vars, from_comp_data=True):
+seaborn/_oldcore.py:1005: in iter_data
+    data = self.comp_data
+seaborn/_oldcore.py:1096: in comp_data
+    with pd.option_context('mode.use_inf_as_null', True):
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in __enter__
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in <listcomp>
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:135: in _get_option
+    key = _get_single_key(pat, silent)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+pat = 'mode.use_inf_as_null', silent = True
+
+    def _get_single_key(pat: str, silent: bool) -> str:
+        keys = _select_options(pat)
+        if len(keys) == 0:
+            if not silent:
+                _warn_if_deprecated(pat)
+>           raise OptionError(f"No such keys(s): {repr(pat)}")
+E           pandas._config.config.OptionError: "No such keys(s): 'mode.use_inf_as_null'"
+
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:121: OptionError
+__________ TestLinePlotter.test_lineplot_vs_relplot[long_semantics4] ___________
+
+self = <tests.test_relational.TestLinePlotter object at 0x7fedc0751130>
+long_df =      x         y         z  a  b  ...  s    f a_cat  s_cat  s_str
+0   12  0.449243  6.611886  b  p  ...  2  0.2     b ...  8  0.3     a      8      8
+99  15  0.073484  1.036343  c  p  ...  8  0.2     c      8      8
+
+[100 rows x 13 columns]
+long_semantics = {'hue': 'a', 'x': 'x', 'y': 'y'}
+
+    def test_lineplot_vs_relplot(self, long_df, long_semantics):
+    
+>       ax = lineplot(data=long_df, **long_semantics)
+
+tests/test_relational.py:1152: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:646: in lineplot
+    p.plot(ax, kwargs)
+seaborn/relational.py:422: in plot
+    for sub_vars, sub_data in self.iter_data(grouping_vars, from_comp_data=True):
+seaborn/_oldcore.py:1005: in iter_data
+    data = self.comp_data
+seaborn/_oldcore.py:1096: in comp_data
+    with pd.option_context('mode.use_inf_as_null', True):
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in __enter__
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in <listcomp>
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:135: in _get_option
+    key = _get_single_key(pat, silent)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+pat = 'mode.use_inf_as_null', silent = True
+
+    def _get_single_key(pat: str, silent: bool) -> str:
+        keys = _select_options(pat)
+        if len(keys) == 0:
+            if not silent:
+                _warn_if_deprecated(pat)
+>           raise OptionError(f"No such keys(s): {repr(pat)}")
+E           pandas._config.config.OptionError: "No such keys(s): 'mode.use_inf_as_null'"
+
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:121: OptionError
+__________ TestLinePlotter.test_lineplot_vs_relplot[long_semantics5] ___________
+
+self = <tests.test_relational.TestLinePlotter object at 0x7fedc07511f0>
+long_df =      x         y         z  a  b  ...  s    f a_cat  s_cat  s_str
+0   12  0.449243  6.611886  b  p  ...  2  0.2     b ...  8  0.3     a      8      8
+99  15  0.073484  1.036343  c  p  ...  8  0.2     c      8      8
+
+[100 rows x 13 columns]
+long_semantics = {'size': 'a', 'x': 'x', 'y': 'y'}
+
+    def test_lineplot_vs_relplot(self, long_df, long_semantics):
+    
+>       ax = lineplot(data=long_df, **long_semantics)
+
+tests/test_relational.py:1152: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:646: in lineplot
+    p.plot(ax, kwargs)
+seaborn/relational.py:422: in plot
+    for sub_vars, sub_data in self.iter_data(grouping_vars, from_comp_data=True):
+seaborn/_oldcore.py:1005: in iter_data
+    data = self.comp_data
+seaborn/_oldcore.py:1096: in comp_data
+    with pd.option_context('mode.use_inf_as_null', True):
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in __enter__
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in <listcomp>
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:135: in _get_option
+    key = _get_single_key(pat, silent)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+pat = 'mode.use_inf_as_null', silent = True
+
+    def _get_single_key(pat: str, silent: bool) -> str:
+        keys = _select_options(pat)
+        if len(keys) == 0:
+            if not silent:
+                _warn_if_deprecated(pat)
+>           raise OptionError(f"No such keys(s): {repr(pat)}")
+E           pandas._config.config.OptionError: "No such keys(s): 'mode.use_inf_as_null'"
+
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:121: OptionError
+__________ TestLinePlotter.test_lineplot_vs_relplot[long_semantics6] ___________
+
+self = <tests.test_relational.TestLinePlotter object at 0x7fedc07512b0>
+long_df =      x         y         z  a  b  ...  s    f a_cat  s_cat  s_str
+0   12  0.449243  6.611886  b  p  ...  2  0.2     b ...  8  0.3     a      8      8
+99  15  0.073484  1.036343  c  p  ...  8  0.2     c      8      8
+
+[100 rows x 13 columns]
+long_semantics = {'style': 'a', 'x': 'x', 'y': 'y'}
+
+    def test_lineplot_vs_relplot(self, long_df, long_semantics):
+    
+>       ax = lineplot(data=long_df, **long_semantics)
+
+tests/test_relational.py:1152: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:646: in lineplot
+    p.plot(ax, kwargs)
+seaborn/relational.py:422: in plot
+    for sub_vars, sub_data in self.iter_data(grouping_vars, from_comp_data=True):
+seaborn/_oldcore.py:1005: in iter_data
+    data = self.comp_data
+seaborn/_oldcore.py:1096: in comp_data
+    with pd.option_context('mode.use_inf_as_null', True):
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in __enter__
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in <listcomp>
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:135: in _get_option
+    key = _get_single_key(pat, silent)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+pat = 'mode.use_inf_as_null', silent = True
+
+    def _get_single_key(pat: str, silent: bool) -> str:
+        keys = _select_options(pat)
+        if len(keys) == 0:
+            if not silent:
+                _warn_if_deprecated(pat)
+>           raise OptionError(f"No such keys(s): {repr(pat)}")
+E           pandas._config.config.OptionError: "No such keys(s): 'mode.use_inf_as_null'"
+
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:121: OptionError
+__________ TestLinePlotter.test_lineplot_vs_relplot[long_semantics7] ___________
+
+self = <tests.test_relational.TestLinePlotter object at 0x7fedc086b730>
+long_df =      x         y         z  a  b  ...  s    f a_cat  s_cat  s_str
+0   12  0.449243  6.611886  b  p  ...  2  0.2     b ...  8  0.3     a      8      8
+99  15  0.073484  1.036343  c  p  ...  8  0.2     c      8      8
+
+[100 rows x 13 columns]
+long_semantics = {'hue': 's', 'x': 'x', 'y': 'y'}
+
+    def test_lineplot_vs_relplot(self, long_df, long_semantics):
+    
+>       ax = lineplot(data=long_df, **long_semantics)
+
+tests/test_relational.py:1152: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:646: in lineplot
+    p.plot(ax, kwargs)
+seaborn/relational.py:422: in plot
+    for sub_vars, sub_data in self.iter_data(grouping_vars, from_comp_data=True):
+seaborn/_oldcore.py:1005: in iter_data
+    data = self.comp_data
+seaborn/_oldcore.py:1096: in comp_data
+    with pd.option_context('mode.use_inf_as_null', True):
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in __enter__
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in <listcomp>
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:135: in _get_option
+    key = _get_single_key(pat, silent)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+pat = 'mode.use_inf_as_null', silent = True
+
+    def _get_single_key(pat: str, silent: bool) -> str:
+        keys = _select_options(pat)
+        if len(keys) == 0:
+            if not silent:
+                _warn_if_deprecated(pat)
+>           raise OptionError(f"No such keys(s): {repr(pat)}")
+E           pandas._config.config.OptionError: "No such keys(s): 'mode.use_inf_as_null'"
+
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:121: OptionError
+__________ TestLinePlotter.test_lineplot_vs_relplot[long_semantics8] ___________
+
+self = <tests.test_relational.TestLinePlotter object at 0x7fedc086bc70>
+long_df =      x         y         z  a  b  ...  s    f a_cat  s_cat  s_str
+0   12  0.449243  6.611886  b  p  ...  2  0.2     b ...  8  0.3     a      8      8
+99  15  0.073484  1.036343  c  p  ...  8  0.2     c      8      8
+
+[100 rows x 13 columns]
+long_semantics = {'size': 's', 'x': 'x', 'y': 'y'}
+
+    def test_lineplot_vs_relplot(self, long_df, long_semantics):
+    
+>       ax = lineplot(data=long_df, **long_semantics)
+
+tests/test_relational.py:1152: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:646: in lineplot
+    p.plot(ax, kwargs)
+seaborn/relational.py:422: in plot
+    for sub_vars, sub_data in self.iter_data(grouping_vars, from_comp_data=True):
+seaborn/_oldcore.py:1005: in iter_data
+    data = self.comp_data
+seaborn/_oldcore.py:1096: in comp_data
+    with pd.option_context('mode.use_inf_as_null', True):
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in __enter__
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in <listcomp>
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:135: in _get_option
+    key = _get_single_key(pat, silent)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+pat = 'mode.use_inf_as_null', silent = True
+
+    def _get_single_key(pat: str, silent: bool) -> str:
+        keys = _select_options(pat)
+        if len(keys) == 0:
+            if not silent:
+                _warn_if_deprecated(pat)
+>           raise OptionError(f"No such keys(s): {repr(pat)}")
+E           pandas._config.config.OptionError: "No such keys(s): 'mode.use_inf_as_null'"
+
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:121: OptionError
+__________ TestLinePlotter.test_lineplot_vs_relplot[long_semantics9] ___________
+
+self = <tests.test_relational.TestLinePlotter object at 0x7fedc086b190>
+long_df =      x         y         z  a  b  ...  s    f a_cat  s_cat  s_str
+0   12  0.449243  6.611886  b  p  ...  2  0.2     b ...  8  0.3     a      8      8
+99  15  0.073484  1.036343  c  p  ...  8  0.2     c      8      8
+
+[100 rows x 13 columns]
+long_semantics = {'style': 's', 'x': 'x', 'y': 'y'}
+
+    def test_lineplot_vs_relplot(self, long_df, long_semantics):
+    
+>       ax = lineplot(data=long_df, **long_semantics)
+
+tests/test_relational.py:1152: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:646: in lineplot
+    p.plot(ax, kwargs)
+seaborn/relational.py:422: in plot
+    for sub_vars, sub_data in self.iter_data(grouping_vars, from_comp_data=True):
+seaborn/_oldcore.py:1005: in iter_data
+    data = self.comp_data
+seaborn/_oldcore.py:1096: in comp_data
+    with pd.option_context('mode.use_inf_as_null', True):
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in __enter__
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in <listcomp>
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:135: in _get_option
+    key = _get_single_key(pat, silent)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+pat = 'mode.use_inf_as_null', silent = True
+
+    def _get_single_key(pat: str, silent: bool) -> str:
+        keys = _select_options(pat)
+        if len(keys) == 0:
+            if not silent:
+                _warn_if_deprecated(pat)
+>           raise OptionError(f"No such keys(s): {repr(pat)}")
+E           pandas._config.config.OptionError: "No such keys(s): 'mode.use_inf_as_null'"
+
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:121: OptionError
+__________ TestLinePlotter.test_lineplot_vs_relplot[long_semantics10] __________
+
+self = <tests.test_relational.TestLinePlotter object at 0x7fedc086b310>
+long_df =      x         y         z  a  b  ...  s    f a_cat  s_cat  s_str
+0   12  0.449243  6.611886  b  p  ...  2  0.2     b ...  8  0.3     a      8      8
+99  15  0.073484  1.036343  c  p  ...  8  0.2     c      8      8
+
+[100 rows x 13 columns]
+long_semantics = {'hue': 'a', 'style': 'a', 'x': 'x', 'y': 'y'}
+
+    def test_lineplot_vs_relplot(self, long_df, long_semantics):
+    
+>       ax = lineplot(data=long_df, **long_semantics)
+
+tests/test_relational.py:1152: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:646: in lineplot
+    p.plot(ax, kwargs)
+seaborn/relational.py:422: in plot
+    for sub_vars, sub_data in self.iter_data(grouping_vars, from_comp_data=True):
+seaborn/_oldcore.py:1005: in iter_data
+    data = self.comp_data
+seaborn/_oldcore.py:1096: in comp_data
+    with pd.option_context('mode.use_inf_as_null', True):
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in __enter__
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in <listcomp>
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:135: in _get_option
+    key = _get_single_key(pat, silent)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+pat = 'mode.use_inf_as_null', silent = True
+
+    def _get_single_key(pat: str, silent: bool) -> str:
+        keys = _select_options(pat)
+        if len(keys) == 0:
+            if not silent:
+                _warn_if_deprecated(pat)
+>           raise OptionError(f"No such keys(s): {repr(pat)}")
+E           pandas._config.config.OptionError: "No such keys(s): 'mode.use_inf_as_null'"
+
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:121: OptionError
+__________ TestLinePlotter.test_lineplot_vs_relplot[long_semantics11] __________
+
+self = <tests.test_relational.TestLinePlotter object at 0x7fedc0886400>
+long_df =      x         y         z  a  b  ...  s    f a_cat  s_cat  s_str
+0   12  0.449243  6.611886  b  p  ...  2  0.2     b ...  8  0.3     a      8      8
+99  15  0.073484  1.036343  c  p  ...  8  0.2     c      8      8
+
+[100 rows x 13 columns]
+long_semantics = {'hue': 'a', 'size': 'b', 'style': 'b', 'x': 'x', ...}
+
+    def test_lineplot_vs_relplot(self, long_df, long_semantics):
+    
+>       ax = lineplot(data=long_df, **long_semantics)
+
+tests/test_relational.py:1152: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:646: in lineplot
+    p.plot(ax, kwargs)
+seaborn/relational.py:422: in plot
+    for sub_vars, sub_data in self.iter_data(grouping_vars, from_comp_data=True):
+seaborn/_oldcore.py:1005: in iter_data
+    data = self.comp_data
+seaborn/_oldcore.py:1096: in comp_data
+    with pd.option_context('mode.use_inf_as_null', True):
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in __enter__
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in <listcomp>
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:135: in _get_option
+    key = _get_single_key(pat, silent)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+pat = 'mode.use_inf_as_null', silent = True
+
+    def _get_single_key(pat: str, silent: bool) -> str:
+        keys = _select_options(pat)
+        if len(keys) == 0:
+            if not silent:
+                _warn_if_deprecated(pat)
+>           raise OptionError(f"No such keys(s): {repr(pat)}")
+E           pandas._config.config.OptionError: "No such keys(s): 'mode.use_inf_as_null'"
+
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:121: OptionError
+_____________________ TestLinePlotter.test_lineplot_smoke ______________________
+
+self = <tests.test_relational.TestLinePlotter object at 0x7fedc07513a0>
+wide_df =                    a         b         c
+wide_index                              
+10          1.449377  0.547052 -1.23...        -0.305246 -1.329569  0.624981
+46          0.272567 -0.936631 -0.986104
+48          0.813041 -1.076465  0.829330
+wide_array = array([[ 1.44937693,  0.54705238, -1.23849421],
+       [ 0.0042397 ,  0.96104443, -0.06555753],
+       [-2.22010765,  ...2956902,  0.62498133],
+       [ 0.27256657, -0.93663117, -0.9861045 ],
+       [ 0.81304077, -1.07646527,  0.82932958]])
+wide_list_of_series = [0    -0.462414
+1    -0.663266
+2     0.272339
+3    -0.202488
+4    -1.320671
+5     2.182511
+6     0.416575
+7    -0.4067...2296
+9    -1.253690
+10   -0.611071
+11   -0.127162
+12    1.658410
+13    0.747224
+14   -0.571759
+Name: b, dtype: float64]
+wide_list_of_arrays = [array([-0.46241397, -0.66326575,  0.27233885, -0.20248795, -1.3206712 ,
+        2.18251053,  0.41657504, -0.40679557,...94239,  1.42901482, -0.35229582, -1.25368957,
+       -0.61107077, -0.12716222,  1.65840991,  0.74722355, -0.57175876])]
+wide_list_of_lists = [[-0.4624139668622383, -0.6632657450083369, 0.27233885054394685, -0.2024879527524557, -1.3206712007140675, 2.182510529...64863895, 0.43494239175560634, 1.4290148188482537, -0.3522958175702248, -1.2536895712130631, -0.6110707708089032, ...]]
+flat_array = array([ 0.13830514, -0.10108545,  0.35369949, -0.58809377, -1.66542662,
+        1.67094557,  0.42036328,  1.78859975, ...010368, -1.14244064, -0.96140692,  0.11880587,
+       -0.15018541, -1.99302747, -0.00222044,  0.76400317,  0.12336583])
+flat_series = t
+10    0.138305
+11   -0.101085
+12    0.353699
+13   -0.588094
+14   -1.665427
+15    1.670946
+16    0.420363
+17    1.788...61407
+24    0.118806
+25   -0.150185
+26   -1.993027
+27   -0.002220
+28    0.764003
+29    0.123366
+Name: s, dtype: float64
+flat_list = [0.13830514195442498, -0.1010854511471884, 0.35369948934987555, -0.5880937734015119, -1.6654266179669477, 1.6709455731532739, ...]
+long_df =      x         y         z  a  b  ...  s    f a_cat  s_cat  s_str
+0    6 -0.853013  0.551712  b  p  ...  2  0.3     b ...  2  0.2     a      2      2
+99   1  0.321599  0.274270  c  n  ...  2  0.3     c      2      2
+
+[100 rows x 13 columns]
+missing_df =        x         y         z  a  b  ...    s    f a_cat  s_cat  s_str
+0    6.0 -0.853013  0.551712  b  p  ...  2.0  Na... 0.2     a      2      2
+99   1.0  0.321599  0.274270  c  n  ...  2.0  NaN     c      2      2
+
+[100 rows x 13 columns]
+object_df =      x         y         z  a  b  ...  s    f a_cat s_cat s_str
+0    6 -0.853013  0.551712  b  p  ...  2  0.3     b   ... ...  2  0.2     a     2     2
+99   1  0.321599  0.274270  c  n  ...  2  0.3     c     2     2
+
+[100 rows x 13 columns]
+
+    def test_lineplot_smoke(
+        self,
+        wide_df, wide_array,
+        wide_list_of_series, wide_list_of_arrays, wide_list_of_lists,
+        flat_array, flat_series, flat_list,
+        long_df, missing_df, object_df
+    ):
+    
+        f, ax = plt.subplots()
+    
+        lineplot(x=[], y=[])
+        ax.clear()
+    
+>       lineplot(data=wide_df)
+
+tests/test_relational.py:1177: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:646: in lineplot
+    p.plot(ax, kwargs)
+seaborn/relational.py:422: in plot
+    for sub_vars, sub_data in self.iter_data(grouping_vars, from_comp_data=True):
+seaborn/_oldcore.py:1005: in iter_data
+    data = self.comp_data
+seaborn/_oldcore.py:1096: in comp_data
+    with pd.option_context('mode.use_inf_as_null', True):
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in __enter__
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in <listcomp>
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:135: in _get_option
+    key = _get_single_key(pat, silent)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+pat = 'mode.use_inf_as_null', silent = True
+
+    def _get_single_key(pat: str, silent: bool) -> str:
+        keys = _select_options(pat)
+        if len(keys) == 0:
+            if not silent:
+                _warn_if_deprecated(pat)
+>           raise OptionError(f"No such keys(s): {repr(pat)}")
+E           pandas._config.config.OptionError: "No such keys(s): 'mode.use_inf_as_null'"
+
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:121: OptionError
+_____________________ TestLinePlotter.test_ci_deprecation ______________________
+
+self = <tests.test_relational.TestLinePlotter object at 0x7fedc0694d00>
+long_df =      x         y         z  a  b  ...  s    f a_cat  s_cat  s_str
+0   12  0.449243  6.611886  b  p  ...  2  0.2     b ...  8  0.3     a      8      8
+99  15  0.073484  1.036343  c  p  ...  8  0.2     c      8      8
+
+[100 rows x 13 columns]
+
+    def test_ci_deprecation(self, long_df):
+    
+        axs = plt.figure().subplots(2)
+>       lineplot(data=long_df, x="x", y="y", errorbar=("ci", 95), seed=0, ax=axs[0])
+
+tests/test_relational.py:1255: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:646: in lineplot
+    p.plot(ax, kwargs)
+seaborn/relational.py:422: in plot
+    for sub_vars, sub_data in self.iter_data(grouping_vars, from_comp_data=True):
+seaborn/_oldcore.py:1005: in iter_data
+    data = self.comp_data
+seaborn/_oldcore.py:1096: in comp_data
+    with pd.option_context('mode.use_inf_as_null', True):
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in __enter__
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:441: in <listcomp>
+    self.undo = [(pat, _get_option(pat, silent=True)) for pat, val in self.ops]
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:135: in _get_option
+    key = _get_single_key(pat, silent)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+pat = 'mode.use_inf_as_null', silent = True
+
+    def _get_single_key(pat: str, silent: bool) -> str:
+        keys = _select_options(pat)
+        if len(keys) == 0:
+            if not silent:
+                _warn_if_deprecated(pat)
+>           raise OptionError(f"No such keys(s): {repr(pat)}")
+E           pandas._config.config.OptionError: "No such keys(s): 'mode.use_inf_as_null'"
+
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/_config/config.py:121: OptionError
+______________________ TestScatterPlotter.test_hue_order _______________________
+
+self = <seaborn._oldcore.HueMapping object at 0x7fedb88d1a90>, key = 'c'
+
+    def _lookup_single(self, key):
+        """Get the color for a single value, using colormap to interpolate."""
+        try:
+            # Use a value that's in the original data vector
+>           value = self.lookup_table[key]
+E           KeyError: 'c'
+
+seaborn/_oldcore.py:150: KeyError
+
+During handling of the above exception, another exception occurred:
+
+self = <seaborn._oldcore.HueMapping object at 0x7fedb88d1a90>, key = 'c'
+
+    def _lookup_single(self, key):
+        """Get the color for a single value, using colormap to interpolate."""
+        try:
+            # Use a value that's in the original data vector
+            value = self.lookup_table[key]
+        except KeyError:
+            # Use the colormap to interpolate between existing datapoints
+            # (e.g. in the context of making a continuous legend)
+            try:
+>               normed = self.norm(key)
+E               TypeError: 'NoneType' object is not callable
+
+seaborn/_oldcore.py:155: TypeError
+
+During handling of the above exception, another exception occurred:
+
+self = <tests.test_relational.TestScatterPlotter object at 0x7fedc088d430>
+long_df =      x         y         z  a  b  ...  s    f a_cat  s_cat  s_str
+0   12  0.449243  6.611886  b  p  ...  2  0.2     b ...  8  0.3     a      8      8
+99  15  0.073484  1.036343  c  p  ...  8  0.2     c      8      8
+
+[100 rows x 13 columns]
+
+    def test_hue_order(self, long_df):
+    
+        order = categorical_order(long_df["a"])
+        unused = order.pop()
+    
+>       ax = scatterplot(data=long_df, x="x", y="y", hue="a", hue_order=order)
+
+tests/test_relational.py:1632: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:768: in scatterplot
+    p.plot(ax, kwargs)
+seaborn/relational.py:579: in plot
+    points.set_facecolors(self._hue_map(data["hue"]))
+seaborn/_oldcore.py:65: in __call__
+    return [self._lookup_single(k, *args, **kwargs) for k in key]
+seaborn/_oldcore.py:65: in <listcomp>
+    return [self._lookup_single(k, *args, **kwargs) for k in key]
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <seaborn._oldcore.HueMapping object at 0x7fedb88d1a90>, key = 'c'
+
+    def _lookup_single(self, key):
+        """Get the color for a single value, using colormap to interpolate."""
+        try:
+            # Use a value that's in the original data vector
+            value = self.lookup_table[key]
+        except KeyError:
+            # Use the colormap to interpolate between existing datapoints
+            # (e.g. in the context of making a continuous legend)
+            try:
+                normed = self.norm(key)
+            except TypeError as err:
+>               if np.isnan(key):
+E               TypeError: ufunc 'isnan' not supported for the input types, and the inputs could not be safely coerced to any supported types according to the casting rule ''safe''
+
+seaborn/_oldcore.py:157: TypeError
+__________ TestScatterPlotter.test_unfilled_marker_edgecolor_warning ___________
+
+self = <tests.test_relational.TestScatterPlotter object at 0x7fedc09228b0>
+long_df =      x         y         z  a  b  ...  s    f a_cat  s_cat  s_str
+0   12  0.449243  6.611886  b  p  ...  2  0.2     b ...  8  0.3     a      8      8
+99  15  0.073484  1.036343  c  p  ...  8  0.2     c      8      8
+
+[100 rows x 13 columns]
+
+    def test_unfilled_marker_edgecolor_warning(self, long_df):  # GH2636
+    
+>       with pytest.warns(None) as record:
+
+tests/test_relational.py:1712: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = WarningsChecker(record=True), expected_warning = None, match_expr = None
+
+    def __init__(
+        self,
+        expected_warning: type[Warning] | tuple[type[Warning], ...] = Warning,
+        match_expr: str | Pattern[str] | None = None,
+        *,
+        _ispytest: bool = False,
+    ) -> None:
+        check_ispytest(_ispytest)
+        super().__init__(_ispytest=True)
+    
+        msg = "exceptions must be derived from Warning, not %s"
+        if isinstance(expected_warning, tuple):
+            for exc in expected_warning:
+                if not issubclass(exc, Warning):
+                    raise TypeError(msg % type(exc))
+            expected_warning_tup = expected_warning
+        elif isinstance(expected_warning, type) and issubclass(
+            expected_warning, Warning
+        ):
+            expected_warning_tup = (expected_warning,)
+        else:
+>           raise TypeError(msg % type(expected_warning))
+E           TypeError: exceptions must be derived from Warning, not <class 'NoneType'>
+
+/opt/miniconda3/envs/testbed/lib/python3.9/site-packages/_pytest/recwarn.py:280: TypeError
+_______ TestScatterPlotter.test_scatterplot_vs_relplot[long_semantics3] ________
+
+self = <tests.test_relational.TestScatterPlotter object at 0x7fedc09224c0>
+long_df =      x         y         z  a  b  ...  s    f a_cat  s_cat  s_str
+0   12  0.449243  6.611886  b  p  ...  2  0.2     b ...  8  0.3     a      8      8
+99  15  0.073484  1.036343  c  p  ...  8  0.2     c      8      8
+
+[100 rows x 13 columns]
+long_semantics = {'hue': 'y', 'x': 'x', 'y': 'y'}
+
+    def test_scatterplot_vs_relplot(self, long_df, long_semantics):
+    
+        ax = scatterplot(data=long_df, **long_semantics)
+>       g = relplot(data=long_df, kind="scatter", **long_semantics)
+
+tests/test_relational.py:1719: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:988: in relplot
+    g.add_legend(legend_data=p.legend_data,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <seaborn.axisgrid.FacetGrid object at 0x7fedb87a4a60>
+legend_data = {('y', '0'): <matplotlib.collections.PathCollection object at 0x7fedb7a4f8b0>, ('y', '1'): <matplotlib.collections.Pat...llection object at 0x7fedc079e550>, ('y', '−1'): <matplotlib.collections.PathCollection object at 0x7fedc0843bb0>, ...}
+title = 'y'
+label_order = [('y', '−2'), ('y', '−1'), ('y', '0'), ('y', '1'), ('y', '2')]
+adjust_subtitles = True
+kwargs = {'frameon': False, 'loc': 'center right', 'scatterpoints': 1}
+handles = [<matplotlib.collections.PathCollection object at 0x7fedb8abe160>, <matplotlib.collections.PathCollection object at 0x...collections.PathCollection object at 0x7fedb88d1f40>, <matplotlib.collections.PathCollection object at 0x7fedc079e550>]
+title_size = None, labels = ['−2', '−1', '0', '1', '2'], entry = ('y', '2')
+_ = 'y', label = '2'
+figlegend = <matplotlib.legend.Legend object at 0x7fedc079efa0>
+
+    def add_legend(self, legend_data=None, title=None, label_order=None,
+                   adjust_subtitles=False, **kwargs):
+        """Draw a legend, maybe placing it outside axes and resizing the figure.
+    
+        Parameters
+        ----------
+        legend_data : dict
+            Dictionary mapping label names (or two-element tuples where the
+            second element is a label name) to matplotlib artist handles. The
+            default reads from ``self._legend_data``.
+        title : string
+            Title for the legend. The default reads from ``self._hue_var``.
+        label_order : list of labels
+            The order that the legend entries should appear in. The default
+            reads from ``self.hue_names``.
+        adjust_subtitles : bool
+            If True, modify entries with invisible artists to left-align
+            the labels and set the font size to that of a title.
+        kwargs : key, value pairings
+            Other keyword arguments are passed to the underlying legend methods
+            on the Figure or Axes object.
+    
+        Returns
+        -------
+        self : Grid instance
+            Returns self for easy chaining.
+    
+        """
+        # Find the data for the legend
+        if legend_data is None:
+            legend_data = self._legend_data
+        if label_order is None:
+            if self.hue_names is None:
+                label_order = list(legend_data.keys())
+            else:
+                label_order = list(map(utils.to_utf8, self.hue_names))
+    
+        blank_handle = mpl.patches.Patch(alpha=0, linewidth=0)
+        handles = [legend_data.get(l, blank_handle) for l in label_order]
+        title = self._hue_var if title is None else title
+        title_size = mpl.rcParams["legend.title_fontsize"]
+    
+        # Unpack nested labels from a hierarchical legend
+        labels = []
+        for entry in label_order:
+            if isinstance(entry, tuple):
+                _, label = entry
+            else:
+                label = entry
+            labels.append(label)
+    
+        # Set default legend kwargs
+        kwargs.setdefault("scatterpoints", 1)
+    
+        if self._legend_out:
+    
+            kwargs.setdefault("frameon", False)
+            kwargs.setdefault("loc", "center right")
+    
+            # Draw a full-figure legend outside the grid
+            figlegend = self._figure.legend(handles, labels, **kwargs)
+    
+            self._legend = figlegend
+            figlegend.set_title(title, prop={"size": title_size})
+    
+            if adjust_subtitles:
+                adjust_legend_subtitles(figlegend)
+    
+            # Draw the plot to set the bounding boxes correctly
+            _draw_figure(self._figure)
+    
+            # Calculate and set the new width of the figure so the legend fits
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            fig_width, fig_height = self._figure.get_size_inches()
+            self._figure.set_size_inches(fig_width + legend_width, fig_height)
+    
+            # Draw the plot again to get the new transformations
+            _draw_figure(self._figure)
+    
+            # Now calculate how much space we need on the right side
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            space_needed = legend_width / (fig_width + legend_width)
+            margin = .04 if self._margin_titles else .01
+            self._space_needed = margin + space_needed
+            right = 1 - self._space_needed
+    
+            # Filter the data frame to prevent error further down
+            # when hue_order does not include all unique values GH#2375
+>           mask = data[hue].isin(hue_order)
+E           UnboundLocalError: local variable 'data' referenced before assignment
+
+seaborn/axisgrid.py:176: UnboundLocalError
+_______ TestScatterPlotter.test_scatterplot_vs_relplot[long_semantics4] ________
+
+self = <tests.test_relational.TestScatterPlotter object at 0x7fedc09225b0>
+long_df =      x         y         z  a  b  ...  s    f a_cat  s_cat  s_str
+0   12  0.449243  6.611886  b  p  ...  2  0.2     b ...  8  0.3     a      8      8
+99  15  0.073484  1.036343  c  p  ...  8  0.2     c      8      8
+
+[100 rows x 13 columns]
+long_semantics = {'hue': 'a', 'x': 'x', 'y': 'y'}
+
+    def test_scatterplot_vs_relplot(self, long_df, long_semantics):
+    
+        ax = scatterplot(data=long_df, **long_semantics)
+>       g = relplot(data=long_df, kind="scatter", **long_semantics)
+
+tests/test_relational.py:1719: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:988: in relplot
+    g.add_legend(legend_data=p.legend_data,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <seaborn.axisgrid.FacetGrid object at 0x7fedb8645640>
+legend_data = {('a', 'a'): <matplotlib.collections.PathCollection object at 0x7fedb889e790>, ('a', 'b'): <matplotlib.collections.PathCollection object at 0x7fedb858d6d0>, ('a', 'c'): <matplotlib.collections.PathCollection object at 0x7fedb889ee50>}
+title = 'a', label_order = [('a', 'b'), ('a', 'a'), ('a', 'c')]
+adjust_subtitles = True
+kwargs = {'frameon': False, 'loc': 'center right', 'scatterpoints': 1}
+handles = [<matplotlib.collections.PathCollection object at 0x7fedb858d6d0>, <matplotlib.collections.PathCollection object at 0x7fedb889e790>, <matplotlib.collections.PathCollection object at 0x7fedb889ee50>]
+title_size = None, labels = ['b', 'a', 'c'], entry = ('a', 'c'), _ = 'a'
+label = 'c', figlegend = <matplotlib.legend.Legend object at 0x7fedb858d2b0>
+
+    def add_legend(self, legend_data=None, title=None, label_order=None,
+                   adjust_subtitles=False, **kwargs):
+        """Draw a legend, maybe placing it outside axes and resizing the figure.
+    
+        Parameters
+        ----------
+        legend_data : dict
+            Dictionary mapping label names (or two-element tuples where the
+            second element is a label name) to matplotlib artist handles. The
+            default reads from ``self._legend_data``.
+        title : string
+            Title for the legend. The default reads from ``self._hue_var``.
+        label_order : list of labels
+            The order that the legend entries should appear in. The default
+            reads from ``self.hue_names``.
+        adjust_subtitles : bool
+            If True, modify entries with invisible artists to left-align
+            the labels and set the font size to that of a title.
+        kwargs : key, value pairings
+            Other keyword arguments are passed to the underlying legend methods
+            on the Figure or Axes object.
+    
+        Returns
+        -------
+        self : Grid instance
+            Returns self for easy chaining.
+    
+        """
+        # Find the data for the legend
+        if legend_data is None:
+            legend_data = self._legend_data
+        if label_order is None:
+            if self.hue_names is None:
+                label_order = list(legend_data.keys())
+            else:
+                label_order = list(map(utils.to_utf8, self.hue_names))
+    
+        blank_handle = mpl.patches.Patch(alpha=0, linewidth=0)
+        handles = [legend_data.get(l, blank_handle) for l in label_order]
+        title = self._hue_var if title is None else title
+        title_size = mpl.rcParams["legend.title_fontsize"]
+    
+        # Unpack nested labels from a hierarchical legend
+        labels = []
+        for entry in label_order:
+            if isinstance(entry, tuple):
+                _, label = entry
+            else:
+                label = entry
+            labels.append(label)
+    
+        # Set default legend kwargs
+        kwargs.setdefault("scatterpoints", 1)
+    
+        if self._legend_out:
+    
+            kwargs.setdefault("frameon", False)
+            kwargs.setdefault("loc", "center right")
+    
+            # Draw a full-figure legend outside the grid
+            figlegend = self._figure.legend(handles, labels, **kwargs)
+    
+            self._legend = figlegend
+            figlegend.set_title(title, prop={"size": title_size})
+    
+            if adjust_subtitles:
+                adjust_legend_subtitles(figlegend)
+    
+            # Draw the plot to set the bounding boxes correctly
+            _draw_figure(self._figure)
+    
+            # Calculate and set the new width of the figure so the legend fits
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            fig_width, fig_height = self._figure.get_size_inches()
+            self._figure.set_size_inches(fig_width + legend_width, fig_height)
+    
+            # Draw the plot again to get the new transformations
+            _draw_figure(self._figure)
+    
+            # Now calculate how much space we need on the right side
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            space_needed = legend_width / (fig_width + legend_width)
+            margin = .04 if self._margin_titles else .01
+            self._space_needed = margin + space_needed
+            right = 1 - self._space_needed
+    
+            # Filter the data frame to prevent error further down
+            # when hue_order does not include all unique values GH#2375
+>           mask = data[hue].isin(hue_order)
+E           UnboundLocalError: local variable 'data' referenced before assignment
+
+seaborn/axisgrid.py:176: UnboundLocalError
+_______ TestScatterPlotter.test_scatterplot_vs_relplot[long_semantics5] ________
+
+self = <tests.test_relational.TestScatterPlotter object at 0x7fedc0922130>
+long_df =      x         y         z  a  b  ...  s    f a_cat  s_cat  s_str
+0   12  0.449243  6.611886  b  p  ...  2  0.2     b ...  8  0.3     a      8      8
+99  15  0.073484  1.036343  c  p  ...  8  0.2     c      8      8
+
+[100 rows x 13 columns]
+long_semantics = {'size': 'a', 'x': 'x', 'y': 'y'}
+
+    def test_scatterplot_vs_relplot(self, long_df, long_semantics):
+    
+        ax = scatterplot(data=long_df, **long_semantics)
+>       g = relplot(data=long_df, kind="scatter", **long_semantics)
+
+tests/test_relational.py:1719: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:988: in relplot
+    g.add_legend(legend_data=p.legend_data,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <seaborn.axisgrid.FacetGrid object at 0x7fedb81634c0>
+legend_data = {('a', 'a'): <matplotlib.collections.PathCollection object at 0x7fedb86d10d0>, ('a', 'b'): <matplotlib.collections.PathCollection object at 0x7fedb897fc70>, ('a', 'c'): <matplotlib.collections.PathCollection object at 0x7fedb8ac93d0>}
+title = 'a', label_order = [('a', 'b'), ('a', 'a'), ('a', 'c')]
+adjust_subtitles = True
+kwargs = {'frameon': False, 'loc': 'center right', 'scatterpoints': 1}
+handles = [<matplotlib.collections.PathCollection object at 0x7fedb897fc70>, <matplotlib.collections.PathCollection object at 0x7fedb86d10d0>, <matplotlib.collections.PathCollection object at 0x7fedb8ac93d0>]
+title_size = None, labels = ['b', 'a', 'c'], entry = ('a', 'c'), _ = 'a'
+label = 'c', figlegend = <matplotlib.legend.Legend object at 0x7fedb8ac9130>
+
+    def add_legend(self, legend_data=None, title=None, label_order=None,
+                   adjust_subtitles=False, **kwargs):
+        """Draw a legend, maybe placing it outside axes and resizing the figure.
+    
+        Parameters
+        ----------
+        legend_data : dict
+            Dictionary mapping label names (or two-element tuples where the
+            second element is a label name) to matplotlib artist handles. The
+            default reads from ``self._legend_data``.
+        title : string
+            Title for the legend. The default reads from ``self._hue_var``.
+        label_order : list of labels
+            The order that the legend entries should appear in. The default
+            reads from ``self.hue_names``.
+        adjust_subtitles : bool
+            If True, modify entries with invisible artists to left-align
+            the labels and set the font size to that of a title.
+        kwargs : key, value pairings
+            Other keyword arguments are passed to the underlying legend methods
+            on the Figure or Axes object.
+    
+        Returns
+        -------
+        self : Grid instance
+            Returns self for easy chaining.
+    
+        """
+        # Find the data for the legend
+        if legend_data is None:
+            legend_data = self._legend_data
+        if label_order is None:
+            if self.hue_names is None:
+                label_order = list(legend_data.keys())
+            else:
+                label_order = list(map(utils.to_utf8, self.hue_names))
+    
+        blank_handle = mpl.patches.Patch(alpha=0, linewidth=0)
+        handles = [legend_data.get(l, blank_handle) for l in label_order]
+        title = self._hue_var if title is None else title
+        title_size = mpl.rcParams["legend.title_fontsize"]
+    
+        # Unpack nested labels from a hierarchical legend
+        labels = []
+        for entry in label_order:
+            if isinstance(entry, tuple):
+                _, label = entry
+            else:
+                label = entry
+            labels.append(label)
+    
+        # Set default legend kwargs
+        kwargs.setdefault("scatterpoints", 1)
+    
+        if self._legend_out:
+    
+            kwargs.setdefault("frameon", False)
+            kwargs.setdefault("loc", "center right")
+    
+            # Draw a full-figure legend outside the grid
+            figlegend = self._figure.legend(handles, labels, **kwargs)
+    
+            self._legend = figlegend
+            figlegend.set_title(title, prop={"size": title_size})
+    
+            if adjust_subtitles:
+                adjust_legend_subtitles(figlegend)
+    
+            # Draw the plot to set the bounding boxes correctly
+            _draw_figure(self._figure)
+    
+            # Calculate and set the new width of the figure so the legend fits
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            fig_width, fig_height = self._figure.get_size_inches()
+            self._figure.set_size_inches(fig_width + legend_width, fig_height)
+    
+            # Draw the plot again to get the new transformations
+            _draw_figure(self._figure)
+    
+            # Now calculate how much space we need on the right side
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            space_needed = legend_width / (fig_width + legend_width)
+            margin = .04 if self._margin_titles else .01
+            self._space_needed = margin + space_needed
+            right = 1 - self._space_needed
+    
+            # Filter the data frame to prevent error further down
+            # when hue_order does not include all unique values GH#2375
+>           mask = data[hue].isin(hue_order)
+E           UnboundLocalError: local variable 'data' referenced before assignment
+
+seaborn/axisgrid.py:176: UnboundLocalError
+_______ TestScatterPlotter.test_scatterplot_vs_relplot[long_semantics6] ________
+
+self = <tests.test_relational.TestScatterPlotter object at 0x7fedc0922970>
+long_df =      x         y         z  a  b  ...  s    f a_cat  s_cat  s_str
+0   12  0.449243  6.611886  b  p  ...  2  0.2     b ...  8  0.3     a      8      8
+99  15  0.073484  1.036343  c  p  ...  8  0.2     c      8      8
+
+[100 rows x 13 columns]
+long_semantics = {'style': 'a', 'x': 'x', 'y': 'y'}
+
+    def test_scatterplot_vs_relplot(self, long_df, long_semantics):
+    
+        ax = scatterplot(data=long_df, **long_semantics)
+>       g = relplot(data=long_df, kind="scatter", **long_semantics)
+
+tests/test_relational.py:1719: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:988: in relplot
+    g.add_legend(legend_data=p.legend_data,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <seaborn.axisgrid.FacetGrid object at 0x7fedb83353d0>
+legend_data = {('a', 'a'): <matplotlib.collections.PathCollection object at 0x7fedc0834b20>, ('a', 'b'): <matplotlib.collections.PathCollection object at 0x7fedb85985e0>, ('a', 'c'): <matplotlib.collections.PathCollection object at 0x7fedb85f1d90>}
+title = 'a', label_order = [('a', 'b'), ('a', 'a'), ('a', 'c')]
+adjust_subtitles = True
+kwargs = {'frameon': False, 'loc': 'center right', 'scatterpoints': 1}
+handles = [<matplotlib.collections.PathCollection object at 0x7fedb85985e0>, <matplotlib.collections.PathCollection object at 0x7fedc0834b20>, <matplotlib.collections.PathCollection object at 0x7fedb85f1d90>]
+title_size = None, labels = ['b', 'a', 'c'], entry = ('a', 'c'), _ = 'a'
+label = 'c', figlegend = <matplotlib.legend.Legend object at 0x7fedb85f21c0>
+
+    def add_legend(self, legend_data=None, title=None, label_order=None,
+                   adjust_subtitles=False, **kwargs):
+        """Draw a legend, maybe placing it outside axes and resizing the figure.
+    
+        Parameters
+        ----------
+        legend_data : dict
+            Dictionary mapping label names (or two-element tuples where the
+            second element is a label name) to matplotlib artist handles. The
+            default reads from ``self._legend_data``.
+        title : string
+            Title for the legend. The default reads from ``self._hue_var``.
+        label_order : list of labels
+            The order that the legend entries should appear in. The default
+            reads from ``self.hue_names``.
+        adjust_subtitles : bool
+            If True, modify entries with invisible artists to left-align
+            the labels and set the font size to that of a title.
+        kwargs : key, value pairings
+            Other keyword arguments are passed to the underlying legend methods
+            on the Figure or Axes object.
+    
+        Returns
+        -------
+        self : Grid instance
+            Returns self for easy chaining.
+    
+        """
+        # Find the data for the legend
+        if legend_data is None:
+            legend_data = self._legend_data
+        if label_order is None:
+            if self.hue_names is None:
+                label_order = list(legend_data.keys())
+            else:
+                label_order = list(map(utils.to_utf8, self.hue_names))
+    
+        blank_handle = mpl.patches.Patch(alpha=0, linewidth=0)
+        handles = [legend_data.get(l, blank_handle) for l in label_order]
+        title = self._hue_var if title is None else title
+        title_size = mpl.rcParams["legend.title_fontsize"]
+    
+        # Unpack nested labels from a hierarchical legend
+        labels = []
+        for entry in label_order:
+            if isinstance(entry, tuple):
+                _, label = entry
+            else:
+                label = entry
+            labels.append(label)
+    
+        # Set default legend kwargs
+        kwargs.setdefault("scatterpoints", 1)
+    
+        if self._legend_out:
+    
+            kwargs.setdefault("frameon", False)
+            kwargs.setdefault("loc", "center right")
+    
+            # Draw a full-figure legend outside the grid
+            figlegend = self._figure.legend(handles, labels, **kwargs)
+    
+            self._legend = figlegend
+            figlegend.set_title(title, prop={"size": title_size})
+    
+            if adjust_subtitles:
+                adjust_legend_subtitles(figlegend)
+    
+            # Draw the plot to set the bounding boxes correctly
+            _draw_figure(self._figure)
+    
+            # Calculate and set the new width of the figure so the legend fits
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            fig_width, fig_height = self._figure.get_size_inches()
+            self._figure.set_size_inches(fig_width + legend_width, fig_height)
+    
+            # Draw the plot again to get the new transformations
+            _draw_figure(self._figure)
+    
+            # Now calculate how much space we need on the right side
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            space_needed = legend_width / (fig_width + legend_width)
+            margin = .04 if self._margin_titles else .01
+            self._space_needed = margin + space_needed
+            right = 1 - self._space_needed
+    
+            # Filter the data frame to prevent error further down
+            # when hue_order does not include all unique values GH#2375
+>           mask = data[hue].isin(hue_order)
+E           UnboundLocalError: local variable 'data' referenced before assignment
+
+seaborn/axisgrid.py:176: UnboundLocalError
+_______ TestScatterPlotter.test_scatterplot_vs_relplot[long_semantics7] ________
+
+self = <tests.test_relational.TestScatterPlotter object at 0x7fedc0922df0>
+long_df =      x         y         z  a  b  ...  s    f a_cat  s_cat  s_str
+0   12  0.449243  6.611886  b  p  ...  2  0.2     b ...  8  0.3     a      8      8
+99  15  0.073484  1.036343  c  p  ...  8  0.2     c      8      8
+
+[100 rows x 13 columns]
+long_semantics = {'hue': 's', 'x': 'x', 'y': 'y'}
+
+    def test_scatterplot_vs_relplot(self, long_df, long_semantics):
+    
+        ax = scatterplot(data=long_df, **long_semantics)
+>       g = relplot(data=long_df, kind="scatter", **long_semantics)
+
+tests/test_relational.py:1719: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:988: in relplot
+    g.add_legend(legend_data=p.legend_data,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <seaborn.axisgrid.FacetGrid object at 0x7fedb82eb160>
+legend_data = {('s', 2): <matplotlib.collections.PathCollection object at 0x7fedb89f60d0>, ('s', 4): <matplotlib.collections.PathCollection object at 0x7fedb8641d60>, ('s', 8): <matplotlib.collections.PathCollection object at 0x7fedb7eab9d0>}
+title = 's', label_order = [('s', 2), ('s', 4), ('s', 8)]
+adjust_subtitles = True
+kwargs = {'frameon': False, 'loc': 'center right', 'scatterpoints': 1}
+handles = [<matplotlib.collections.PathCollection object at 0x7fedb89f60d0>, <matplotlib.collections.PathCollection object at 0x7fedb8641d60>, <matplotlib.collections.PathCollection object at 0x7fedb7eab9d0>]
+title_size = None, labels = [2, 4, 8], entry = ('s', 8), _ = 's', label = 8
+figlegend = <matplotlib.legend.Legend object at 0x7fedb8a35a90>
+
+    def add_legend(self, legend_data=None, title=None, label_order=None,
+                   adjust_subtitles=False, **kwargs):
+        """Draw a legend, maybe placing it outside axes and resizing the figure.
+    
+        Parameters
+        ----------
+        legend_data : dict
+            Dictionary mapping label names (or two-element tuples where the
+            second element is a label name) to matplotlib artist handles. The
+            default reads from ``self._legend_data``.
+        title : string
+            Title for the legend. The default reads from ``self._hue_var``.
+        label_order : list of labels
+            The order that the legend entries should appear in. The default
+            reads from ``self.hue_names``.
+        adjust_subtitles : bool
+            If True, modify entries with invisible artists to left-align
+            the labels and set the font size to that of a title.
+        kwargs : key, value pairings
+            Other keyword arguments are passed to the underlying legend methods
+            on the Figure or Axes object.
+    
+        Returns
+        -------
+        self : Grid instance
+            Returns self for easy chaining.
+    
+        """
+        # Find the data for the legend
+        if legend_data is None:
+            legend_data = self._legend_data
+        if label_order is None:
+            if self.hue_names is None:
+                label_order = list(legend_data.keys())
+            else:
+                label_order = list(map(utils.to_utf8, self.hue_names))
+    
+        blank_handle = mpl.patches.Patch(alpha=0, linewidth=0)
+        handles = [legend_data.get(l, blank_handle) for l in label_order]
+        title = self._hue_var if title is None else title
+        title_size = mpl.rcParams["legend.title_fontsize"]
+    
+        # Unpack nested labels from a hierarchical legend
+        labels = []
+        for entry in label_order:
+            if isinstance(entry, tuple):
+                _, label = entry
+            else:
+                label = entry
+            labels.append(label)
+    
+        # Set default legend kwargs
+        kwargs.setdefault("scatterpoints", 1)
+    
+        if self._legend_out:
+    
+            kwargs.setdefault("frameon", False)
+            kwargs.setdefault("loc", "center right")
+    
+            # Draw a full-figure legend outside the grid
+            figlegend = self._figure.legend(handles, labels, **kwargs)
+    
+            self._legend = figlegend
+            figlegend.set_title(title, prop={"size": title_size})
+    
+            if adjust_subtitles:
+                adjust_legend_subtitles(figlegend)
+    
+            # Draw the plot to set the bounding boxes correctly
+            _draw_figure(self._figure)
+    
+            # Calculate and set the new width of the figure so the legend fits
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            fig_width, fig_height = self._figure.get_size_inches()
+            self._figure.set_size_inches(fig_width + legend_width, fig_height)
+    
+            # Draw the plot again to get the new transformations
+            _draw_figure(self._figure)
+    
+            # Now calculate how much space we need on the right side
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            space_needed = legend_width / (fig_width + legend_width)
+            margin = .04 if self._margin_titles else .01
+            self._space_needed = margin + space_needed
+            right = 1 - self._space_needed
+    
+            # Filter the data frame to prevent error further down
+            # when hue_order does not include all unique values GH#2375
+>           mask = data[hue].isin(hue_order)
+E           UnboundLocalError: local variable 'data' referenced before assignment
+
+seaborn/axisgrid.py:176: UnboundLocalError
+_______ TestScatterPlotter.test_scatterplot_vs_relplot[long_semantics8] ________
+
+self = <tests.test_relational.TestScatterPlotter object at 0x7fedc0922b20>
+long_df =      x         y         z  a  b  ...  s    f a_cat  s_cat  s_str
+0   12  0.449243  6.611886  b  p  ...  2  0.2     b ...  8  0.3     a      8      8
+99  15  0.073484  1.036343  c  p  ...  8  0.2     c      8      8
+
+[100 rows x 13 columns]
+long_semantics = {'size': 's', 'x': 'x', 'y': 'y'}
+
+    def test_scatterplot_vs_relplot(self, long_df, long_semantics):
+    
+        ax = scatterplot(data=long_df, **long_semantics)
+>       g = relplot(data=long_df, kind="scatter", **long_semantics)
+
+tests/test_relational.py:1719: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:988: in relplot
+    g.add_legend(legend_data=p.legend_data,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <seaborn.axisgrid.FacetGrid object at 0x7fedb8a97460>
+legend_data = {('s', 2): <matplotlib.collections.PathCollection object at 0x7fedb83bab50>, ('s', 4): <matplotlib.collections.PathCollection object at 0x7fedb8ad09a0>, ('s', 8): <matplotlib.collections.PathCollection object at 0x7fedb8854340>}
+title = 's', label_order = [('s', 2), ('s', 4), ('s', 8)]
+adjust_subtitles = True
+kwargs = {'frameon': False, 'loc': 'center right', 'scatterpoints': 1}
+handles = [<matplotlib.collections.PathCollection object at 0x7fedb83bab50>, <matplotlib.collections.PathCollection object at 0x7fedb8ad09a0>, <matplotlib.collections.PathCollection object at 0x7fedb8854340>]
+title_size = None, labels = [2, 4, 8], entry = ('s', 8), _ = 's', label = 8
+figlegend = <matplotlib.legend.Legend object at 0x7fedb8854df0>
+
+    def add_legend(self, legend_data=None, title=None, label_order=None,
+                   adjust_subtitles=False, **kwargs):
+        """Draw a legend, maybe placing it outside axes and resizing the figure.
+    
+        Parameters
+        ----------
+        legend_data : dict
+            Dictionary mapping label names (or two-element tuples where the
+            second element is a label name) to matplotlib artist handles. The
+            default reads from ``self._legend_data``.
+        title : string
+            Title for the legend. The default reads from ``self._hue_var``.
+        label_order : list of labels
+            The order that the legend entries should appear in. The default
+            reads from ``self.hue_names``.
+        adjust_subtitles : bool
+            If True, modify entries with invisible artists to left-align
+            the labels and set the font size to that of a title.
+        kwargs : key, value pairings
+            Other keyword arguments are passed to the underlying legend methods
+            on the Figure or Axes object.
+    
+        Returns
+        -------
+        self : Grid instance
+            Returns self for easy chaining.
+    
+        """
+        # Find the data for the legend
+        if legend_data is None:
+            legend_data = self._legend_data
+        if label_order is None:
+            if self.hue_names is None:
+                label_order = list(legend_data.keys())
+            else:
+                label_order = list(map(utils.to_utf8, self.hue_names))
+    
+        blank_handle = mpl.patches.Patch(alpha=0, linewidth=0)
+        handles = [legend_data.get(l, blank_handle) for l in label_order]
+        title = self._hue_var if title is None else title
+        title_size = mpl.rcParams["legend.title_fontsize"]
+    
+        # Unpack nested labels from a hierarchical legend
+        labels = []
+        for entry in label_order:
+            if isinstance(entry, tuple):
+                _, label = entry
+            else:
+                label = entry
+            labels.append(label)
+    
+        # Set default legend kwargs
+        kwargs.setdefault("scatterpoints", 1)
+    
+        if self._legend_out:
+    
+            kwargs.setdefault("frameon", False)
+            kwargs.setdefault("loc", "center right")
+    
+            # Draw a full-figure legend outside the grid
+            figlegend = self._figure.legend(handles, labels, **kwargs)
+    
+            self._legend = figlegend
+            figlegend.set_title(title, prop={"size": title_size})
+    
+            if adjust_subtitles:
+                adjust_legend_subtitles(figlegend)
+    
+            # Draw the plot to set the bounding boxes correctly
+            _draw_figure(self._figure)
+    
+            # Calculate and set the new width of the figure so the legend fits
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            fig_width, fig_height = self._figure.get_size_inches()
+            self._figure.set_size_inches(fig_width + legend_width, fig_height)
+    
+            # Draw the plot again to get the new transformations
+            _draw_figure(self._figure)
+    
+            # Now calculate how much space we need on the right side
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            space_needed = legend_width / (fig_width + legend_width)
+            margin = .04 if self._margin_titles else .01
+            self._space_needed = margin + space_needed
+            right = 1 - self._space_needed
+    
+            # Filter the data frame to prevent error further down
+            # when hue_order does not include all unique values GH#2375
+>           mask = data[hue].isin(hue_order)
+E           UnboundLocalError: local variable 'data' referenced before assignment
+
+seaborn/axisgrid.py:176: UnboundLocalError
+_______ TestScatterPlotter.test_scatterplot_vs_relplot[long_semantics9] ________
+
+self = <tests.test_relational.TestScatterPlotter object at 0x7fedc0922790>
+long_df =      x         y         z  a  b  ...  s    f a_cat  s_cat  s_str
+0   12  0.449243  6.611886  b  p  ...  2  0.2     b ...  8  0.3     a      8      8
+99  15  0.073484  1.036343  c  p  ...  8  0.2     c      8      8
+
+[100 rows x 13 columns]
+long_semantics = {'style': 's', 'x': 'x', 'y': 'y'}
+
+    def test_scatterplot_vs_relplot(self, long_df, long_semantics):
+    
+        ax = scatterplot(data=long_df, **long_semantics)
+>       g = relplot(data=long_df, kind="scatter", **long_semantics)
+
+tests/test_relational.py:1719: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:988: in relplot
+    g.add_legend(legend_data=p.legend_data,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <seaborn.axisgrid.FacetGrid object at 0x7fedb8762460>
+legend_data = {('s', 2): <matplotlib.collections.PathCollection object at 0x7fedb86459d0>, ('s', 4): <matplotlib.collections.PathCollection object at 0x7fedb84a53d0>, ('s', 8): <matplotlib.collections.PathCollection object at 0x7fedc074b8b0>}
+title = 's', label_order = [('s', 2), ('s', 4), ('s', 8)]
+adjust_subtitles = True
+kwargs = {'frameon': False, 'loc': 'center right', 'scatterpoints': 1}
+handles = [<matplotlib.collections.PathCollection object at 0x7fedb86459d0>, <matplotlib.collections.PathCollection object at 0x7fedb84a53d0>, <matplotlib.collections.PathCollection object at 0x7fedc074b8b0>]
+title_size = None, labels = [2, 4, 8], entry = ('s', 8), _ = 's', label = 8
+figlegend = <matplotlib.legend.Legend object at 0x7fedb87fcac0>
+
+    def add_legend(self, legend_data=None, title=None, label_order=None,
+                   adjust_subtitles=False, **kwargs):
+        """Draw a legend, maybe placing it outside axes and resizing the figure.
+    
+        Parameters
+        ----------
+        legend_data : dict
+            Dictionary mapping label names (or two-element tuples where the
+            second element is a label name) to matplotlib artist handles. The
+            default reads from ``self._legend_data``.
+        title : string
+            Title for the legend. The default reads from ``self._hue_var``.
+        label_order : list of labels
+            The order that the legend entries should appear in. The default
+            reads from ``self.hue_names``.
+        adjust_subtitles : bool
+            If True, modify entries with invisible artists to left-align
+            the labels and set the font size to that of a title.
+        kwargs : key, value pairings
+            Other keyword arguments are passed to the underlying legend methods
+            on the Figure or Axes object.
+    
+        Returns
+        -------
+        self : Grid instance
+            Returns self for easy chaining.
+    
+        """
+        # Find the data for the legend
+        if legend_data is None:
+            legend_data = self._legend_data
+        if label_order is None:
+            if self.hue_names is None:
+                label_order = list(legend_data.keys())
+            else:
+                label_order = list(map(utils.to_utf8, self.hue_names))
+    
+        blank_handle = mpl.patches.Patch(alpha=0, linewidth=0)
+        handles = [legend_data.get(l, blank_handle) for l in label_order]
+        title = self._hue_var if title is None else title
+        title_size = mpl.rcParams["legend.title_fontsize"]
+    
+        # Unpack nested labels from a hierarchical legend
+        labels = []
+        for entry in label_order:
+            if isinstance(entry, tuple):
+                _, label = entry
+            else:
+                label = entry
+            labels.append(label)
+    
+        # Set default legend kwargs
+        kwargs.setdefault("scatterpoints", 1)
+    
+        if self._legend_out:
+    
+            kwargs.setdefault("frameon", False)
+            kwargs.setdefault("loc", "center right")
+    
+            # Draw a full-figure legend outside the grid
+            figlegend = self._figure.legend(handles, labels, **kwargs)
+    
+            self._legend = figlegend
+            figlegend.set_title(title, prop={"size": title_size})
+    
+            if adjust_subtitles:
+                adjust_legend_subtitles(figlegend)
+    
+            # Draw the plot to set the bounding boxes correctly
+            _draw_figure(self._figure)
+    
+            # Calculate and set the new width of the figure so the legend fits
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            fig_width, fig_height = self._figure.get_size_inches()
+            self._figure.set_size_inches(fig_width + legend_width, fig_height)
+    
+            # Draw the plot again to get the new transformations
+            _draw_figure(self._figure)
+    
+            # Now calculate how much space we need on the right side
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            space_needed = legend_width / (fig_width + legend_width)
+            margin = .04 if self._margin_titles else .01
+            self._space_needed = margin + space_needed
+            right = 1 - self._space_needed
+    
+            # Filter the data frame to prevent error further down
+            # when hue_order does not include all unique values GH#2375
+>           mask = data[hue].isin(hue_order)
+E           UnboundLocalError: local variable 'data' referenced before assignment
+
+seaborn/axisgrid.py:176: UnboundLocalError
+_______ TestScatterPlotter.test_scatterplot_vs_relplot[long_semantics10] _______
+
+self = <tests.test_relational.TestScatterPlotter object at 0x7fedc09220a0>
+long_df =      x         y         z  a  b  ...  s    f a_cat  s_cat  s_str
+0   12  0.449243  6.611886  b  p  ...  2  0.2     b ...  8  0.3     a      8      8
+99  15  0.073484  1.036343  c  p  ...  8  0.2     c      8      8
+
+[100 rows x 13 columns]
+long_semantics = {'hue': 'a', 'style': 'a', 'x': 'x', 'y': 'y'}
+
+    def test_scatterplot_vs_relplot(self, long_df, long_semantics):
+    
+        ax = scatterplot(data=long_df, **long_semantics)
+>       g = relplot(data=long_df, kind="scatter", **long_semantics)
+
+tests/test_relational.py:1719: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:988: in relplot
+    g.add_legend(legend_data=p.legend_data,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <seaborn.axisgrid.FacetGrid object at 0x7fedb7ec8280>
+legend_data = {('a', 'a'): <matplotlib.collections.PathCollection object at 0x7fedb889efa0>, ('a', 'b'): <matplotlib.collections.PathCollection object at 0x7fedb87fc1f0>, ('a', 'c'): <matplotlib.collections.PathCollection object at 0x7fedb8847280>}
+title = 'a', label_order = [('a', 'b'), ('a', 'a'), ('a', 'c')]
+adjust_subtitles = True
+kwargs = {'frameon': False, 'loc': 'center right', 'scatterpoints': 1}
+handles = [<matplotlib.collections.PathCollection object at 0x7fedb87fc1f0>, <matplotlib.collections.PathCollection object at 0x7fedb889efa0>, <matplotlib.collections.PathCollection object at 0x7fedb8847280>]
+title_size = None, labels = ['b', 'a', 'c'], entry = ('a', 'c'), _ = 'a'
+label = 'c', figlegend = <matplotlib.legend.Legend object at 0x7fedb87fc2b0>
+
+    def add_legend(self, legend_data=None, title=None, label_order=None,
+                   adjust_subtitles=False, **kwargs):
+        """Draw a legend, maybe placing it outside axes and resizing the figure.
+    
+        Parameters
+        ----------
+        legend_data : dict
+            Dictionary mapping label names (or two-element tuples where the
+            second element is a label name) to matplotlib artist handles. The
+            default reads from ``self._legend_data``.
+        title : string
+            Title for the legend. The default reads from ``self._hue_var``.
+        label_order : list of labels
+            The order that the legend entries should appear in. The default
+            reads from ``self.hue_names``.
+        adjust_subtitles : bool
+            If True, modify entries with invisible artists to left-align
+            the labels and set the font size to that of a title.
+        kwargs : key, value pairings
+            Other keyword arguments are passed to the underlying legend methods
+            on the Figure or Axes object.
+    
+        Returns
+        -------
+        self : Grid instance
+            Returns self for easy chaining.
+    
+        """
+        # Find the data for the legend
+        if legend_data is None:
+            legend_data = self._legend_data
+        if label_order is None:
+            if self.hue_names is None:
+                label_order = list(legend_data.keys())
+            else:
+                label_order = list(map(utils.to_utf8, self.hue_names))
+    
+        blank_handle = mpl.patches.Patch(alpha=0, linewidth=0)
+        handles = [legend_data.get(l, blank_handle) for l in label_order]
+        title = self._hue_var if title is None else title
+        title_size = mpl.rcParams["legend.title_fontsize"]
+    
+        # Unpack nested labels from a hierarchical legend
+        labels = []
+        for entry in label_order:
+            if isinstance(entry, tuple):
+                _, label = entry
+            else:
+                label = entry
+            labels.append(label)
+    
+        # Set default legend kwargs
+        kwargs.setdefault("scatterpoints", 1)
+    
+        if self._legend_out:
+    
+            kwargs.setdefault("frameon", False)
+            kwargs.setdefault("loc", "center right")
+    
+            # Draw a full-figure legend outside the grid
+            figlegend = self._figure.legend(handles, labels, **kwargs)
+    
+            self._legend = figlegend
+            figlegend.set_title(title, prop={"size": title_size})
+    
+            if adjust_subtitles:
+                adjust_legend_subtitles(figlegend)
+    
+            # Draw the plot to set the bounding boxes correctly
+            _draw_figure(self._figure)
+    
+            # Calculate and set the new width of the figure so the legend fits
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            fig_width, fig_height = self._figure.get_size_inches()
+            self._figure.set_size_inches(fig_width + legend_width, fig_height)
+    
+            # Draw the plot again to get the new transformations
+            _draw_figure(self._figure)
+    
+            # Now calculate how much space we need on the right side
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            space_needed = legend_width / (fig_width + legend_width)
+            margin = .04 if self._margin_titles else .01
+            self._space_needed = margin + space_needed
+            right = 1 - self._space_needed
+    
+            # Filter the data frame to prevent error further down
+            # when hue_order does not include all unique values GH#2375
+>           mask = data[hue].isin(hue_order)
+E           UnboundLocalError: local variable 'data' referenced before assignment
+
+seaborn/axisgrid.py:176: UnboundLocalError
+_______ TestScatterPlotter.test_scatterplot_vs_relplot[long_semantics11] _______
+
+self = <tests.test_relational.TestScatterPlotter object at 0x7fedc0876070>
+long_df =      x         y         z  a  b  ...  s    f a_cat  s_cat  s_str
+0   12  0.449243  6.611886  b  p  ...  2  0.2     b ...  8  0.3     a      8      8
+99  15  0.073484  1.036343  c  p  ...  8  0.2     c      8      8
+
+[100 rows x 13 columns]
+long_semantics = {'hue': 'a', 'size': 'b', 'style': 'b', 'x': 'x', ...}
+
+    def test_scatterplot_vs_relplot(self, long_df, long_semantics):
+    
+        ax = scatterplot(data=long_df, **long_semantics)
+>       g = relplot(data=long_df, kind="scatter", **long_semantics)
+
+tests/test_relational.py:1719: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+seaborn/relational.py:988: in relplot
+    g.add_legend(legend_data=p.legend_data,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <seaborn.axisgrid.FacetGrid object at 0x7fedb84ba2e0>
+legend_data = {(('a', 'title'), 'a'): <matplotlib.collections.PathCollection object at 0x7fedb86d1490>, ('a', 'b'): <matplotlib.coll...ollection object at 0x7fedb86d1940>, ('a', 'c'): <matplotlib.collections.PathCollection object at 0x7fedb8ae8c40>, ...}
+title = ''
+label_order = [(('a', 'title'), 'a'), ('a', 'b'), ('a', 'a'), ('a', 'c'), (('b', 'title'), 'b'), ('b', 'p'), ...]
+adjust_subtitles = True
+kwargs = {'frameon': False, 'loc': 'center right', 'scatterpoints': 1}
+handles = [<matplotlib.collections.PathCollection object at 0x7fedb86d1490>, <matplotlib.collections.PathCollection object at 0x...ctions.PathCollection object at 0x7fedb8908f70>, <matplotlib.collections.PathCollection object at 0x7fedb85daa60>, ...]
+title_size = None, labels = ['a', 'b', 'a', 'c', 'b', 'p', ...]
+entry = ('b', 'm'), _ = 'b', label = 'm'
+figlegend = <matplotlib.legend.Legend object at 0x7fedb8ae85b0>
+
+    def add_legend(self, legend_data=None, title=None, label_order=None,
+                   adjust_subtitles=False, **kwargs):
+        """Draw a legend, maybe placing it outside axes and resizing the figure.
+    
+        Parameters
+        ----------
+        legend_data : dict
+            Dictionary mapping label names (or two-element tuples where the
+            second element is a label name) to matplotlib artist handles. The
+            default reads from ``self._legend_data``.
+        title : string
+            Title for the legend. The default reads from ``self._hue_var``.
+        label_order : list of labels
+            The order that the legend entries should appear in. The default
+            reads from ``self.hue_names``.
+        adjust_subtitles : bool
+            If True, modify entries with invisible artists to left-align
+            the labels and set the font size to that of a title.
+        kwargs : key, value pairings
+            Other keyword arguments are passed to the underlying legend methods
+            on the Figure or Axes object.
+    
+        Returns
+        -------
+        self : Grid instance
+            Returns self for easy chaining.
+    
+        """
+        # Find the data for the legend
+        if legend_data is None:
+            legend_data = self._legend_data
+        if label_order is None:
+            if self.hue_names is None:
+                label_order = list(legend_data.keys())
+            else:
+                label_order = list(map(utils.to_utf8, self.hue_names))
+    
+        blank_handle = mpl.patches.Patch(alpha=0, linewidth=0)
+        handles = [legend_data.get(l, blank_handle) for l in label_order]
+        title = self._hue_var if title is None else title
+        title_size = mpl.rcParams["legend.title_fontsize"]
+    
+        # Unpack nested labels from a hierarchical legend
+        labels = []
+        for entry in label_order:
+            if isinstance(entry, tuple):
+                _, label = entry
+            else:
+                label = entry
+            labels.append(label)
+    
+        # Set default legend kwargs
+        kwargs.setdefault("scatterpoints", 1)
+    
+        if self._legend_out:
+    
+            kwargs.setdefault("frameon", False)
+            kwargs.setdefault("loc", "center right")
+    
+            # Draw a full-figure legend outside the grid
+            figlegend = self._figure.legend(handles, labels, **kwargs)
+    
+            self._legend = figlegend
+            figlegend.set_title(title, prop={"size": title_size})
+    
+            if adjust_subtitles:
+                adjust_legend_subtitles(figlegend)
+    
+            # Draw the plot to set the bounding boxes correctly
+            _draw_figure(self._figure)
+    
+            # Calculate and set the new width of the figure so the legend fits
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            fig_width, fig_height = self._figure.get_size_inches()
+            self._figure.set_size_inches(fig_width + legend_width, fig_height)
+    
+            # Draw the plot again to get the new transformations
+            _draw_figure(self._figure)
+    
+            # Now calculate how much space we need on the right side
+            legend_width = figlegend.get_window_extent().width / self._figure.dpi
+            space_needed = legend_width / (fig_width + legend_width)
+            margin = .04 if self._margin_titles else .01
+            self._space_needed = margin + space_needed
+            right = 1 - self._space_needed
+    
+            # Filter the data frame to prevent error further down
+            # when hue_order does not include all unique values GH#2375
+>           mask = data[hue].isin(hue_order)
+E           UnboundLocalError: local variable 'data' referenced before assignment
+
+seaborn/axisgrid.py:176: UnboundLocalError
+=============================== warnings summary ===============================
+seaborn/cm.py:1582
+seaborn/cm.py:1582
+seaborn/cm.py:1582
+seaborn/cm.py:1582
+seaborn/cm.py:1582
+seaborn/cm.py:1582
+  /testbed/seaborn/cm.py:1582: MatplotlibDeprecationWarning: The register_cmap function was deprecated in Matplotlib 3.7 and will be removed two minor releases later. Use ``matplotlib.colormaps.register(name)`` instead.
+    mpl_cm.register_cmap(_name, _cmap)
+
+seaborn/cm.py:1583
+seaborn/cm.py:1583
+seaborn/cm.py:1583
+seaborn/cm.py:1583
+seaborn/cm.py:1583
+seaborn/cm.py:1583
+  /testbed/seaborn/cm.py:1583: MatplotlibDeprecationWarning: The register_cmap function was deprecated in Matplotlib 3.7 and will be removed two minor releases later. Use ``matplotlib.colormaps.register(name)`` instead.
+    mpl_cm.register_cmap(_name + "_r", _cmap_r)
+
+tests/test_relational.py: 65 warnings
+  /opt/miniconda3/envs/testbed/lib/python3.9/site-packages/pandas/core/dtypes/cast.py:1429: DeprecationWarning: np.find_common_type is deprecated.  Please use `np.result_type` or `np.promote_types`.
+  See https://numpy.org/devdocs/release/1.25.0-notes.html and the docs for more information.  (Deprecated NumPy 1.25)
+    return np.find_common_type(types, [])
+
+tests/test_relational.py::TestRelationalPlotter::test_wide_df_variables
+tests/test_relational.py::TestRelationalPlotter::test_wide_df_with_nonnumeric_variables
+tests/test_relational.py::TestRelationalPlotter::test_wide_array_variables
+tests/test_relational.py::TestRelationalPlotter::test_flat_array_variables
+  /opt/miniconda3/envs/testbed/lib/python3.9/site-packages/_pytest/python.py:159: DeprecationWarning: `product` is deprecated as of NumPy 1.25.0, and will be removed in NumPy 2.0. Please use `prod` instead.
+    result = testfunction(**testargs)
+
+tests/test_relational.py: 26 warnings
+  /testbed/seaborn/axisgrid.py:86: UserWarning: The figure layout has changed to tight
+    self._figure.tight_layout(*args, **kwargs)
+
+tests/test_relational.py::TestScatterPlotter::test_supplied_color_array
+  /testbed/tests/test_relational.py:1605: MatplotlibDeprecationWarning: The get_cmap function was deprecated in Matplotlib 3.7 and will be removed two minor releases later. Use ``matplotlib.colormaps[name]`` or ``matplotlib.colormaps.get_cmap(obj)`` instead.
+    cmap = mpl.cm.get_cmap("Blues")
+
+tests/test_relational.py::TestScatterPlotter::test_size_norm_extrapolation
+tests/test_relational.py::TestScatterPlotter::test_size_norm_extrapolation
+  /testbed/tests/test_relational.py:1690: MatplotlibDeprecationWarning: The legendHandles attribute was deprecated in Matplotlib 3.7 and will be removed two minor releases later. Use legend_handles instead.
+    for label, handle in zip(legend.get_texts(), legend.legendHandles)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+==================================== PASSES ====================================
+=========================== short test summary info ============================
+PASSED tests/test_relational.py::TestRelationalPlotter::test_wide_df_variables
+PASSED tests/test_relational.py::TestRelationalPlotter::test_wide_df_with_nonnumeric_variables
+PASSED tests/test_relational.py::TestRelationalPlotter::test_wide_array_variables
+PASSED tests/test_relational.py::TestRelationalPlotter::test_flat_array_variables
+PASSED tests/test_relational.py::TestRelationalPlotter::test_flat_list_variables
+PASSED tests/test_relational.py::TestRelationalPlotter::test_flat_series_variables
+PASSED tests/test_relational.py::TestRelationalPlotter::test_wide_list_of_series_variables
+PASSED tests/test_relational.py::TestRelationalPlotter::test_wide_list_of_arrays_variables
+PASSED tests/test_relational.py::TestRelationalPlotter::test_wide_list_of_list_variables
+PASSED tests/test_relational.py::TestRelationalPlotter::test_wide_dict_of_series_variables
+PASSED tests/test_relational.py::TestRelationalPlotter::test_wide_dict_of_arrays_variables
+PASSED tests/test_relational.py::TestRelationalPlotter::test_wide_dict_of_lists_variables
+PASSED tests/test_relational.py::TestRelationalPlotter::test_facet_variable_collision
+PASSED tests/test_relational.py::TestRelationalPlotter::test_ax_kwarg_removal
+PASSED tests/test_relational.py::TestLinePlotter::test_legend_data
+PASSED tests/test_relational.py::TestLinePlotter::test_plot
+PASSED tests/test_relational.py::TestLinePlotter::test_axis_labels
+PASSED tests/test_relational.py::TestScatterPlotter::test_color
+PASSED tests/test_relational.py::TestScatterPlotter::test_legend_data
+PASSED tests/test_relational.py::TestScatterPlotter::test_plot
+PASSED tests/test_relational.py::TestScatterPlotter::test_axis_labels
+PASSED tests/test_relational.py::TestScatterPlotter::test_scatterplot_axes
+PASSED tests/test_relational.py::TestScatterPlotter::test_literal_attribute_vectors
+PASSED tests/test_relational.py::TestScatterPlotter::test_supplied_color_array
+PASSED tests/test_relational.py::TestScatterPlotter::test_linewidths
+PASSED tests/test_relational.py::TestScatterPlotter::test_size_norm_extrapolation
+PASSED tests/test_relational.py::TestScatterPlotter::test_datetime_scale
+PASSED tests/test_relational.py::TestScatterPlotter::test_scatterplot_vs_relplot[long_semantics0]
+PASSED tests/test_relational.py::TestScatterPlotter::test_scatterplot_vs_relplot[long_semantics1]
+PASSED tests/test_relational.py::TestScatterPlotter::test_scatterplot_vs_relplot[long_semantics2]
+PASSED tests/test_relational.py::TestScatterPlotter::test_scatterplot_smoke
+FAILED tests/test_relational.py::TestRelationalPlotter::test_relplot_simple
+FAILED tests/test_relational.py::TestRelationalPlotter::test_relplot_complex
+FAILED tests/test_relational.py::TestRelationalPlotter::test_relplot_vectors[series]
+FAILED tests/test_relational.py::TestRelationalPlotter::test_relplot_vectors[numpy]
+FAILED tests/test_relational.py::TestRelationalPlotter::test_relplot_vectors[list]
+FAILED tests/test_relational.py::TestRelationalPlotter::test_relplot_wide - U...
+FAILED tests/test_relational.py::TestRelationalPlotter::test_relplot_hues - U...
+FAILED tests/test_relational.py::TestRelationalPlotter::test_relplot_sizes - ...
+FAILED tests/test_relational.py::TestRelationalPlotter::test_relplot_styles
+FAILED tests/test_relational.py::TestRelationalPlotter::test_relplot_stringy_numerics
+FAILED tests/test_relational.py::TestRelationalPlotter::test_relplot_legend
+FAILED tests/test_relational.py::TestRelationalPlotter::test_relplot_data - U...
+FAILED tests/test_relational.py::TestLinePlotter::test_color - pandas._config...
+FAILED tests/test_relational.py::TestLinePlotter::test_log_scale - pandas._co...
+FAILED tests/test_relational.py::TestLinePlotter::test_matplotlib_kwargs - pa...
+FAILED tests/test_relational.py::TestLinePlotter::test_nonmapped_dashes - pan...
+FAILED tests/test_relational.py::TestLinePlotter::test_lineplot_axes - pandas...
+FAILED tests/test_relational.py::TestLinePlotter::test_lineplot_vs_relplot[long_semantics0]
+FAILED tests/test_relational.py::TestLinePlotter::test_lineplot_vs_relplot[long_semantics1]
+FAILED tests/test_relational.py::TestLinePlotter::test_lineplot_vs_relplot[long_semantics2]
+FAILED tests/test_relational.py::TestLinePlotter::test_lineplot_vs_relplot[long_semantics3]
+FAILED tests/test_relational.py::TestLinePlotter::test_lineplot_vs_relplot[long_semantics4]
+FAILED tests/test_relational.py::TestLinePlotter::test_lineplot_vs_relplot[long_semantics5]
+FAILED tests/test_relational.py::TestLinePlotter::test_lineplot_vs_relplot[long_semantics6]
+FAILED tests/test_relational.py::TestLinePlotter::test_lineplot_vs_relplot[long_semantics7]
+FAILED tests/test_relational.py::TestLinePlotter::test_lineplot_vs_relplot[long_semantics8]
+FAILED tests/test_relational.py::TestLinePlotter::test_lineplot_vs_relplot[long_semantics9]
+FAILED tests/test_relational.py::TestLinePlotter::test_lineplot_vs_relplot[long_semantics10]
+FAILED tests/test_relational.py::TestLinePlotter::test_lineplot_vs_relplot[long_semantics11]
+FAILED tests/test_relational.py::TestLinePlotter::test_lineplot_smoke - panda...
+FAILED tests/test_relational.py::TestLinePlotter::test_ci_deprecation - panda...
+FAILED tests/test_relational.py::TestScatterPlotter::test_hue_order - TypeErr...
+FAILED tests/test_relational.py::TestScatterPlotter::test_unfilled_marker_edgecolor_warning
+FAILED tests/test_relational.py::TestScatterPlotter::test_scatterplot_vs_relplot[long_semantics3]
+FAILED tests/test_relational.py::TestScatterPlotter::test_scatterplot_vs_relplot[long_semantics4]
+FAILED tests/test_relational.py::TestScatterPlotter::test_scatterplot_vs_relplot[long_semantics5]
+FAILED tests/test_relational.py::TestScatterPlotter::test_scatterplot_vs_relplot[long_semantics6]
+FAILED tests/test_relational.py::TestScatterPlotter::test_scatterplot_vs_relplot[long_semantics7]
+FAILED tests/test_relational.py::TestScatterPlotter::test_scatterplot_vs_relplot[long_semantics8]
+FAILED tests/test_relational.py::TestScatterPlotter::test_scatterplot_vs_relplot[long_semantics9]
+FAILED tests/test_relational.py::TestScatterPlotter::test_scatterplot_vs_relplot[long_semantics10]
+FAILED tests/test_relational.py::TestScatterPlotter::test_scatterplot_vs_relplot[long_semantics11]
+================= 42 failed, 31 passed, 110 warnings in 38.98s =================
++ : '>>>>> End Test Output'
++ git checkout 94621cef29f80282436d73e8d2c0aa76dab81273 tests/test_relational.py
+Updated 1 path from 1517b395

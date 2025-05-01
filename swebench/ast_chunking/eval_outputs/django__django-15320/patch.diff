@@ -1,0 +1,10 @@
+```patch
+--- a/django/db/models/expressions.py
++++ b/django/db/models/expressions.py
+@@ -1601,4 +1601,5 @@
+             if key in query.alias_map
+         }
+         query.table_map = {key: val for key, val in query.table_map.items() if key in query.alias_map}
++        query.subquery = True
+         return query
+```

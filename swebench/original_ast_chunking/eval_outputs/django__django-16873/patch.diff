@@ -1,0 +1,33 @@
+```patch
+--- a/django/template/defaultfilters.py
++++ b/django/template/defaultfilters.py
+@@ -110,15 +110,21 @@
+ @register.filter(is_safe=True, needs_autoescape=True)
+ def join(value, arg, autoescape=True):
+     """
+-    Join a list with a string, like Python's ``str.join(list)``.
++    Join a list with a string, like Python's ``str.join(list)``, autoescaping
++    the list items and the separator string.
+     """
+     try:
+-        # If autoescape is True, escape the list elements first.
++        # Determine the separator based on autoescape context.
+         if autoescape:
+-            value = [conditional_escape(v) for v in value]
+-        # Escape the separator string (arg), convert elements to strings,
+-        # and join.
+-        data = conditional_escape(arg).join(map(str, value))
++            sep = conditional_escape(arg)
++        else:
++            sep = str(arg)
++
++        # Process list elements based on autoescape context.
++        if autoescape:
++            processed_values = [conditional_escape(v) for v in value]
++        else:
++            processed_values = map(str, value)
++        data = sep.join(processed_values)
+     except TypeError:  # Assume arg is sequence.
+         return value
+     return mark_safe(data)
+```

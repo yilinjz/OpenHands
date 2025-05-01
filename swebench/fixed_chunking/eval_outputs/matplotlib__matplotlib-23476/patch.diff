@@ -1,0 +1,50 @@
+```patch
+--- a/lib/matplotlib/backends/backend_macosx.py
++++ b/lib/matplotlib/backends/backend_macosx.py
+@@ -28,6 +28,10 @@
+ class FigureCanvasMac(_macosx.FigureCanvas, FigureCanvasBase):
+     # docstring inherited
+
++    # Remove the Mac-specific _set_device_pixel_ratio, inherit from base class.
++    # The base class implementation correctly handles DPI scaling based on
++    # the *change* in device pixel ratio.
++
+     def __init__(self, figure):
+         # Must store figure settings before initializing the C++ side,
+         # as it may call back into Python.
+@@ -42,24 +46,16 @@
+         height = int(h * figure.dpi)
+         _macosx.FigureCanvas.__init__(self, width, height)
+
++        # Set the initial dpi_ratio based on the current backend value.
++        # This ensures that when the base class's _set_device_pixel_ratio
++        # is called (e.g., by the C++ backend init), it compares the
++        # actual ratio against the correct starting ratio, preventing
++        # incorrect scaling of the figure's DPI (which may have been restored
++        # from pickle).
++        actual_ratio = super(FigureCanvasMac, self).get_device_pixel_ratio()
++        self._dpi_ratio = actual_ratio
++
+         figure.set_canvas(self)
+-        self._set_device_pixel_ratio(self._dpi_ratio)
+-
+-    def _set_device_pixel_ratio(self, ratio):
+-        # The ratio provided is the backing store scale factor, but the
+-        # FigureCanvasMac dpi ratio is defined relative to 72dpi.
+-        # (FIXME: Is this needed?)
+-        ratio = ratio * 72 / self.figure.dpi
+-        if self._dpi_ratio != ratio:
+-            # Pass physical dpi to figure.
+-            # Use the original ratio (backing store scale factor) here? No, the calculation above is used.
+-            # This results in figure.dpi = (ratio * 72 / figure.dpi) * figure.dpi = ratio * 72
+-            # where ratio is the backing store scale factor. This seems wrong.
+-            self.figure.set_dpi(ratio * self.figure.dpi, forward=False)
+-            self._dpi_ratio = ratio
+-
+-    # This method is called by the C++ code when the OS notifies that
+-    # the backing store scale factor (device pixel ratio) changed.
+     def _update_device_pixel_ratio(self):
+         # This must be called whenever the backing store scale factor changes.
+         # It will call the base class' _set_device_pixel_ratio with the
+
+```

@@ -1,0 +1,22 @@
+```patch
+--- a/sympy/printing/mathematica.py
++++ b/sympy/printing/mathematica.py
+@@ -118,11 +118,11 @@
+             # See: https://github.com/sympy/sympy/issues/2138#issuecomment-10700021
+             # Also see: https://github.com/sympy/sympy/pull/2140
+             # Update: This is not ideal, but it works.
+-            # Let's just print Max(x, y) as Max[x, y]
++            # Let's just print Max(x, y) as Max[x, y].
+             # See: https://github.com/sympy/sympy/issues/2138#issuecomment-10700021
+             args = [self._print(arg) for arg in expr.args]
+-            return "Max(%s)" % ", ".join(args)
++            return "Max[%s]" % ", ".join(args)
+
+         def _print_Min(self, expr):
+             args = [self._print(arg) for arg in expr.args]
+-            return "Min(%s)" % ", ".join(args)
++            return "Min[%s]" % ", ".join(args)
+
+         def _print_Piecewise(self, expr):
+             return "Piecewise[%s]" % self._print(expr.args)
+```

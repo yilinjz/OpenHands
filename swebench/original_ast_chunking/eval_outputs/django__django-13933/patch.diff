@@ -1,0 +1,44 @@
+```patch
+--- a/django/forms/models.py
++++ b/django/forms/models.py
+@@ -1,5 +1,6 @@
+ import copy
+ from itertools import chain
++from operator import attrgetter
+ 
+ from django.core.exceptions import FieldError, MultipleObjectsReturned, ValidationError
+ from django.db.models import BLANK_CHOICE_DASH, EmptyResultSet, Q
+@@ -7,7 +8,7 @@
+ from django.forms.fields import ChoiceField, Field
+ from django.forms.widgets import (
+     CheckboxSelectMultiple, HiddenInput, MultipleHiddenInput, RadioSelect,
+-    Select, SelectMultiple,
++    Select, SelectMultiple, SplitDateTimeWidget,
+ )
+ from django.utils.datastructures import MultiValueDict
+ from django.utils.functional import cached_property
+@@ -108,8 +109,8 @@
+     # This class is a subclass of ChoiceField for purity, but it doesn't
+     # actually use any of ChoiceField's implementation.
+     widget = Select
+-    default_error_messages = {
+-        'invalid_choice': _('Select a valid choice. That choice is not one of'
++    default_error_messages = { # Kept sorted by key.
++        'invalid_choice': _('Select a valid choice. %(value)s is not one of'
+                             ' the available choices.'),
+     }
+ 
+@@ -187,7 +188,11 @@
+             key = self.to_field_name or 'pk'
+             value = self.queryset.get(**{key: value})
+         except (ValueError, TypeError, self.queryset.model.DoesNotExist):
+-            raise ValidationError(self.error_messages['invalid_choice'], code='invalid_choice')
++            raise ValidationError(
++                self.error_messages['invalid_choice'],
++                code='invalid_choice',
++                params={'value': value},
++            )
+         return value
+ 
+     def validate(self, value):
+```

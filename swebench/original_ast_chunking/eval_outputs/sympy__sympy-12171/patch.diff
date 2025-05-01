@@ -1,0 +1,18 @@
+```patch
+--- a/sympy/printing/mathematica.py
++++ b/sympy/printing/mathematica.py
+@@ -71,3 +71,13 @@
+ 
+     def _print_Sum(self, expr):
+         return "Hold[Sum[" + ', '.join(self.doprint(a) for a in expr.args) + "]]"
++
++    def _print_Derivative(self, expr):
++        """
++        Mathematica equivalent of Derivative is D
++        """
++        return "D[%s]" % (self.stringify(expr.args, ", "))
++
++    def _print_Float(self, expr):
++        res = super(MCodePrinter, self)._print_Float(expr)
++        return res.replace('e', '*^')
+```

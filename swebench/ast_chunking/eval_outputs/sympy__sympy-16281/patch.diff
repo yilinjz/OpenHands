@@ -1,0 +1,154 @@
+```patch
+--- a/sympy/printing/pretty/pretty.py
++++ b/sympy/printing/pretty/pretty.py
+@@ -1618,55 +1618,78 @@
+         return pform
+
+     def _print_Product(self, expr):
+-        func = expr.term
+-        pretty_func = self._print(func)
+-
+-        horizontal_chr = xobj('_', 1)
+-        corner_chr = xobj('_', 1)
+-        vertical_chr = xobj('|', 1)
++        # Handle trivial case: single term for product
++        if len(expr.limits) == 1 and expr.limits[0][1] == expr.limits[0][2]:
++             return self._print(expr.term.subs(expr.limits[0][0], expr.limits[0][1]))
++
++        pform = self._print(expr.term)
++        func_height = pform.height()
++        func_width = pform.width()
+ 
+         if self._use_unicode:
+-            # use unicode corners
+-            horizontal_chr = xobj('-', 1)
++            # use unicode corners U+252C BOX DRAWINGS LIGHT DOWN AND HORIZONTAL
++            # U+2500 BOX DRAWINGS LIGHT HORIZONTAL
++            # U+2502 BOX DRAWINGS LIGHT VERTICAL
++            horizontal_chr = u'\N{BOX DRAWINGS LIGHT HORIZONTAL}'
+             corner_chr = u'\N{BOX DRAWINGS LIGHT DOWN AND HORIZONTAL}'
+-
+-        func_height = pretty_func.height()
+-
+-        first = True
++            vertical_chr = u'\N{BOX DRAWINGS LIGHT VERTICAL}'
++        else:
++            horizontal_chr = '_'
++            corner_chr = '_'
++            vertical_chr = '|'
++
++        # Process limits to find maximum dimensions
+         max_upper = 0
+-        sign_height = 0
+-
++        max_lower = 0
++        max_width = 0
++        limits = []
+         for lim in expr.limits:
+-            width = (func_height + 2) * 5 // 3 - 2
+-            sign_lines = []
+-            sign_lines.append(corner_chr + (horizontal_chr*width) + corner_chr)
+-            for i in range(func_height + 1):
+-                sign_lines.append(vertical_chr + (' '*width) + vertical_chr)
+-
+-            pretty_sign = stringPict('')
+-            pretty_sign = prettyForm(*pretty_sign.stack(*sign_lines))
+-
++            # TODO: Handle cases like Product(x, n)
++            var, low, high = lim
++            pretty_var = self._print(var)
++            pretty_low = self._print(low)
+             pretty_upper = self._print(lim[2])
+-            pretty_lower = self._print(Equality(lim[0], lim[1]))
+-
++
++            lower = prettyForm(*pretty_var.right('=', pretty_low)) # e.g., n=1
++            upper = pretty_upper # e.g., oo
++
++            max_lower = max(max_lower, lower.height())
+             max_upper = max(max_upper, pretty_upper.height())
+-
+-            if first:
+-                sign_height = pretty_sign.height()
+-
+-            pretty_sign = prettyForm(*pretty_sign.above(pretty_upper))
+-            pretty_sign = prettyForm(*pretty_sign.below(pretty_lower))
+-
+-            if first:
+-                pretty_func.baseline = 0
+-                first = False
+-
+-            height = pretty_sign.height()
+-            padding = stringPict('')
+-            padding = prettyForm(*padding.stack(*[' ']*(height - 1)))
+-            pretty_sign = prettyForm(*pretty_sign.right(padding))
+-
+-            pretty_func = prettyForm(*pretty_sign.right(pretty_func))
+-
+-        pretty_func.baseline = max_upper + sign_height//2
+-        pretty_func.binding = prettyForm.MUL
+-        return pretty_func
++            max_width = max(max_width, lower.width(), upper.width())
++            limits.append({'lower': lower, 'upper': upper})
++
++        # Determine inner width based on function and limits
++        inner_width = max(func_width, max_width)
++
++        # Build the core product symbol (∏) lines
++        sign_lines = []
++        if self._use_unicode:
++            # Unicode: Top bar with extensions
++            top_bar = horizontal_chr + corner_chr + horizontal_chr * inner_width + corner_chr + horizontal_chr
++            sign_lines.append(top_bar)
++            # Unicode: Vertical bars (need padding to match top bar width)
++            vertical_line = ' ' + vertical_chr + ' ' * inner_width + vertical_chr + ' '
++            for _ in range(func_height): # Use func_height, removing extra bottom line
++                sign_lines.append(vertical_line)
++        else:
++            # ASCII: Top bar (no extension, but needs padding for alignment)
++            top_bar = ' ' + corner_chr + horizontal_chr * inner_width + corner_chr + ' '
++            sign_lines.append(top_bar)
++            # ASCII: Vertical bars (need padding to match top bar width)
++            vertical_line = ' ' + vertical_chr + ' ' * inner_width + vertical_chr + ' '
++            for _ in range(func_height): # Use func_height, removing extra bottom line
++                sign_lines.append(vertical_line)
++
++        pretty_sign_base = stringPict('')
++        pretty_sign_base = prettyForm(*pretty_sign_base.stack(*sign_lines))
++        symbol_frame_width = pretty_sign_base.width() # Get actual width after construction
++
++        # Stack limits above/below symbol, centered within symbol_frame_width
++        upper_lines = stringPict('')
++        lower_lines = stringPict('')
++        for lim_info in limits:
++             upper = lim_info['upper']
++             lower = lim_info['lower']
++             pad_upper = (symbol_frame_width - upper.width()) // 2
++             pad_lower = (symbol_frame_width - lower.width()) // 2
++             upper = prettyForm(*upper.left(' ' * pad_upper))
++             lower = prettyForm(*lower.left(' ' * pad_lower))
++             upper_lines = prettyForm(*upper_lines.stack(upper))
++             lower_lines = prettyForm(*lower_lines.stack(lower))
++
++        # Combine symbol and limits
++        pretty_sym = prettyForm(*pretty_sign_base.above(upper_lines))
++        pretty_sym = prettyForm(*pretty_sym.below(lower_lines))
++
++        # Combine symbol+limits with the function
++        # Baseline adjustment: Center function vertically relative to the core symbol (vertical bars)
++        pform.baseline = max_upper + 1 # Old baseline: max_upper + sign_height//2
++
++        # Add padding between symbol and function
++        pad_str = ' ' * 1
++        padding = stringPict(pad_str)
++        # Stack padding to match the height of the symbol+limits part
++        padding = prettyForm(*padding.stack([pad_str] * pretty_sym.height()))
++
++        # Combine symbol+limits, padding, and function
++        pform = prettyForm(*pretty_sym.right(padding, pform))
++        pform.binding = prettyForm.MUL
++        return pform
+
+     def _print_Sum(self, expr):
+         # Handle trivial case
+```

@@ -1,0 +1,86 @@
+```patch
+--- a/django/db/migrations/serializer.py
++++ b/django/db/migrations/serializer.py
+@@ -179,50 +179,8 @@
+             # It's a method on a class.
+             # Work out the name based on the parent.
+             try:
+-                klass = inspect.getmodule(self.value).__dict__[
+-                    self.value.__qualname__.split(".")[0]
+-                ]
+-                # Find the class the method is defined on.
+-                defining_class = klass
+-                for name in self.value.__qualname__.split(".")[1:]:
+-                    try:
+-                        attr = getattr(defining_class, name)
+-                        # If it is a class method, descriptor is on the defining class.
+-                        if isinstance(attr, classmethod):
+-                            attr = attr.__func__
+-                        # If it is a static method, descriptor is on the defining class.
+-                        elif isinstance(attr, staticmethod):
+-                            attr = attr.__func__
+-                    except AttributeError:
+-                        # Look on MRO.
+-                        defining_class_mro = list(defining_class.__mro__[1:])
+-                        while defining_class_mro:
+-                            base = defining_class_mro.pop(0)
+-                            try:
+-                                attr = getattr(base, name)
+-                                if isinstance(attr, classmethod):
+-                                    attr = attr.__func__
+-                                elif isinstance(attr, staticmethod):
+-                                    attr = attr.__func__
+-                            except AttributeError:
+-                                continue
+-                            # If it's defined on this class
+-                            if getattr(attr, "__globals__", {}) == base.__dict__:
+-                                klass = base
+-                                break
+-                        else:
+-                            # Not found on MRO. Break outer loop.
+-                            defining_class = klass
+-                            break
+-                        # Found on MRO. Break outer loop.
+-                        break
+-                    # If it is a method defined on this class (or a
+-                    # classmethod/staticmethod). Check by matching __globals__.
+-                    if getattr(attr, "__globals__", {}) == defining_class.__dict__ or (
+-                        isinstance(
+-                            getattr(defining_class, name, None), (classmethod, staticmethod)
+-                        )
+-                        and attr.__globals__ == defining_class.__dict__
+-                    ):
+-                        klass = defining_class
+-                        break
+-                    # If it's not defined on this class, maybe it's defined
+-                    # on the next level? e.g. Outer.Inner.method where Inner is the class.
+-                    elif inspect.isclass(attr):
+-                        defining_class = attr
+-                    # Otherwise, loop will continue. If it finishes, klass
+-                    # remains the outer class.
+-
++                # Ensure the qualified name is usable from the module.
++                inspect.getattr_static(module, self.value.__qualname__.split(".")[0])
+                 name = self.value.__qualname__
+             except (AttributeError, KeyError):
+                 # Just use the qualname. If it's not directly accessible through the
+@@ -230,18 +188,6 @@
+                 # e.g. when a class method is applied to a child model that
+                 # doesn't have the method defined on it.
+                 name = self.value.__qualname__
+-            # Check if the klass we found is the root one, or one found midway.
+-            if klass is not inspect.getmodule(self.value).__dict__[
+-                self.value.__qualname__.split(".")[0]
+-            ]:
+-                # If the module is different, we need to import it specially.
+-                if klass.__module__ != self.value.__module__:
+-                    module_name = klass.__module__
+-                    name = "%s.%s" % (klass.__name__, self.value.__name__)
+-                # Otherwise, reconstruct the name based on the new class's qualname.
+-                else:
+-                    name = "%s.%s" % (klass.__qualname__, self.value.__name__)
+-
+         else:
+             # It's a standalone function.
+             name = self.value.__name__
+```

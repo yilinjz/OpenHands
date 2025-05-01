@@ -1,0 +1,24 @@
+```patch
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -40,12 +40,14 @@
+         return value
+ 
+     def contribute_to_class(self, cls, name, **kwargs):
+-        assert not cls._meta.auto_field, (
+-            "Model %s can't have more than one auto-generated field."
+-            % cls._meta.label
+-        )
++        # getattr() is used to handle fields that are not created by ModelBase
++        # (e.g. manually defined AutoFields).
++        auto_created = getattr(self, 'auto_created', False)
+         super().contribute_to_class(cls, name, **kwargs)
+-        cls._meta.auto_field = self
++        if auto_created:
++            if cls._meta.auto_field:
++                raise ValueError("Model %s can't have more than one auto-generated field." % cls._meta.label)
++            cls._meta.auto_field = self
+ 
+     def formfield(self, **kwargs):
+         return None
+```

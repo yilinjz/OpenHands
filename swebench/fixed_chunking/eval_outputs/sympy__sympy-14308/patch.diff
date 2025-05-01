@@ -1,0 +1,147 @@
+```patch
+--- a/sympy/physics/vector/vector.py
++++ b/sympy/physics/vector/vector.py
+@@ -7,53 +7,3 @@
+         elif outstr.startswith(' '):
+             outstr = outstr[1:]
+         return outstr
+-
+-    def _pretty(self, printer=None):
+-        """Pretty Printing method. """
+-        from sympy.physics.vector.printing import VectorPrettyPrinter
+-        from sympy.printing.pretty.stringpict import prettyForm
+-        e = self
+-
+-        class Fake(object):
+-
+-            def render(self, *args, **kwargs):
+-                ar = e.args  # just to shorten things
+-                if len(ar) == 0:
+-                    return unicode(0)
+-                settings = printer._settings if printer else {}
+-                vp = printer if printer else VectorPrettyPrinter(settings)
+-                pforms = []  # output list, to be concatenated to a string
+-                for i, v in enumerate(ar):
+-                    for j in 0, 1, 2:
+-                        # if the coef of the basis vector is 1, we skip the 1
+-                        if ar[i][0][j] == 1:
+-                            pform = vp._print(ar[i][1].pretty_vecs[j])
+-                        # if the coef of the basis vector is -1, we skip the 1
+-                        elif ar[i][0][j] == -1:
+-                            pform = vp._print(ar[i][1].pretty_vecs[j])
+-                            pform= prettyForm(*pform.left(" - "))
+-                            bin = prettyForm.NEG
+-                            pform = prettyForm(binding=bin, *pform)
+-                        elif ar[i][0][j] != 0:
+-                            # If the basis vector coeff is not 1 or -1,
+-                            # we might wrap it in parentheses, for readability.
+-                            if isinstance(ar[i][0][j], Add):
+-                                pform = vp._print(
+-                                    ar[i][0][j]).parens()
+-                            else:
+-                                pform = vp._print(
+-                                    ar[i][0][j])
+-                            pform = prettyForm(*pform.right(" ",
+-                                                ar[i][1].pretty_vecs[j]))
+-                        else:
+-                            continue
+-                        pforms.append(pform)
+-
+-                # TODO: This is copied from sympy.printing.pretty.pretty.py
+-                #       It should be unified.
+-                if len(pforms) == 0:
+-                    return unicode(0)
+-                pform = pforms[0]
+-                if pform.binding == prettyForm.NEG:
+-                    pform = prettyForm(*pform.left("-"))
+-                else:
+-                    # XXX is this needed?
+-                    pform = prettyForm(*pform.left("+"))
+-                for i in range(1, len(pforms)):
+-                    pform2 = pforms[i]
+-                    if pform2.binding == prettyForm.NEG:
+-                        pform = prettyForm(*pform.right(" - ", pform2))
+-                    else:
+-                        pform = prettyForm(*pform.right(" + ", pform2))
+-                if pform.picture[0].startswith('+'):
+-                    pform.picture[0] = pform.picture[0][1:]
+-                return pform
+-
+-        fake = Fake()
+-        return fake
+--- a/sympy/printing/pretty/pretty.py
++++ b/sympy/printing/pretty/pretty.py
+@@ -7,43 +7,111 @@
+         return D
+ 
+     def _print_BasisDependent(self, expr):
+-        from sympy.vector import Vector
++        from sympy.vector import Vector, Dyadic
++        from sympy.printing.pretty.stringpict import prettyForm, stringPict
++        from sympy.core.add import Add
++        from sympy.core.numbers import Integer, Number
++        from sympy.core.symbol import Symbol
++        from sympy.functions.elementary.miscellaneous import Max
+ 
+-        if not self._use_unicode:
+-            raise NotImplementedError("ASCII pretty printing of BasisDependent is not implemented")
++        use_unicode = self._settings.get('use_unicode', True)
++        if not use_unicode:
++            # Fallback or error for ASCII
++            return stringPict(str(expr)) # Or raise NotImplementedError
+ 
+         if expr == expr.zero:
+-            return prettyForm(expr.zero._pretty_form)
+-        o1 = []
+-        vectstrs = []
++            # Print SymPy's Integer(0) using the printer
++            return self._print(Integer(0))
++
++        # Dictionary to hold component information: {system: [(basis_vec, coeff), ...]}
++        # or {system: dyadic_expr}
++        components_dict = expr.separate()
++
++        # Check if components_dict is empty or contains only zero vectors/dyadics
++        is_effectively_zero = True
++        for system, item in components_dict.items():
++            if hasattr(item, 'components'): # Check if it's vector-like
++                if any(v != 0 for v in item.components.values()):
++                    is_effectively_zero = False
++                    break
++            elif item != 0: # Handle non-vector components (e.g., Dyadic parts)
++                 is_effectively_zero = False
++                 break
++        if is_effectively_zero:
++            return self._print(Integer(0))
++
++        pforms = []  # List to hold {'form': abs_term_form, 'sign': sign} for each term
++
++        # Sort systems for consistent output (optional, but good practice)
++        sorted_systems = sorted(components_dict.keys(), key=str)
++
++        for system in sorted_systems:
++            bdexpr = components_dict[system] # BasisDependent expression for this system
++
++            # Assuming vect.components gives {basis_vector: coefficient}
++            # This works for Vector. Need to adapt if Dyadic structure is different.
++            if isinstance(bdexpr, Vector):
++                inneritems = list(bdexpr.components.items())
++                # Sort by basis vector string representation for consistent order
++                inneritems.sort(key=lambda x: str(x[0]))
++            elif isinstance(bdexpr, Dyadic):
++                 # Dyadic printing needs specific logic, likely iterating through its terms
++                 # For now, let's represent it as a single item to be printed by _print_Dyadic
++                 # This might need refinement if _print_BasisDependent should handle Dyadic terms directly.
++                 # Let's assume _print(bdexpr) handles Dyadics correctly for now.
++                 # We treat the whole dyadic as one term.
++                 inneritems = [(bdexpr, 1)] # Placeholder: treat dyadic as basis, coeff=1
++            else:
++                # Handle other BasisDependent types if necessary
++                continue # Skip unknown types for now
++
++            for k, v in inneritems:  # k is basis vector or dyadic, v is coefficient
++                # Skip zero terms
++                if v == 0:
++                    continue
++
++                # Determine sign

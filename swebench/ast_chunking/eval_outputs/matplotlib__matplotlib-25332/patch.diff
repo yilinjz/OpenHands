@@ -1,0 +1,33 @@
+```patch
+--- a/lib/matplotlib/figure.py
++++ b/lib/matplotlib/figure.py
+@@ -36,6 +36,7 @@
+ from matplotlib import _api, _blocking_input, cbook, docstring, rcParams
+ from matplotlib import axes, gridspec as gridspec_module, legend
+ from matplotlib.artist import Artist, artist_picking_meth
++from matplotlib.cbook import Grouper
+ from matplotlib.container import Container
+ from matplotlib.figure import FigureBase
+ from matplotlib.gridspec import GridSpec
+@@ -103,6 +104,20 @@
+         # done by the Axes themselves.
+         self._layout_engine = None
+ 
++    def __getstate__(self):
++        state = self.__dict__.copy()
++        # Prune the state dictionary.
++        # _align_label_groups contains weakrefs which are not picklable.
++        state.pop('_align_label_groups', None)
++        return state
++
++    def __setstate__(self, state):
++        self.__dict__.update(state)
++        # Need to restore anything that was popped in __getstate__.
++        # Re-initialize the groupers used for label alignment.
++        # Note: This loses the alignment state, but makes the figure picklable.
++        self._align_label_groups = {'x': Grouper(), 'y': Grouper()}
++
+     def __repr__(self):
+         return "<{clsname} size {w:g}x{h:g} with {n} Axes>".format(
+             clsname=self.__class__.__name__,
+```

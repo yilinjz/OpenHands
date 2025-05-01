@@ -1,0 +1,21 @@
+```patch
+--- a/lib/matplotlib/colors.py
++++ b/lib/matplotlib/colors.py
+@@ -611,9 +611,11 @@
+         self._rgba_bad = None  # Set using set_bad().
+         self._lut = None  # Set by self._init().
+         self._is_builtin = False
++        # Use np.intp which is suitable for indexing and avoids NumPy 1.24+
++        # deprecation warnings when assigning these values to integer arrays.
++        int_type = np.intp
+         self.colorbar_extend = False
+-        self._i_under = self.N
+-        self._i_over = self.N + 1
+-        self._i_bad = self.N + 2
++        self._i_under = np.array(self.N, dtype=int_type)[()]
++        self._i_over = np.array(self.N + 1, dtype=int_type)[()]
++        self._i_bad = np.array(self.N + 2, dtype=int_type)[()]
+         self._mapped = False  # True when map has been called.
+
+     def __str__(self):
+```

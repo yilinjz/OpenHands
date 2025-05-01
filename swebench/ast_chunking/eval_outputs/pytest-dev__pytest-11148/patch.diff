@@ -1,0 +1,94 @@
+```diff
+--- a/src/_pytest/pathlib.py
++++ b/src/_pytest/pathlib.py
+@@ -2,40 +2,41 @@
+ from types import ModuleType
+ from typing import Dict
+ from typing import List
++from typing import Optional
+ from typing import TYPE_CHECKING
+ from typing import Union
+ 
+ from _pytest.compat import assert_never
+ from _pytest.config import ExitCode
+ from _pytest.config import PytestPluginManager
+-from _pytest.nodes import Collector
+ from _pytest.outcomes import skip
+ from _pytest.warning_types import PytestWarning
+ 
+ 
+ def insert_missing_modules(modules: Dict[str, ModuleType], module_name: str) -> None:
+     """
+-    Used by ``import_path`` to create intermediate modules when using mode=importlib.
++    Ensure intermediate modules exist and parent attributes are set.
++    Avoids creating dummy modules or interfering with sys.modules directly,
++    relying on importlib.import_module for loading.
+ 
+     When we want to import a module as "src.tests.test_foo" for example, we need
+     to create empty modules "src" and "src.tests" after inserting "src.tests.test_foo",
+     otherwise "src.tests.test_foo" is not importable by ``__import__``.
+     """
+     module_parts = module_name.split(".")
++    # Start with the most specific module; child is initially None.
+     child_module: Union[ModuleType, None] = None
+-    module: Union[ModuleType, None] = None
+     child_name: str = ""
+-    while module_name:
+-        if module_name not in modules:
++
++    # Iterate from the full name down to the top-level package.
++    # Example: "a.b.c" -> "a.b" -> "a"
++    while module_parts:
++        current_module_name = ".".join(module_parts)
++        parent_module: Union[ModuleType, None] = None
++
++        if current_module_name in modules:
++            parent_module = modules[current_module_name]
++        elif sys.meta_path:  # Only try importing if importers exist
+             try:
+                 # If sys.meta_path is empty, calling import_module will issue
+                 # a warning and raise ModuleNotFoundError. To avoid the
+                 # warning, we check sys.meta_path explicitly and raise the error
+-                # ourselves to fall back to creating a dummy module.
+-                if not sys.meta_path:
+-                    raise ModuleNotFoundError
+-                module = importlib.import_module(module_name)
++                # ourselves to skip the import attempt.
++                # Attempt to import the *real* module.
++                parent_module = importlib.import_module(current_module_name)
++                # Note: import_module already updates sys.modules.
+             except ModuleNotFoundError:
+-                module = ModuleType(
+-                    module_name,
+-                    doc="Empty module created by pytest's importmode=importlib.",
+-                )
+-        else:
+-            module = modules[module_name]
+-        if child_module:
+-            # Add child attribute to the parent that can reference the child
+-            # modules.
+-            if not hasattr(module, child_name):
+-                setattr(module, child_name, child_module)
+-                modules[module_name] = module
+-        # Keep track of the child module while moving up the tree.
+-        child_module, child_name = module, module_name.rpartition(".")[-1]
+-        module_parts.pop(-1)
+-        module_name = ".".join(module_parts)
++                # Module doesn't exist, don't create a dummy.
++                # parent_module remains None.
++                pass
++
++        # If we resolved the parent module for this level,
++        # and we have a child module from the previous level,
++        # set the attribute on the parent to point to the child.
++        if parent_module and child_module and not hasattr(parent_module, child_name):
++            setattr(parent_module, child_name, child_module)
++
++        # Prepare for the next iteration (moving up the hierarchy).
++        # The current parent becomes the child for the next level up.
++        child_module = parent_module
++        child_name = module_parts.pop()  # Get the last part (like 'c', then 'b', then 'a')
+ 
+ 
+ def resolve_package_path(path: Path) -> Optional[Path]:
+```

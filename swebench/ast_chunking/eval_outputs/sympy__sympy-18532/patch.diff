@@ -1,0 +1,36 @@
+```patch
+--- a/sympy/core/basic.py
++++ b/sympy/core/basic.py
+@@ -119,12 +119,13 @@
+     def atoms(self, *types):
+         """Returns the atoms that form the current object.
+ 
+-        By default, only objects that are truly atomic and can't
+-        be divided into smaller pieces are returned: symbols, numbers,
+-        and number symbols like I and pi. It is possible to request
+-        atoms of any type, however, as demonstrated below.
++        By default, only expressions that have no args are returned (i.e.
++        those for which ``expr.args`` is empty): symbols, numbers,
++        and number symbols like I and pi. This corresponds to the
++        mathematical definition of an atom in an expression. It is
++        possible to request atoms of any type, however, as demonstrated
++        below.
+ 
+         Examples
+         ========
+@@ -188,10 +189,11 @@
+         if types:
+             types = tuple(
+                 [t if isinstance(t, type) else type(t) for t in types])
++            check = lambda expr: isinstance(expr, types)
+         else:
+-            types = (Atom,)
++            # Definition of Atom is based on args
++            check = lambda expr: not expr.args
+         result = set()
+         for expr in preorder_traversal(self):
+-            if isinstance(expr, types):
++            if check(expr):
+                 result.add(expr)
+         return result
+```

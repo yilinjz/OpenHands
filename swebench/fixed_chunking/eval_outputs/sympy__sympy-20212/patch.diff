@@ -1,0 +1,14 @@
+```patch
+--- a/sympy/core/power.py
++++ b/sympy/core/power.py
+@@ -158,6 +158,9 @@
+                     return S.NaN
+                 if b is S.ComplexInfinity:  # zoo**(-oo) is undefined
+                     return S.NaN
++                # special case 0**(-oo) is zoo
++                if b.is_zero:
++                    return S.ComplexInfinity
+                 # Try to use abs(b) if possible, but it may fail for symbols
+                 # Cannot determine |b| for symbols for example
+                 try:
+```

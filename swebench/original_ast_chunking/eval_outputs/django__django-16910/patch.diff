@@ -1,0 +1,43 @@
+```patch
+--- a/django/db/models/sql/compiler.py
++++ b/django/db/models/sql/compiler.py
+@@ -3,17 +3,18 @@
+             related_fields = [
+                 (o.field, o.related_model)
+                 for o in opts.related_objects
+-                if o.field.unique and not o.many_to_many
++                if o.field.unique and not o.many_to_many and o.field.remote_field
+             ]
++            loaded_fields = self.query.get_loaded_field_names()
+             for related_field, model in related_fields:
+-                related_select_mask = select_mask.get(related_field) or {}
++                # Get the fields to load for the related model.
++                related_model_load_fields = loaded_fields.get(model._meta)
+                 if not select_related_descend(
+                     related_field,
+                     restricted,
+                     requested,
+-                    related_select_mask,
++                    select_mask,  # Check descent based on parent's mask.
+                     reverse=True,
+                 ):
+                     continue
+@@ -36,7 +37,7 @@
+                 related_klass_infos.append(klass_info)
+                 select_fields = []
+                 columns = self.get_default_columns(
+-                    related_select_mask,
++                    only_load=related_model_load_fields,
+                     start_alias=alias,
+                     opts=model._meta,
+                     from_parent=opts.model,
+@@ -48,7 +49,7 @@
+                 next = requested.get(related_field.related_query_name(), {})
+                 next_klass_infos = self.get_related_selections(
+                     select,
+-                    related_select_mask,
++                    related_model_load_fields,  # Pass related model's mask down.
+                     model._meta,
+                     alias,
+                     cur_depth + 1,
+```

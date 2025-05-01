@@ -1,0 +1,26 @@
+```patch
+--- a/lib/mpl_toolkits/mplot3d/axes3d.py
++++ b/lib/mpl_toolkits/mplot3d/axes3d.py
+@@ -14,6 +14,20 @@
+         self._frameon = bool(b)
+         self.stale = True
+ 
++    def set_visible(self, b):
++        """
++        Set the Axes visibility.
++
++        Parameters
++        ----------
++        b : bool
++        """
++        # Hide/show the background panes.
++        self.set_frame_on(b)
++        # Hide/show the z-axis.
++        self.zaxis.set_visible(b)
++        # Let the superclass handle the rest (x/y axes, patch, title, etc.)
++        super().set_visible(b)
++
+     @_api.rename_parameter("3.5", "b", "visible")
+     def grid(self, visible=True, **kwargs):
+         """
+```

@@ -1,0 +1,16 @@
+```patch
+--- a/django/db/migrations/operations/fields.py
++++ b/django/db/migrations/operations/fields.py
+@@ -55,6 +55,11 @@
+             operation
+         ):
+             return [operation]
++        elif isinstance(operation, AlterField) and self.is_same_field_operation(
++            operation
++        ):
++            # An AlterField matching this one replaces it.
++            return [operation]
+         elif (
+             isinstance(operation, RenameField)
+             and self.is_same_field_operation(operation)
+```

@@ -1,0 +1,17 @@
+```patch
+--- a/sympy/printing/latex.py
++++ b/sympy/printing/latex.py
+@@ -36,6 +36,12 @@
+         else:
+             return r"%s^\dagger" % self._print(mat)
+ 
++    def _print_Trace(self, expr):
++        # Ensure the argument is printed correctly using the LaTeX printer
++        arg_latex = self._print(expr.arg)
++        # Use \operatorname{Tr} and always parenthesize the argument
++        return r"\operatorname{Tr}\left(%s\right)" % arg_latex
++
+     def _print_MatAdd(self, expr):
+         terms = [self._print(t) for t in expr.args]
+         l = []
+```

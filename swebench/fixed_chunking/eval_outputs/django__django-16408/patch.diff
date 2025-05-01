@@ -1,0 +1,29 @@
+```patch
+--- a/django/db/models/sql/compiler.py
++++ b/django/db/models/sql/compiler.py
+@@ -567,6 +567,10 @@
+             # Dynamically find the field instance if only the name is provided.
+             field = getattr(related_instance._meta.model, field_name).field
+             field.set_cached_value(related_instance, instance)
++
++        # Setter for FilteredRelation results.
++        def filtered_relation_setter(instance, related_instance, alias_name):
++            setattr(instance, alias_name, related_instance)
+ 
+         # Memoize the related klass infos that have been seen already.
+         related_klass_infos_seen = {}
+@@ -654,9 +658,10 @@
+                     klass_info = {
+                         "model": model,
+                         "field": final_field,
+-                        "reverse": True,
+-                        "local_setter": partial(local_setter, final_field),
+-                        "remote_setter": partial(remote_setter, name),
++                        "reverse": False,  # Treat as forward relation for hydration.
++                        # Use a setter that sets the attribute named by the alias.
++                        "local_setter": partial(filtered_relation_setter, alias_name=name),
++                        "remote_setter": lambda rel, inst, fn: None,  # No standard reverse cache.
+                         "from_parent": from_parent,
+                     }
+                     related_klass_infos.append(klass_info)
+```

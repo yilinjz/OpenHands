@@ -1,0 +1,26 @@
+```patch
+--- a/django/http/response.py
++++ b/django/http/response.py
+@@ -28,15 +28,18 @@
+ 
+     @content.setter
+     def content(self, value):
+-        # Consume iterators upon assignment to allow repeated iteration.
+-        if hasattr(value, '__iter__') and not isinstance(value, (bytes, str)):
++        # Handle memoryview explicitly by converting it to bytes.
++        if isinstance(value, memoryview):
++            content = bytes(value)
++        # Consume other iterators upon assignment to allow repeated iteration.
++        elif hasattr(value, '__iter__') and not isinstance(value, (bytes, str)):
+             content = b''.join(self.make_bytes(chunk) for chunk in value)
+             if hasattr(value, 'close'):
+                 try:
+                     value.close()
+                 except Exception:
+                     pass
+-        else:
++        else:  # Handle bytes and str.
+             content = self.make_bytes(value)
+         # Create a list of properly encoded bytestrings to support write().
+         self._container = [content]
+```

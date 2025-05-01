@@ -1,0 +1,19 @@
+```patch
+--- a/sklearn/pipeline.py
++++ b/sklearn/pipeline.py
+@@ -183,6 +183,14 @@
+             return self.steps[ind][1]
+         return Pipeline(self.steps[ind])
+ 
++    def __len__(self):
++        """Returns the length of the pipeline
++
++        This enables slicing with ``len()``.
++        """
++        # Subtract 1 because the last element is the final estimator
++        return len(self.steps)
++
+     @property
+     def named_steps(self):
+         """Read-only attribute to access any step parameter by user given name.
+```

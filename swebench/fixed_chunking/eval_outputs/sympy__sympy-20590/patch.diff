@@ -1,0 +1,33 @@
+```patch
+--- a/sympy/core/assumptions.py
++++ b/sympy/core/assumptions.py
+@@ -16,6 +16,8 @@
+ 
+ 
+ class AssumeMeths():
++    __slots__ = ()
++
+     """
+     Methods for processing assumptions on Basic objects.
+     """
+--- a/sympy/core/expr.py
++++ b/sympy/core/expr.py
+@@ -34,6 +34,8 @@
+ 
+ 
+ class Expr(Basic):
++    __slots__ = ()
++
+     """Base class for mathematical expressions.
+ 
+     Superclass for Add, Mul, Pow, Function, Relational, ...
+@@ -115,6 +117,8 @@
+ 
+ 
+ class AtomicExpr(Expr):
++    __slots__ = ()
++
+     """A parent class for atomic things, e.g. Symbols and Numbers.
+     """
+     is_Atom = True
+```

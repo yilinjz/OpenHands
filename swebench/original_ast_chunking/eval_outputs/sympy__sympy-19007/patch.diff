@@ -1,0 +1,99 @@
+```patch
+--- a/sympy/matrices/expressions/blockmatrix.py
++++ b/sympy/matrices/expressions/blockmatrix.py
+@@ -1,8 +1,10 @@
+ from sympy.core.basic import Basic
+ from sympy.core.sympify import sympify
++from sympy.core.singleton import S
++from sympy.core.numbers import Integer
+ from sympy.functions import conjugate
+-from sympy.utilities.iterables import filldedent
+ from sympy.matrices.expressions.matexpr import MatrixExpr
++from sympy.matrices.expressions.special import ZeroMatrix
+ from sympy.matrices.expressions.matpow import MatPow
+ from sympy.matrices.expressions.transpose import Transpose
+ from sympy.matrices.expressions.inverse import Inverse
+@@ -10,6 +12,7 @@
+ from sympy.matrices.expressions.hadamard import HadamardProduct
+ from sympy.matrices.matrices import MatrixBase
+ from sympy.matrices.common import NonSquareMatrixError
++from sympy.utilities.iterables import filldedent, flatten
+ 
+ 
+ class BlockMatrix(MatrixExpr):
+@@ -76,6 +79,70 @@
+     @property
+     def colblocksizes(self):
+         return [self.blocks[0, i].cols for i in range(self.blockshape[1])]
++
++    def _entry(self, i, j, **kwargs):
++        # Avoid circular import
++        from sympy.matrices.expressions.matexpr import MatrixElement
++
++        # If i or j is a MatrixElement, it's definitely symbolic
++        if isinstance(i, MatrixElement) or isinstance(j, MatrixElement):
++             return None
++
++        i = sympify(i)
++        j = sympify(j)
++
++        # Check if indices are concrete integers
++        is_i_int = i.is_Integer
++        is_j_int = j.is_Integer
++
++        if is_i_int and is_j_int:
++            # Both indices are concrete integers
++            i_int, j_int = int(i), int(j)
++
++            row_sizes = self.rowblocksizes
++            col_sizes = self.colblocksizes
++
++            # Check for symbolic block sizes before proceeding
++            if any(not s.is_Integer for s in row_sizes) or \
++               any(not s.is_Integer for s in col_sizes):
++                # If any block size is symbolic, we cannot reliably map
++                # concrete i, j to a specific block entry without Piecewise.
++                # Fall back to symbolic element.
++                return None
++
++            # Find block row index
++            current_row = 0
++            block_i = -1
++            inner_i = -1
++            for idx, size in enumerate(row_sizes):
++                size_int = int(size) # Safe now due to check above
++                if current_row <= i_int < current_row + size_int:
++                    block_i = idx
++                    inner_i = i_int - current_row
++                    break
++                current_row += size_int
++            else:
++                 # Index is out of bounds
++                 raise IndexError("Row index %s out of bounds of block matrix rows %s" % (str(i_int), str(current_row)))
++
++            # Find block col index
++            current_col = 0
++            block_j = -1
++            inner_j = -1
++            for idx, size in enumerate(col_sizes):
++                size_int = int(size) # Safe now due to check above
++                if current_col <= j_int < current_col + size_int:
++                    block_j = idx
++                    inner_j = j_int - current_col
++                    break
++                current_col += size_int
++            else:
++                # Index is out of bounds
++                raise IndexError("Col index %s out of bounds of block matrix cols %s" % (str(j_int), str(current_col)))
++
++            block = self.blocks[block_i, block_j]
++            # Use _entry of the sub-matrix. Let it handle ZeroMatrix etc.
++            return block._entry(inner_i, inner_j, **kwargs)
++        else:
++            # One or both indices are symbolic. Return None to indicate that
++            # simplification is not possible, leading to a MatrixElement like C[i, 0].
++            return None
+ 
+     def _blockmul(self, other):
+         if (isinstance(other, BlockMatrix) and
+```

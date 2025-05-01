@@ -1,0 +1,179 @@
+```patch
+--- a/django/contrib/admin/checks.py
++++ b/django/contrib/admin/checks.py
+@@ -1,6 +1,7 @@
+ from collections import Counter
+ from itertools import chain
+ 
++from django.contrib.contenttypes.fields import GenericRelation
+ from django.core import checks
+ from django.core.checks.urls import check_url_config
+ from django.core.exceptions import FieldDoesNotExist
+@@ -400,14 +401,39 @@
+                     # model admin but is an attribute of the model. This is valid.
+                     pass
+                 else:
+-                    errors.append(
+-                        checks.Error(
+-                            "The value of 'list_display[%d]' refers to '%s', "
+-                            "which is not a callable, an attribute of '%s', or "
+-                            "an attribute or method on '%s'."
+-                            % (index, field_name, cls.__name__, opts.object_name),
+-                            obj=cls,
+-                            id="admin.E108",
++                    # Check if the field_name refers to a relation object that is not
++                    # directly on the model (reverse relation or GenericRelation).
++                    field_is_reverse_relation = False
++                    field_is_generic_relation = False
++                    for f in opts.get_fields(include_hidden=True):
++                        if f.name == field_name:
++                            if f.auto_created and not f.concrete:
++                                field_is_reverse_relation = True
++                                break
++                            if isinstance(f, GenericRelation):
++                                field_is_generic_relation = True
++                                break
++                    if field_is_reverse_relation:
++                        errors.append(
++                            checks.Error(
++                                "The value of 'list_display[%d]' refers to '%s', which "
++                                "is a reverse relation. This is not supported."
++                                % (index, field_name),
++                                obj=cls,
++                                id="admin.E108",
++                            )
++                        )
++                    elif field_is_generic_relation:
++                        errors.append(
++                            checks.Error(
++                                "The value of 'list_display[%d]' refers to '%s', which "
++                                "is a generic relation. This is not supported."
++                                % (index, field_name),
++                                obj=cls,
++                                id="admin.E108",
++                            )
++                        )
++                    else:
++                        errors.append(
++                            checks.Error(
++                                "The value of 'list_display[%d]' refers to '%s', "
++                                "which is not a callable, an attribute of '%s', or "
++                                "an attribute or method on '%s'."
++                                % (index, field_name, cls.__name__, opts.object_name),
++                                obj=cls,
++                                id="admin.E108",
++                            )
+                         )
+         else:
+             # It is a field; we can proceed checking.
+--- a/tests/admin_checks/tests.py
++++ b/tests/admin_checks/tests.py
+@@ -1,6 +1,7 @@
+ from django.contrib import admin
+ from django.contrib.admin.checks import ModelAdminChecks
+ from django.contrib.admin.options import HORIZONTAL, VERTICAL
++from django.contrib.admin.sites import AdminSite
+ from django.core.checks import Error, Info, Warning
+ from django.db import models
+ from django.forms import BaseModelFormSet, CharField, ModelForm
+@@ -10,6 +11,7 @@
+     Album,
+     Author,
+     Band,
++    Bookmark,
+     Chapter,
+     Edition,
+     EmptyModel,
+@@ -18,6 +20,7 @@
+     Membership,
+     Movie,
+     Musician,
++    Place,
+     RelatedModel,
+     RelatedModelInline,
+     Song,
+@@ -25,6 +28,7 @@
+     User,
+     UserAdmin,
+     UserNonrelatedAdmin,
++    Restaurant,
+ )
+ from django.test import SimpleTestCase, override_settings
+ from django.test.utils import isolate_apps
+@@ -100,6 +104,7 @@
+ 
+ @isolate_apps("admin_checks")
+ class ListDisplayCheckTests(AdminCheckTestCase):
++    site = AdminSite()
+ 
+     def test_non_field_in_list_display(self):
+         class SongAdmin(admin.ModelAdmin):
+@@ -200,3 +205,63 @@
+             )
+         ]
+         self.assertEqual(errors, expected_errors)
++
++    def test_list_display_reverse_fk_relation(self):
++        # Album has FK to Musician. Check MusicianAdmin for 'album'.
++        class MusicianAdmin(admin.ModelAdmin):
++            list_display = ["album"]
++
++        errors = MusicianAdmin(Musician, self.site).check()
++        expected_errors = [
++            Error(
++                "The value of 'list_display[0]' refers to 'album', which is a "
++                "reverse relation. This is not supported.",
++                obj=MusicianAdmin,
++                id="admin.E108",
++            )
++        ]
++        self.assertEqual(errors, expected_errors)
++
++    def test_list_display_reverse_m2m_relation(self):
++        # Band has M2M through Membership. Check BandAdmin for 'membership'.
++        class BandAdmin(admin.ModelAdmin):
++            list_display = ["membership"]
++
++        errors = BandAdmin(Band, self.site).check()
++        expected_errors = [
++            Error(
++                "The value of 'list_display[0]' refers to 'membership', which is a "
++                "reverse relation. This is not supported.",
++                obj=BandAdmin,
++                id="admin.E108",
++            )
++        ]
++        self.assertEqual(errors, expected_errors)
++
++    def test_list_display_reverse_o2o_relation(self):
++        # Restaurant has O2O to Place. Check PlaceAdmin for 'restaurant'.
++        class PlaceAdmin(admin.ModelAdmin):
++            list_display = ["restaurant"]
++
++        errors = PlaceAdmin(Place, self.site).check()
++        expected_errors = [
++            Error(
++                "The value of 'list_display[0]' refers to 'restaurant', which is a "
++                "reverse relation. This is not supported.",
++                obj=PlaceAdmin,
++                id="admin.E108",
++            )
++        ]
++        self.assertEqual(errors, expected_errors)
++
++    def test_list_display_reverse_generic_relation(self):
++        # Bookmark has GenericRelation 'tags'. Check BookmarkAdmin for 'tags'.
++        class BookmarkAdmin(admin.ModelAdmin):
++            list_display = ["tags"]
++
++        errors = BookmarkAdmin(Bookmark, self.site).check()
++        expected_errors = [
++            Error(
++                "The value of 'list_display[0]' refers to 'tags', which is a generic "
++                "relation. This is not supported.",
++                obj=BookmarkAdmin,
++                id="admin.E108",
++            )
++        ]
++        self.assertEqual(errors, expected_errors)
+```

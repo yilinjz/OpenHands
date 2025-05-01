@@ -1,0 +1,41 @@
+```patch
+--- a/sympy/printing/mathml.py
++++ b/sympy/printing/mathml.py
+@@ -283,6 +283,33 @@
+         x.appendChild(self.dom.createTextNode('i'))
+         return x
+ 
++    def _print_Idx(self, expr):
++        # Print the label of the Idx object. Range is ignored.
++        # Idx('i', n) -> <mi>i</mi>
++        return self._print(expr.label)
++
++    def _print_IndexedBase(self, expr):
++        # Print the base label, potentially with symbol mapping
++        # IndexedBase('A') -> <mi>A</mi>
++        return self._print(expr.label)
++
++    def _print_Indexed(self, expr):
++        # Use <msub> for base and indices
++        # a[i] -> <msub><mi>a</mi><mi>i</mi></msub>
++        # a[i, j] -> <msub><mi>a</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub>
++        dom_element = self.dom.createElement('msub')
++        dom_element.appendChild(self._print(expr.base))
++
++        if len(expr.indices) == 1:
++            dom_element.appendChild(self._print(expr.indices[0]))
++        else:
++            mrow = self.dom.createElement('mrow')
++            for i, index in enumerate(expr.indices):
++                if i > 0:
++                    mo = self.dom.createElement('mo')
++                    mo.appendChild(self.dom.createTextNode(','))
++                    mrow.appendChild(mo)
++                mrow.appendChild(self._print(index))
++            dom_element.appendChild(mrow)
++        return dom_element
++
+     def _print_Integer(self, expr):
+         dom_element = self.dom.createElement('mn')
+         dom_element.appendChild(self.dom.createTextNode(str(expr.p)))
+```

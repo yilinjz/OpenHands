@@ -1,0 +1,13 @@
+```patch
+--- a/django/utils/http.py
++++ b/django/utils/http.py
+@@ -304,6 +304,8 @@
+     Sunday, 06-Nov-94 08:49:37 GMT ; RFC 850, obsoleted by RFC 1036
+     Sun Nov  6 08:49:37 1994       ; ANSI C's asctime() format
+     """
++    if not date:
++        return None
+     dt = _parse_http_date_safe(date)
+     if dt is None:
+         raise ValueError("%r is not in a valid HTTP date format" % date)
+```

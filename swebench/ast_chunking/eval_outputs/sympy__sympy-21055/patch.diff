@@ -1,0 +1,27 @@
+```patch
+--- a/sympy/functions/elementary/complexes.py
++++ b/sympy/functions/elementary/complexes.py
+@@ -1,5 +1,4 @@
+ from __future__ import print_function, division
+-
+ from sympy.core.add import Add
+ from sympy.core.expr import Expr
+ from sympy.core.function import Function, Derivative, ArgumentIndexError, AppliedUndef
+@@ -73,6 +72,16 @@
+         return (x * Derivative(y, t, evaluate=True) - y *
+                     Derivative(x, t, evaluate=True)) / (x**2 + y**2)
+ 
++    def _eval_refine(self, assumptions):
++        """
++        Simplify arg using assumptions.
++        """
++        from sympy.assumptions import ask, Q
++        if ask(Q.positive(self.args[0]), assumptions):
++            return S.Zero
++        if ask(Q.negative(self.args[0]), assumptions):
++            return S.Pi
++
+     def _eval_rewrite_as_atan2(self, arg, **kwargs):
+         x, y = self.args[0].as_real_imag()
+         return atan2(y, x)
+```

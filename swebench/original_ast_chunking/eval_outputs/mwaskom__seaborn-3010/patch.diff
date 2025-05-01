@@ -1,0 +1,23 @@
+```patch
+--- a/seaborn/_stats/regression.py
++++ b/seaborn/_stats/regression.py
+@@ -24,13 +24,17 @@
+ 
+     def _fit_predict(self, data):
+         """Fit the model and predict."""
++        # Drop rows with missing data in x or y
++        data = data.dropna(subset=["x", "y"])
++
+         x = data["x"]
+         y = data["y"]
+ 
+         if x.nunique() < 2:
+             xx = yy = []
+         else:
+-            p = np.polyfit(x, y, self.order)
++            # Fit the polynomial regression model
++            p = np.polyfit(x, y.astype(float), self.order)
+             xx = np.linspace(x.min(), x.max(), self.gridsize)
+             yy = np.polyval(p, xx)
+ 
+```

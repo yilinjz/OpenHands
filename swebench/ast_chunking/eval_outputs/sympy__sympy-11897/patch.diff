@@ -1,0 +1,14 @@
+```diff
+--- a/sympy/printing/latex.py
++++ b/sympy/printing/latex.py
+@@ -714,7 +714,7 @@
+                             den.append(Rational(item.q))
+                     # Let's handle powers separately
+                     elif item.is_Pow:
+-                        if item.exp.is_Rational and item.exp.is_negative:
++                        if item.exp.is_Rational and item.exp.is_negative and not item.base is S.Exp1:
+                             if item.exp is not S.NegativeOne:
+                                 den.append(Pow(item.base, -item.exp))
+                             else:
+
+```

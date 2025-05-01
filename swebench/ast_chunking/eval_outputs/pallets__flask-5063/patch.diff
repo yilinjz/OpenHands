@@ -1,0 +1,87 @@
+```patch
+--- a/src/flask/cli.py
++++ b/src/flask/cli.py
+@@ -336,7 +336,7 @@
+     Pass ``--all-methods`` to show HEAD and OPTIONS methods.
+     """
+     from flask import current_app
+-
++    
+     rules = sorted(
+         current_app.url_map.iter_rules(), key=lambda r: (r.subdomain or "", r.rule)
+     )
+@@ -344,18 +344,25 @@
+     if not rules:
+         click.echo("No routes were registered.")
+         return
+-
++    
++    server_name = current_app.config.get("SERVER_NAME") or "<no server name>"
+     rows = []
+-    widths = {"endpoint": 0, "methods": 0, "rule": 0}
+-
++    has_subdomain = False
++    
+     for rule in rules:
+         if endpoint and not rule.endpoint.startswith(endpoint):
+             continue
+-
++        
++        if rule.subdomain:
++            has_subdomain = True
++            domain = f"{rule.subdomain}.{server_name}"
++        else:
++            domain = server_name
++            
+         methods = ", ".join(
+             sorted(m for m in rule.methods if include_methods or m not in {"HEAD", "OPTIONS"})
+         )
+-        rows.append((rule.endpoint, methods, rule.rule))
++        rows.append((domain, rule.endpoint, methods, rule.rule))
+ 
+     if not rows:
+         msg = f"No routes found that matched endpoint {endpoint!r}."
+@@ -363,17 +370,24 @@
+         click.echo(msg)
+         return
+ 
+-    widths["endpoint"] = max(len(r[0]) for r in rows)
+-    widths["methods"] = max(len(r[1]) for r in rows)
+-    widths["rule"] = max(len(r[2]) for r in rows)
++    widths = {"domain": 0, "endpoint": 0, "methods": 0, "rule": 0}
++    
++    if has_subdomain:
++        widths["domain"] = max(len(r[0]) for r in rows)
++        
++    widths["endpoint"] = max(len(r[1]) for r in rows)
++    widths["methods"] = max(len(r[2]) for r in rows)
++    widths["rule"] = max(len(r[3]) for r in rows)
+ 
+-    header = {
+-        "endpoint": "Endpoint",
+-        "methods": "Methods",
+-        "rule": "Rule",
+-    }
++    header_row = {"endpoint": "Endpoint", "methods": "Methods", "rule": "Rule"}
++    
++    if has_subdomain:
++        header_row["domain"] = "Domain"
++        widths["domain"] = max(widths["domain"], len(header_row["domain"]))
++        
+     widths["endpoint"] = max(widths["endpoint"], len(header_row["endpoint"]))
+     widths["methods"] = max(widths["methods"], len(header_row["methods"]))
+     widths["rule"] = max(widths["rule"], len(header_row["rule"]))
+-    rule = "{endpoint:<{ew}}  {methods:<{mw}}  {rule:<{rw}}"
+-    click.echo(rule.format(ew=widths["endpoint"], mw=widths["methods"], rw=widths["rule"], **header))
+-    click.echo("-" * (widths["endpoint"] + widths["methods"] + widths["rule"] + 4))
++    
++    header_items = ["domain", "endpoint", "methods", "rule"] if has_subdomain else ["endpoint", "methods", "rule"]
++    header = "  ".join(f"{{{h}:<{widths[h]}}}" for h in header_items).format(**header_row)
++    click.echo(header)
++    click.echo("-" * len(header))
++
++    row_template = "  ".join(f"{{{i}:<{widths[h]}}}" for i, h in enumerate(header_items))
++
++    for row in rows:
++        click.echo(row_template.format(*row))
+```

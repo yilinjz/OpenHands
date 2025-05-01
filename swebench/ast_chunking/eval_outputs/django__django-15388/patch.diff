@@ -1,0 +1,11 @@
+```diff
+--- a/django/utils/autoreload.py
++++ b/django/utils/autoreload.py
+@@ -105,4 +105,4 @@
+                 for directory in get_app_template_dirs(app_config.path):
+                     yield directory
+         for directory in engine.get("DIRS", []):
+-            yield directory
++            yield str(directory)
+
+```

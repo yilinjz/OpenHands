@@ -1,0 +1,99 @@
+```patch
+--- a/sympy/core/expr.py
++++ b/sympy/core/expr.py
+@@ -418,13 +418,13 @@
+         return Mul(self, other, evaluate=False)
+
+     def __matmul__(self, other):
+-        from sympy.matrices.expressions.matmul import MatMul
+-        return MatMul(self, other)
++        # If Expr.__matmul__ is called, self is not a Matrix type with its own __matmul__.
++        # Matrix multiplication requires both operands to be matrices.
++        raise ValueError("Scalar operands are not allowed for @, use '*' instead")
+
+     def __rmatmul__(self, other):
+-        from sympy.matrices.expressions.matmul import MatMul
+-        return MatMul(other, self)
+-
++        # If Expr.__rmatmul__ is called, the left operand is scalar/non-matrix.
++        raise ValueError("Scalar operands are not allowed for @, use '*' instead")
+
+     # This is needed for Python 3.9 compatibility, see issue #21073
+     def __imatmul__(self, other):
+
+--- a/sympy/matrices/expressions/matexpr.py
++++ b/sympy/matrices/expressions/matexpr.py
+@@ -1,6 +1,7 @@
+ from sympy.core.expr import Expr
+ from sympy.core.sympify import _sympify
+ from sympy.core.basic import Basic
++from sympy.core.compatibility import NotIterable
+
+ from sympy.functions.special.tensor_functions import KroneckerDelta
+ from sympy.matrices.common import ShapeError
+@@ -10,6 +11,7 @@
+ from sympy.matrices.expressions.transpose import transpose
+ from sympy.matrices.expressions.trace import Trace
+ from sympy.matrices.expressions.determinant import det
++from sympy.matrices.matrices import MatrixBase
+
+
+ class MatrixExpr(Expr):
+@@ -100,10 +102,24 @@
+         return self._eval_determinant()
+
+     def __matmul__(self, other):
+-        return MatMul(self, other).doit()
++        from .matmul import MatMul
++        from sympy.core.sympify import _sympify
++
++        other = _sympify(other)
++        if not isinstance(other, (MatrixExpr, MatrixBase)):
++            raise ValueError("Scalar operands are not allowed for @, use '*' instead")
++        return MatMul(self, other).doit()
+
+     def __rmatmul__(self, other):
+-        return MatMul(other, self).doit()
++        from .matmul import MatMul
++        from sympy.core.sympify import _sympify
++
++        other = _sympify(other)
++        if not isinstance(other, (MatrixExpr, MatrixBase)):
++            raise ValueError("Scalar operands are not allowed for @, use '*' instead")
++        return MatMul(other, self).doit()
++
++    # This is needed for Python 3.9 compatibility, see issue #21073
++    def __imatmul__(self, other):
++        return self.__matmul__(other)
+
+     def __pow__(self, exp):
+         from sympy.matrices.expressions.matpow import MatPow
+
+--- a/sympy/matrices/matrices.py
++++ b/sympy/matrices/matrices.py
+@@ -26,6 +26,7 @@
+ from sympy.utilities.iterables import is_sequence, NotIterable, \
+     flatten, has_dups
+ from sympy.utilities.misc import filldedent
++from sympy.core.sympify import _sympify
+
+
+ class ShapeError(ValueError):
+@@ -2780,8 +2781,15 @@
+         return self._eval_trace()
+
+     def __matmul__(self, other):
++        from .expressions.matexpr import MatrixExpr
+         from .expressions.matmul import MatMul
++        from sympy.core.sympify import _sympify
++
++        other = _sympify(other)
++        if not isinstance(other, (MatrixExpr, MatrixBase)):
++            raise ValueError("Scalar operands are not allowed for @, use '*' instead")
+         return MatMul(self, other)
++
+     # This is needed for Python 3.9 compatibility, see issue #21073
+     def __imatmul__(self, other):
+         return self.__matmul__(other)
+
+```

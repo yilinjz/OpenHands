@@ -1,0 +1,51 @@
+2025-05-01 20:04:10,334 - INFO - Creating container for sympy__sympy-13437...
+2025-05-01 20:04:10,363 - INFO - Container for sympy__sympy-13437 created: 9b7a708e2bffdb9e9ffc5a172a5a20192731a4a4a1746305234c66e540ee7d8d
+2025-05-01 20:04:10,652 - INFO - Container for sympy__sympy-13437 started: 9b7a708e2bffdb9e9ffc5a172a5a20192731a4a4a1746305234c66e540ee7d8d
+2025-05-01 20:04:10,653 - INFO - Intermediate patch for sympy__sympy-13437 written to logs/run_evaluation/20250501_195119/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/sympy__sympy-13437/patch.diff, now applying to container...
+2025-05-01 20:04:10,766 - INFO - Failed to apply patch to container: git apply --verbose
+2025-05-01 20:04:10,825 - INFO - Failed to apply patch to container: git apply --verbose --reject
+2025-05-01 20:04:10,879 - INFO - >>>>> Applied Patch:
+patching file sympy/functions/combinatorial/numbers.py
+Hunk #1 succeeded at 266 with fuzz 3.
+
+2025-05-01 20:04:11,463 - INFO - Git diff before:
+diff --git a/sympy/functions/combinatorial/numbers.py b/sympy/functions/combinatorial/numbers.py
+index 896729ac87..95e15b3472 100644
+--- a/sympy/functions/combinatorial/numbers.py
++++ b/sympy/functions/combinatorial/numbers.py
+@@ -266,6 +266,10 @@ def _calc_bernoulli(n):
+     _cache = {0: S.One, 2: Rational(1, 6), 4: Rational(-1, 30)}
+     _highest = {0: 0, 2: 2, 4: 4}
+ 
++    def _eval_limit(self, x, z, dir='+'):
++        if x == self.args[0] and z is S.Infinity:
++            return S.Infinity
++
+     @classmethod
+     def eval(cls, n, sym=None):
+         if n.is_Number:
+2025-05-01 20:04:11,463 - INFO - Eval script for sympy__sympy-13437 written to logs/run_evaluation/20250501_195119/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/sympy__sympy-13437/eval.sh; copying to container...
+2025-05-01 20:04:34,873 - INFO - Test runtime: 23.35 seconds
+2025-05-01 20:04:34,874 - INFO - Test output for sympy__sympy-13437 written to logs/run_evaluation/20250501_195119/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/sympy__sympy-13437/test_output.txt
+2025-05-01 20:04:34,936 - INFO - Git diff after:
+diff --git a/sympy/functions/combinatorial/numbers.py b/sympy/functions/combinatorial/numbers.py
+index 896729ac87..95e15b3472 100644
+--- a/sympy/functions/combinatorial/numbers.py
++++ b/sympy/functions/combinatorial/numbers.py
+@@ -266,6 +266,10 @@ def _calc_bernoulli(n):
+     _cache = {0: S.One, 2: Rational(1, 6), 4: Rational(-1, 30)}
+     _highest = {0: 0, 2: 2, 4: 4}
+ 
++    def _eval_limit(self, x, z, dir='+'):
++        if x == self.args[0] and z is S.Infinity:
++            return S.Infinity
++
+     @classmethod
+     def eval(cls, n, sym=None):
+         if n.is_Number:
+2025-05-01 20:04:34,936 - INFO - Grading answer for sympy__sympy-13437...
+2025-05-01 20:04:34,937 - INFO - report: {'sympy__sympy-13437': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_bell']}, 'PASS_TO_PASS': {'success': ['test_bernoulli', 'test_fibonacci', 'test_harmonic', 'test_harmonic_rational', 'test_harmonic_evalf', 'test_harmonic_rewrite_polygamma', 'test_harmonic_rewrite_sum', 'test_euler', 'test_euler_odd', 'test_euler_polynomials', 'test_euler_polynomial_rewrite', 'test_catalan', 'test_genocchi', 'test_nC_nP_nT', 'test_issue_8496'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-13437: resolved: False
+2025-05-01 20:04:34,937 - INFO - Attempting to stop container sweb.eval.sympy__sympy-13437.20250501_195119...
+2025-05-01 20:04:50,205 - INFO - Attempting to remove container sweb.eval.sympy__sympy-13437.20250501_195119...
+2025-05-01 20:04:50,233 - INFO - Container sweb.eval.sympy__sympy-13437.20250501_195119 removed.

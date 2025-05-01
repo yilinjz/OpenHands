@@ -1,0 +1,14 @@
+```patch
+--- a/django/db/models/sql/compiler.py
++++ b/django/db/models/sql/compiler.py
+@@ -1008,7 +1008,7 @@
+ 14                     klass_info = {
+ 15                         "model": model,
+ 16                         "field": final_field,
+-17                         "reverse": True,
++17                         "reverse": False,
+ 18                         "local_setter": partial(local_setter, final_field),
+ 19                         "remote_setter": partial(remote_setter, name),
+ 20                         "from_parent": from_parent,
+
+```

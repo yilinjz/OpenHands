@@ -1,0 +1,97 @@
+2025-04-30 20:05:32,902 - INFO - Creating container for django__django-13220...
+2025-04-30 20:05:32,971 - INFO - Container for django__django-13220 created: 7b83743330a44f67e5947c84d60fab7af9dd887018ad826bece7f0c5808af4f6
+2025-04-30 20:05:33,244 - INFO - Container for django__django-13220 started: 7b83743330a44f67e5947c84d60fab7af9dd887018ad826bece7f0c5808af4f6
+2025-04-30 20:05:33,244 - INFO - Intermediate patch for django__django-13220 written to logs/run_evaluation/20250430_200121/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/django__django-13220/patch.diff, now applying to container...
+2025-04-30 20:05:33,360 - INFO - Failed to apply patch to container: git apply --verbose
+2025-04-30 20:05:33,415 - INFO - Failed to apply patch to container: git apply --verbose --reject
+2025-04-30 20:05:33,472 - INFO - >>>>> Applied Patch:
+patching file django/core/exceptions.py
+Hunk #1 succeeded at 64 with fuzz 3.
+
+2025-04-30 20:05:34,910 - INFO - Git diff before:
+diff --git a/django/core/exceptions.py b/django/core/exceptions.py
+index dc084b8692..1a2c44a146 100644
+--- a/django/core/exceptions.py
++++ b/django/core/exceptions.py
+@@ -64,6 +64,34 @@ class RequestDataTooBig(SuspiciousOperation):
+ 
+ 
+ class RequestAborted(Exception):
++
++    def __eq__(self, other):
++        if not isinstance(other, ValidationError):
++            return NotImplemented
++
++        # Check if structures match
++        self_is_dict = hasattr(self, 'error_dict')
++        other_is_dict = hasattr(other, 'error_dict')
++
++        if self_is_dict != other_is_dict:
++            return False  # Mismatched structure (dict vs non-dict)
++
++        if self_is_dict:  # Both are dicts
++            if set(self.error_dict.keys()) != set(other.error_dict.keys()):
++                return False
++            for key in self.error_dict:
++                # Each value in error_dict is a list of ValidationError instances
++                # Compare the lists' contents regardless of order.
++                self_errors = sorted(
++                    (e.message, e.code, e.params) for e in self.error_dict[key]
++                )
++                other_errors = sorted(
++                    (e.message, e.code, e.params) for e in other.error_dict[key]
++                )
++                if self_errors != other_errors:
++                    return False
++            return True  # All keys and corresponding error lists match
++        else:  # Neither is a dict, compare error_list contents
+     """The request was closed before it was completed, or timed out."""
+     pass
+2025-04-30 20:05:34,910 - INFO - Eval script for django__django-13220 written to logs/run_evaluation/20250430_200121/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/django__django-13220/eval.sh; copying to container...
+2025-04-30 20:05:42,886 - INFO - Test runtime: 7.92 seconds
+2025-04-30 20:05:42,886 - INFO - Test output for django__django-13220 written to logs/run_evaluation/20250430_200121/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/django__django-13220/test_output.txt
+2025-04-30 20:05:42,969 - INFO - Git diff after:
+diff --git a/django/core/exceptions.py b/django/core/exceptions.py
+index dc084b8692..1a2c44a146 100644
+--- a/django/core/exceptions.py
++++ b/django/core/exceptions.py
+@@ -64,6 +64,34 @@ class RequestDataTooBig(SuspiciousOperation):
+ 
+ 
+ class RequestAborted(Exception):
++
++    def __eq__(self, other):
++        if not isinstance(other, ValidationError):
++            return NotImplemented
++
++        # Check if structures match
++        self_is_dict = hasattr(self, 'error_dict')
++        other_is_dict = hasattr(other, 'error_dict')
++
++        if self_is_dict != other_is_dict:
++            return False  # Mismatched structure (dict vs non-dict)
++
++        if self_is_dict:  # Both are dicts
++            if set(self.error_dict.keys()) != set(other.error_dict.keys()):
++                return False
++            for key in self.error_dict:
++                # Each value in error_dict is a list of ValidationError instances
++                # Compare the lists' contents regardless of order.
++                self_errors = sorted(
++                    (e.message, e.code, e.params) for e in self.error_dict[key]
++                )
++                other_errors = sorted(
++                    (e.message, e.code, e.params) for e in other.error_dict[key]
++                )
++                if self_errors != other_errors:
++                    return False
++            return True  # All keys and corresponding error lists match
++        else:  # Neither is a dict, compare error_list contents
+     """The request was closed before it was completed, or timed out."""
+     pass
+2025-04-30 20:05:42,969 - INFO - Grading answer for django__django-13220...
+2025-04-30 20:05:42,970 - INFO - report: {'django__django-13220': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_eq (test_exceptions.test_validation_error.TestValidationError)', 'test_eq_nested (test_exceptions.test_validation_error.TestValidationError)', 'test_hash (test_exceptions.test_validation_error.TestValidationError)', 'test_hash_nested (test_exceptions.test_validation_error.TestValidationError)']}, 'PASS_TO_PASS': {'success': [], 'failure': ['test_messages_concatenates_error_dict_values (test_exceptions.test_validation_error.TestValidationError)']}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-13220: resolved: False
+2025-04-30 20:05:42,970 - INFO - Attempting to stop container sweb.eval.django__django-13220.20250430_200121...
+2025-04-30 20:05:58,256 - INFO - Attempting to remove container sweb.eval.django__django-13220.20250430_200121...
+2025-04-30 20:05:58,273 - INFO - Container sweb.eval.django__django-13220.20250430_200121 removed.

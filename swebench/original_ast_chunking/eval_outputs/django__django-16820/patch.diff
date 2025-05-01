@@ -1,0 +1,113 @@
+```patch
+--- a/django/db/migrations/autodetector.py
++++ b/django/db/migrations/autodetector.py
+@@ -64,6 +64,9 @@
+         self.kept_model_keys = set()
+         self.kept_field_keys = set()
+ 
++        # Store index_together tuples removed because they are replaced by Meta.indexes.
++        self.model_handled_removed_index_together = {}
++
+         # Phase 1: Detect structure changes
+         # === App changes ===
+ 
+@@ -187,6 +190,9 @@
+             old_model_state = self.from_state.models[app_label, old_model_name]
+             new_model_state = self.to_state.models[app_label, model_name]
+ 
++            # Store handled index_together removals for this specific model.
++            model_handled_removed_index_together_set = set()
++
+             # Model state changes
+             model_opts = {
+                 "app_label": app_label,
+@@ -280,51 +286,40 @@
+             remove_from_added = []
+             remove_from_removed = []
+             for new_index in added_indexes:
+-                new_index_dec = new_index.deconstruct()
+-                new_index_name = new_index_dec[2].pop("name")
++                new_name = new_index.name
++                new_sig = new_index.deconstruct()[1:]  # args, kwargs
++                new_sig[1].pop("name", None)
+                 for old_index in removed_indexes:
+-                    old_index_dec = old_index.deconstruct()
+-                    old_index_name = old_index_dec[2].pop("name")
++                    old_name = old_index.name
++                    old_sig = old_index.deconstruct()[1:]
++                    old_sig[1].pop("name", None)
+                     # Indexes are the same except for the names.
+-                    if (
+-                        new_index_dec == old_index_dec
+-                        and new_index_name != old_index_name
+-                    ):
+-                        renamed_indexes.append((old_index_name, new_index_name, None))
++                    if new_sig == old_sig and new_name != old_name:
++                        renamed_indexes.append((old_name, new_name, None))
+                         remove_from_added.append(new_index)
+                         remove_from_removed.append(old_index)
+-            # Find index_together changed to indexes.
+-            for (
+-                old_value,
+-                new_value,
+-                index_together_app_label,
+-                index_together_model_name,
+-                dependencies,
+-            ) in self._get_altered_foo_together_operations(
+-                operations.AlterIndexTogether.option_name
+-            ):
+-                if (
+-                    app_label != index_together_app_label
+-                    or model_name != index_together_model_name
+-                ):
+-                    continue
+-                removed_values = old_value.difference(new_value)
++            # Find index_together entries transitioned to Meta.indexes.
++            old_index_together = set(
++                map(tuple, old_model_state.options.get("index_together", []))
++            )
++            new_index_together = set(
++                map(tuple, new_model_state.options.get("index_together", []))
++            )
++            removed_index_together_tuples = old_index_together - new_index_together
++            if removed_index_together_tuples:
++                # Create a list of indexes remaining in added_indexes for matching.
++                potential_added_indexes = [
++                    idx for idx in added_indexes if idx not in remove_from_added
++                ]
+                 for removed_index_together in removed_index_together_tuples:
+-                    renamed_index_together_indexes = []
+-                    for new_index in added_indexes:
++                    matching_new_indexes = []
++                    for new_index in potential_added_indexes:
+                         _, args, kwargs = new_index.deconstruct()
+                         # Check if new_index matches the removed_index_together spec.
+                         # An index generated from index_together only has 'fields' and 'name'.
+                         if (
+                             not args
+-                            and new_index.fields == list(removed_index_together)
+                             and set(kwargs) == {"name", "fields"}
++                            and new_index.fields == list(removed_index_together)
+                         ):
+                             matching_new_indexes.append(new_index)
+-
+-                    if len(renamed_index_together_indexes) == 1:
+-                        renamed_index = renamed_index_together_indexes[0]
++                    # If exactly one matching index is found in the new Meta.indexes.
++                    if len(matching_new_indexes) == 1:
++                        renamed_index = matching_new_indexes[0]
+                         # Don't add AddIndex for this, it's a rename/transition.
+-                        if renamed_index in added_indexes:
+-                            remove_from_added.append(renamed_index)
++                        remove_from_added.append(renamed_index)
+                         # Record the rename: (old_name=None, new_name, from_index_together_tuple)
+                         renamed_indexes.append(
+                             (None, renamed_index.name, removed_index_together)
+@@ -332,6 +327,7 @@
+                         # Store the handled removal tuple.
+                         model_handled_removed_index_together_set.add(removed_index_together)
+ 
++            # Store the set for this model to be used later.
+             self.model_handled_removed_index_together[
+                 (app_label, model_name)
+             ] = model_handled_removed_index_together_set

@@ -1,0 +1,27 @@
+```diff
+--- a/django/contrib/auth/forms.py
++++ b/django/contrib/auth/forms.py
+@@ -7,6 +7,7 @@
+ from django.contrib.auth.tokens import default_token_generator
+ from django.contrib.sites.shortcuts import get_current_site
+ from django.core.exceptions import ValidationError
++from django.urls import reverse
+ from django.utils.crypto import get_random_string
+ from django.utils.html import strip_tags
+ from django.utils.http import urlsafe_base64_decode
+@@ -156,8 +157,11 @@
+     def __init__(self, *args, **kwargs):
+         super().__init__(*args, **kwargs)
+         password = self.fields.get("password")
+-        if password:
+-            password.help_text = password.help_text.format("../password/")
++        # The password field is read-only, so report the actual password change
++        # URL. The view requires the user pk, so be sure to use it.
++        if password and self.instance.pk:
++            password_change_url = reverse("admin:auth_user_password_change", args=[self.instance.pk])
++            password.help_text = password.help_text.format(password_change_url)
+         user_permissions = self.fields.get("user_permissions")
+         if user_permissions:
+             user_permissions.queryset = user_permissions.queryset.select_related(
+
+```

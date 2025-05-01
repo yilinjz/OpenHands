@@ -1,0 +1,39 @@
+```patch
+--- a/django/core/exceptions.py
++++ b/django/core/exceptions.py
+@@ -64,3 +64,31 @@
+         else:
+             error_dict.setdefault(NON_FIELD_ERRORS, []).extend(self.error_list)
+         return error_dict
++
++    def __eq__(self, other):
++        if not isinstance(other, ValidationError):
++            return NotImplemented
++
++        # Check if structures match
++        self_is_dict = hasattr(self, 'error_dict')
++        other_is_dict = hasattr(other, 'error_dict')
++
++        if self_is_dict != other_is_dict:
++            return False  # Mismatched structure (dict vs non-dict)
++
++        if self_is_dict:  # Both are dicts
++            if set(self.error_dict.keys()) != set(other.error_dict.keys()):
++                return False
++            for key in self.error_dict:
++                # Each value in error_dict is a list of ValidationError instances
++                # Compare the lists' contents regardless of order.
++                self_errors = sorted(
++                    (e.message, e.code, e.params) for e in self.error_dict[key]
++                )
++                other_errors = sorted(
++                    (e.message, e.code, e.params) for e in other.error_dict[key]
++                )
++                if self_errors != other_errors:
++                    return False
++            return True  # All keys and corresponding error lists match
++        else:  # Neither is a dict, compare error_list contents
++            self_errors = sorted((e.message, e.code, e.params) for e in self.error_list)
++            other_errors = sorted((e.message, e.code, e.params) for e in other.error_list)
++            return self_errors == other_errors
+```

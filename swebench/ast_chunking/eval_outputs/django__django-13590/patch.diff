@@ -1,0 +1,22 @@
+```patch
+--- a/django/db/models/sql/query.py
++++ b/django/db/models/sql/query.py
+@@ -1320,10 +1320,13 @@
+         # The items of the iterable may be expressions and need resolving.
+         elif isinstance(value, (list, tuple)):
+             # The items of the iterable may be expressions and need resolving.
+-            value = type(value)(
+-                self.resolve_lookup_value(item, can_reuse, allow_joins)
+-                for item in value
+-            )
++            resolved_values = []
++            for item in value:
++                resolved_values.append(
++                    self.resolve_lookup_value(item, can_reuse, allow_joins)
++                )
++            # Preserve the type (list or tuple) of the value.
++            value = type(value)(resolved_values)
+         elif isinstance(value, QuerySet):
+             value = value.query
+         elif hasattr(value, 'resolve_expression'):
+```

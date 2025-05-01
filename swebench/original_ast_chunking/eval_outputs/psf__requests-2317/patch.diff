@@ -1,0 +1,19 @@
+```patch
+--- a/requests/models.py
++++ b/requests/models.py
+@@ -268,7 +268,12 @@
+         """Prepares the given HTTP method."""
+         self.method = method
+         if self.method is not None:
+-            self.method = builtin_str(self.method.upper())
++            # Uppercase the method
++            method = self.method.upper()
++            # Decode bytes to string if necessary. Use latin-1 for safety,
++            # as HTTP methods are typically ASCII-only.
++            if isinstance(method, bytes):
++                method = method.decode('latin-1')
++            self.method = builtin_str(method)
+
+     def prepare_url(self, url, params):
+         """Prepares the given HTTP URL."""
+```

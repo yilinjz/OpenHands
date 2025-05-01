@@ -1,0 +1,45 @@
+```diff
+--- a/django/utils/autoreload.py
++++ b/django/utils/autoreload.py
+@@ -130,14 +130,21 @@
+             continue
+         # If the path is a file, add it and its containing directory.
+         # Use resolve() to follow symlinks.
++        resolved_path = None
+         try:
+-            results.add(path.resolve().absolute())
++            resolved_path = path.resolve().absolute()
++        except ValueError as e:
++            # Handle the specific "embedded null byte" error.
++            if '\x00' in str(e):
++                logger.debug('Skipping path %s due to resolution error: %s', path, e)
++                continue  # Skip this path and its parent.
++            else:
++                raise  # Re-raise other ValueErrors
+         except FileNotFoundError:
+             # Path may not exist, e.g. if it's been deleted since the
+             # module was imported.
+             continue
+-        results.add(path.parent)
++        results.add(resolved_path)
++        results.add(resolved_path.parent)
+
+     # Add paths from extra_files.
+     for path_str in extra_files:
+@@ -145,8 +152,15 @@
+         try:
+             results.add(path.resolve().absolute())
+         except FileNotFoundError:
++            # Path may not exist, e.g. if it's been deleted.
+             continue
++        except ValueError as e:
++            # Handle the specific "embedded null byte" error.
++            if '\x00' in str(e):
++                logger.debug('Skipping path %s due to resolution error: %s', path, e)
++                continue  # Skip this path.
++            else:
++                raise  # Re-raise other ValueErrors
+
+     yield from results
+
+```

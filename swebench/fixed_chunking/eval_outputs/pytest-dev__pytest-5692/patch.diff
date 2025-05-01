@@ -1,0 +1,41 @@
+```patch
+--- a/src/_pytest/junitxml.py
++++ b/src/_pytest/junitxml.py
+@@ -1,8 +1,10 @@
+ import functools
+ import os
+ import sys
++import socket
+ import time
+ from io import StringIO
++import datetime
+ 
+ import pytest
+ from _pytest.config import filename_arg
+@@ -108,6 +110,7 @@
+ 
+     def pytest_sessionstart(self):
+         self.suite_start_time = time.time()
++        self.ts = datetime.datetime.fromtimestamp(self.suite_start_time).isoformat(timespec="seconds")
+ 
+     def pytest_sessionfinish(self):
+         dirname = os.path.dirname(os.path.abspath(self.logfile))
+@@ -128,6 +131,8 @@
+         )
+         logfile.write('<?xml version="1.0" encoding="utf-8"?>')
+ 
++        hostname = socket.gethostname()
++
+         suite_node = Junit.testsuite(
+             self._get_global_properties_node(),
+             [x.to_xml() for x in self.node_reporters_ordered],
+@@ -137,6 +142,8 @@
+             skipped=self.stats["skipped"],
+             tests=numtests,
+             time="%.3f" % suite_time_delta,
++            hostname=hostname,
++            timestamp=self.ts,
+         )
+         logfile.write(Junit.testsuites([suite_node]).unicode(indent=0))
+         logfile.close()
+```

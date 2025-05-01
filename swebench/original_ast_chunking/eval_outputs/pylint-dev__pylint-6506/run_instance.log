@@ -1,0 +1,44 @@
+2025-04-30 20:16:20,208 - INFO - Creating container for pylint-dev__pylint-6506...
+2025-04-30 20:16:20,238 - INFO - Container for pylint-dev__pylint-6506 created: 588d870965badad24e237f69343ddbddfde419fc78dca1824cc87a1e5e6d29e8
+2025-04-30 20:16:20,531 - INFO - Container for pylint-dev__pylint-6506 started: 588d870965badad24e237f69343ddbddfde419fc78dca1824cc87a1e5e6d29e8
+2025-04-30 20:16:20,532 - INFO - Intermediate patch for pylint-dev__pylint-6506 written to logs/run_evaluation/20250430_200121/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/pylint-dev__pylint-6506/patch.diff, now applying to container...
+2025-04-30 20:16:20,641 - INFO - >>>>> Applied Patch:
+Checking patch pylint/config/config_initialization.py...
+Hunk #1 succeeded at 82 (offset 27 lines).
+Applied patch pylint/config/config_initialization.py cleanly.
+
+2025-04-30 20:16:21,015 - INFO - Git diff before:
+diff --git a/pylint/config/config_initialization.py b/pylint/config/config_initialization.py
+index 24e453a73..1fc43f238 100644
+--- a/pylint/config/config_initialization.py
++++ b/pylint/config/config_initialization.py
+@@ -82,7 +82,6 @@ def _config_initialization(
+     if unrecognized_options:
+         msg = ", ".join(unrecognized_options)
+         linter.add_message("unrecognized-option", line=0, args=msg)
+-        raise _UnrecognizedOptionError(options=unrecognized_options)
+ 
+     # Set the current module to configuration as we don't know where
+     # the --load-plugins key is coming from
+2025-04-30 20:16:21,015 - INFO - Eval script for pylint-dev__pylint-6506 written to logs/run_evaluation/20250430_200121/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/pylint-dev__pylint-6506/eval.sh; copying to container...
+2025-04-30 20:16:26,583 - INFO - Test runtime: 5.51 seconds
+2025-04-30 20:16:26,583 - INFO - Test output for pylint-dev__pylint-6506 written to logs/run_evaluation/20250430_200121/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/pylint-dev__pylint-6506/test_output.txt
+2025-04-30 20:16:26,648 - INFO - Git diff after:
+diff --git a/pylint/config/config_initialization.py b/pylint/config/config_initialization.py
+index 24e453a73..1fc43f238 100644
+--- a/pylint/config/config_initialization.py
++++ b/pylint/config/config_initialization.py
+@@ -82,7 +82,6 @@ def _config_initialization(
+     if unrecognized_options:
+         msg = ", ".join(unrecognized_options)
+         linter.add_message("unrecognized-option", line=0, args=msg)
+-        raise _UnrecognizedOptionError(options=unrecognized_options)
+ 
+     # Set the current module to configuration as we don't know where
+     # the --load-plugins key is coming from
+2025-04-30 20:16:26,648 - INFO - Grading answer for pylint-dev__pylint-6506...
+2025-04-30 20:16:26,650 - INFO - report: {'pylint-dev__pylint-6506': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['tests/config/test_config.py::test_unknown_option_name', 'tests/config/test_config.py::test_unknown_short_option_name']}, 'PASS_TO_PASS': {'success': ['tests/config/test_config.py::test_can_read_toml_env_variable', 'tests/config/test_config.py::test_unknown_message_id', 'tests/config/test_config.py::test_unknown_confidence', 'tests/config/test_config.py::test_unknown_yes_no', 'tests/config/test_config.py::test_unknown_py_version', 'tests/config/test_config.py::test_short_verbose'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for pylint-dev__pylint-6506: resolved: False
+2025-04-30 20:16:26,650 - INFO - Attempting to stop container sweb.eval.pylint-dev__pylint-6506.20250430_200121...
+2025-04-30 20:16:41,877 - INFO - Attempting to remove container sweb.eval.pylint-dev__pylint-6506.20250430_200121...
+2025-04-30 20:16:41,899 - INFO - Container sweb.eval.pylint-dev__pylint-6506.20250430_200121 removed.

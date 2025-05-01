@@ -1,0 +1,38 @@
+```diff
+--- a/django/utils/html.py
++++ b/django/utils/html.py
+@@ -8,6 +8,7 @@
+ from django.utils.functional import Promise, keep_lazy, keep_lazy_text
+ from django.utils.http import RFC3986_SUBDELIMS, RFC3986_UNRESERVED
+ from django.utils.safestring import SafeData, SafeString, mark_safe
++from django.core.serializers.json import DjangoJSONEncoder
+ 
+ # Configuration for urlize() function.
+ LEADING_PUNCTUATION = ["(", "<", "&lt;"]
+@@ -38,18 +39,20 @@
+     ord("&"): "\\u0026",
+ }
+ 
+-def json_script(value, element_id=None):
++def json_script(value, element_id=None, encoder=DjangoJSONEncoder):
+     """
+     Escape characters for embedding JSON in HTML.
+ 
+     Arguments:
+         value: Python object to be serialized.
+         element_id: ID attribute of the <script> tag.
++        encoder: JSON encoder class to use.
+     """
+-    from django.core.serializers.json import DjangoJSONEncoder
+-
+-    json_str = json.dumps(value, cls=DjangoJSONEncoder).translate(_json_script_escapes)
++    # Escape channel binding names as well, because they can be used in attribute
++    # selectors in CSS. Typically this happens in tests. It's not known to be a
++    # security issue, but it's likely confusing.
++    json_str = json.dumps(value, cls=encoder).translate(_json_script_escapes)
+     if element_id:
++        # Attributes are escaped by conditional_escape.
+         template = '<script id="{}" type="application/json">{}</script>'
+         return mark_safe(template.format(conditional_escape(element_id), json_str))
+     else:
+```

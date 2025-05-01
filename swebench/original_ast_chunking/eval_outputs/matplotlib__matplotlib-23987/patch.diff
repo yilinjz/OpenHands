@@ -1,0 +1,34 @@
+```patch
+--- a/lib/matplotlib/figure.py
++++ b/lib/matplotlib/figure.py
+@@ -26,6 +26,7 @@
+ from matplotlib import _api, cbook, _docstring, projections
+ from matplotlib.artist import Artist, artist_picking_meth
+ from matplotlib.axes import Axes, SubplotBase
++from matplotlib.layout_engine import NoneLayoutEngine
+ from matplotlib.blocking_input import BlockingInput
+ from matplotlib.gridspec import GridSpec
+ import matplotlib.legend as mlegend
+@@ -3079,8 +3080,8 @@
+             self.subplotpars = SubplotParams(left, bottom, right, top,
+                                              wspace, hspace)
+ 
+-        if self.get_layout_engine() is not None:
+-            # Don't call if using constrained layout/tight layout
++        engine = self.get_layout_engine()
++        if not isinstance(engine, NoneLayoutEngine):
+             warnings.warn(
+                 "This figure was using a layout engine that is incompatible "
+                 "with subplots_adjust and/or tight_layout; not calling "
+@@ -3126,8 +3127,8 @@
+         renderer = self._get_renderer()
+         with getattr(renderer, "_draw_disabled", nullcontext)():
+ 
+-            if self.get_layout_engine() is not None:
+-                # Don't call if using constrained layout.
++            engine = self.get_layout_engine()
++            if not isinstance(engine, NoneLayoutEngine):
+                 warnings.warn(
+                     "This figure was using a layout engine that is incompatible "
+                     "with subplots_adjust and/or tight_layout; not calling "
+```

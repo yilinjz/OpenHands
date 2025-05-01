@@ -1,0 +1,40 @@
+```patch
+--- a/sympy/physics/units/prefixes.py
++++ b/sympy/physics/units/prefixes.py
+@@ -70,19 +70,23 @@
+          from sympy.physics.units import Quantity
+          if not isinstance(other, (Quantity, Prefix)):
+              # Handle Prefix * Number, Prefix * Symbol, etc.
+-            return super().__mul__(other)
++            # Return the numerical scale factor multiplied by the other object.
++            # Example: milli * 5 -> (1/1000) * 5
++            return self.scale_factor * other
+
+-        fact = self.scale_factor * other.scale_factor
+-
+-        if fact == 1:
+-            return 1
+-        elif isinstance(other, Prefix):
++        if isinstance(other, Prefix):
++            # Combine prefixes: milli * kilo -> 1
++            fact = self.scale_factor * other.scale_factor
++            if fact == 1:
++                return 1
+              # simplify prefix
+-            for p in PREFIXES:
+-                if PREFIXES[p].scale_factor == fact:
+-                    return PREFIXES[p]
++            # Use .values() for direct iteration over Prefix objects
++            for p in PREFIXES.values():
++                if p.scale_factor == fact:
++                    return p
+              return fact
+-
+-        return self.scale_factor * other
++        elif isinstance(other, Quantity):
++            # Delegate Prefix * Quantity to Quantity * Prefix
++            # Relies on Quantity.__mul__ to handle Prefix correctly (e.g., W * milli -> mW)
++            return other * self
++        # This path should not be reached due to the initial check, but return NotImplemented as a fallback.
++        return NotImplemented
+```

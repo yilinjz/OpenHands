@@ -1,0 +1,71 @@
+```patch
+--- a/pylint/reporters/text.py
++++ b/pylint/reporters/text.py
+@@ -1,10 +1,12 @@
+ # Licensed under the GPL: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ # For details: https://github.com/PyCQA/pylint/blob/main/LICENSE
+ 
++import re
++import string
+ import sys
+ import warnings
+ from dataclasses import asdict
+-from typing import TYPE_CHECKING, TextIO
++from typing import TYPE_CHECKING, Set, TextIO
+ 
+ from pylint.interfaces import IReporter
+ from pylint.message import Message
+@@ -17,13 +19,11 @@
+ 
+     name = "text"
+     extension = "txt"
+-    line_format = "{path}:{line}:{column}: {msg_id}: {msg} ({symbol})"
++    _template = "{path}:{line}:{column}: {msg_id}: {msg} ({symbol})"
+ 
+     def __init__(self, output: TextIO | None = None) -> None:
+         super().__init__(output)
+-        self._modules: set[str] = set()
+-        self._template = self.line_format
+-        self._fixed_template = self.line_format
++        self._modules: Set[str] = set()
+         """The output format template with any unrecognized arguments removed."""
+ 
+     def on_set_current_module(self, module: str, filepath: str | None) -> None:
+@@ -38,17 +38,16 @@
+         # Set template to the currently selected template
+         self._template = template
+ 
+-        # Check to see if all parameters in the template are attributes of the Message
+-        arguments = re.findall(r"\{(.+?)(:.*)?\}", template)
+-        for argument in arguments:
+-            if argument[0] not in MESSAGE_FIELDS:
+-                warnings.warn(
+-                    f"Don't recognize the argument '{argument[0]}' in the --msg-template. "
+-                    "Are you sure it is supported on the current version of pylint?"
+-                )
+-                template = re.sub(r"\{" + argument[0] + r"(:.*?)?\}", "", template)
+-        self._fixed_template = template
++        # Check to see if all parameters in the template are attributes of the Message.
++        # We use string.Formatter().parse() to correctly iterate through field names
++        # and handle escaped braces {{ or }}.
++        formatter = string.Formatter()
++        for _, field_name, _, _ in formatter.parse(template):
++            if field_name is not None and field_name not in MESSAGE_FIELDS:
++                warnings.warn(
++                    f"Don't recognize the argument '{field_name}' in the --msg-template. "
++                    "Are you sure it is supported on the current version of pylint?",
++                    UserWarning,
++                )
+ 
+     def write_message(self, msg: Message) -> None:
+         """Convenience method to write a formatted message with class default
+@@ -58,7 +57,7 @@
+         for key in ("end_line", "end_column"):
+             self_dict[key] = self_dict[key] or ""
+ 
+-        self.writeln(self._fixed_template.format(**self_dict))
++        self.writeln(self._template.format(**self_dict))
+ 
+     def handle_message(self, msg: Message) -> None:
+         """Manage message of different type and in the context of path."""
+```

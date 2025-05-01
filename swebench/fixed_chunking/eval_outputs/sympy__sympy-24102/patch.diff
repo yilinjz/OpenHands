@@ -1,0 +1,13 @@
+```patch
+--- a/sympy/parsing/mathematica.py
++++ b/sympy/parsing/mathematica.py
+@@ -100,7 +100,7 @@
+     _re_comment = r"\(\*.*?\*\)"
+     _re_number = r"((?:[0-9]+\.?[0-9]*|\.[0-9]+)(?:[eE][-+]?[0-9]+)?)"
+     _re_string = r'"(?:\\.|[^"])*"'
+-    _re_name = r"[a-zA-Z][a-zA-Z0-9]*"
++    _re_name = r"[^\W\d_]\w*"  # Allows Unicode identifiers starting with a letter
+     _re_operator = r"(\+\+|--|\|\||&&|>=|<=|!=|===|->|=>|:=|\.|\+|-|\*|/|\^|>|<|=|!|@|~|\?|:|&)"
+     _re_paren = r"(\(|\)|\[|\]|\{|\})"
+     _re_space = r"(\s+)"
+```

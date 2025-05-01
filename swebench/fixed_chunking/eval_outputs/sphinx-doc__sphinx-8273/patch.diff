@@ -1,0 +1,29 @@
+```patch
+--- a/sphinx/builders/manpage.py
++++ b/sphinx/builders/manpage.py
+@@ -10,6 +10,7 @@
+     :license: BSD, see LICENSE for details.
+ """
+ 
++import os
+ from os import path
+ from typing import Any, Dict, List, Set, Tuple, Union
+ 
+@@ -79,10 +80,14 @@
+             docsettings.authors = authors
+             docsettings.section = section
+ 
++            # target filename like 'foo.1'
+             targetname = '%s.%s' % (name, section)
++            # directory name like 'man1'
++            dirname = 'man%s' % section
++            ensuredir(path.join(self.outdir, dirname))
++
+             logger.info(darkgreen(targetname) + ' { ', nonl=True)
+             destination = FileOutput(
+-                destination_path=path.join(self.outdir, targetname),
++                destination_path=path.join(self.outdir, dirname, targetname),
+                 encoding='utf-8')
+ 
+             tree = self.env.get_doctree(docname)
+```

@@ -1,0 +1,14 @@
+```patch
+--- a/django/utils/functional.py
++++ b/django/utils/functional.py
+@@ -66,3 +66,9 @@
+         else:
+             # If initialized, return a copy of the wrapped object.
+             return copy.copy(self._wrapped)
++
++    def __radd__(self, other):
++        if self._wrapped is empty:
++            self._setup()
++        # Add other to the wrapped object's __radd__.
++        return other + self._wrapped
+```

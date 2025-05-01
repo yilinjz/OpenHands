@@ -1,0 +1,16 @@
+```patch
+--- a/django/db/models/deletion.py
++++ b/django/db/models/deletion.py
+@@ -317,7 +317,9 @@ class Collector:
+         # Delete fast-deletable objects.
+         for qs in self.fast_deletes:
+             count = qs._raw_delete(using=self.using)
+-            deleted_counter[qs.model._meta.label] += count
++            # Only add to counter if objects were actually deleted to avoid
++            # inconsistent {model: 0} results compared to non-fast-delete path.
++            if count > 0:
++                deleted_counter[qs.model._meta.label] += count
+ 
+         # Update fields for nullified references.
+         for field, updates in self.field_updates.items():
+```

@@ -1,0 +1,54 @@
+```patch
+--- a/sympy/matrices/expressions/blockmatrix.py
++++ b/sympy/matrices/expressions/blockmatrix.py
+@@ -221,6 +221,41 @@
+         else:
+             return BlockMatrix._blockadd(self, other)
+ 
++    def _entry(self, i, j, **kwargs):
++        from sympy.core.singleton import S
++        from sympy.matrices.matrices import MatrixBase
++
++        # Find row block index k
++        row_offset = 0
++        for k_row, rows in enumerate(self.rowblocksizes):
++            if i < row_offset + rows:
++                break
++            row_offset += rows
++        else:
++            # This should not happen if i is within bounds
++            raise IndexError("Row index out of bounds: %d >= %d" % (i, self.rows))
++
++        # Find col block index k
++        col_offset = 0
++        for k_col, cols in enumerate(self.colblocksizes):
++            if j < col_offset + cols:
++                break
++            col_offset += cols
++        else:
++            # This should not happen if j is within bounds
++            raise IndexError("Column index out of bounds: %d >= %d" % (j, self.cols))
++
++        # Check if indices fall in the same diagonal block
++        if k_row != k_col:
++            return S.Zero
++
++        # Indices fall in block k=k_row=k_col
++        k = k_row
++        block = self.args[k]
++        i_local = i - row_offset
++        j_local = j - col_offset
++
++        # Return the entry from the specific block
++        if hasattr(block, '_entry'):
++            # Use _entry for MatrixExpr using same kwargs
++            return block._entry(i_local, j_local, **kwargs)
++        else:
++            # Use standard indexing for explicit matrices or other objects
++            # Allow standard exceptions (e.g. IndexError) to propagate
++            return block[i_local, j_local]
++
+ 
+ def block_collapse(expr):
+     """Evaluates a block matrix expression
+```

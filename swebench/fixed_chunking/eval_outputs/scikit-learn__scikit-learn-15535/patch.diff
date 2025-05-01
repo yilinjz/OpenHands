@@ -1,0 +1,19 @@
+```patch
+--- a/sklearn/metrics/cluster/_supervised.py
++++ b/sklearn/metrics/cluster/_supervised.py
+@@ -42,10 +42,12 @@
+         The predicted labels.
+     """
+     labels_true = check_array(
+-        labels_true, ensure_2d=False, ensure_min_samples=0
++        labels_true, ensure_2d=False, ensure_min_samples=0,
++        dtype=None  # Ensure labels_true is not converted to numeric
+     )
+     labels_pred = check_array(
+-        labels_pred, ensure_2d=False, ensure_min_samples=0
++        labels_pred, ensure_2d=False, ensure_min_samples=0,
++        dtype=None  # Ensure labels_pred is not converted to numeric
+     )
+ 
+     # Check that the arrays have the same length
+```

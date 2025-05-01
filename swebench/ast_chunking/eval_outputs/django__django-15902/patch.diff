@@ -1,0 +1,17 @@
+```diff
+--- a/django/forms/formsets.py
++++ b/django/forms/formsets.py
+@@ -119,6 +119,10 @@
+                     MAX_NUM_FORM_COUNT: self.max_num,
+                 },
+                 renderer=self.renderer,
+             )
++        # Set a default template name to avoid a deprecation warning when
++        # rendering the management form using {{ form }}. ManagementForm renders
++        # only hidden fields and doesn't use the template structure.
++        form.template_name = self.template_name_div
+         return form
+
+     def total_form_count(self):
+
+```

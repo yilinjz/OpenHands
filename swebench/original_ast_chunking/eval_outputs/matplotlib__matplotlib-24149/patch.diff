@@ -1,0 +1,17 @@
+```patch
+--- a/lib/matplotlib/axes/_axes.py
++++ b/lib/matplotlib/axes/_axes.py
+@@ -2180,8 +2180,9 @@
+             # removes the units from unit packages like `pint` that
+             # wrap numpy arrays.
+             try:
+-                x0 = cbook._safe_first_finite(x0)
+-            except (TypeError, IndexError, KeyError):
++                # Find the first finite value in x0 to determine units.
++                x0 = cbook._safe_first_finite(x0)  # may raise StopIteration
++            except (TypeError, IndexError, KeyError, StopIteration):
++                # If x0 is empty or all non-finite, _safe_first_finite raises.
+                 pass
+             # If x0 is empty, or all nan, then x0 is unchanged.
+             # In that case, we can't determine the units, so we
+```

@@ -1,0 +1,49 @@
+2025-05-01 19:57:58,176 - INFO - Creating container for matplotlib__matplotlib-23964...
+2025-05-01 19:57:58,215 - INFO - Container for matplotlib__matplotlib-23964 created: b7b55d6ba759afe90239d2d3c6f133e25c3f8e3d3ff32bc48e9ef1dbeecf9f48
+2025-05-01 19:57:59,091 - INFO - Container for matplotlib__matplotlib-23964 started: b7b55d6ba759afe90239d2d3c6f133e25c3f8e3d3ff32bc48e9ef1dbeecf9f48
+2025-05-01 19:57:59,091 - INFO - Intermediate patch for matplotlib__matplotlib-23964 written to logs/run_evaluation/20250501_195119/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/matplotlib__matplotlib-23964/patch.diff, now applying to container...
+2025-05-01 19:57:59,254 - INFO - Failed to apply patch to container: git apply --verbose
+2025-05-01 19:57:59,341 - INFO - Failed to apply patch to container: git apply --verbose --reject
+2025-05-01 19:57:59,416 - INFO - >>>>> Applied Patch:
+patching file lib/matplotlib/backends/backend_ps.py
+Hunk #1 succeeded at 669 with fuzz 3.
+
+2025-05-01 19:58:01,820 - INFO - Git diff before:
+diff --git a/lib/matplotlib/backends/backend_ps.py b/lib/matplotlib/backends/backend_ps.py
+index f209e811f1..156b4ecc6a 100644
+--- a/lib/matplotlib/backends/backend_ps.py
++++ b/lib/matplotlib/backends/backend_ps.py
+@@ -669,6 +669,9 @@ grestore
+             stream.append(curr_stream)
+ 
+         self.set_color(*gc.get_rgb())
++            if stream is None:
++                continue
++
+ 
+         for ps_name, xs_names in stream:
+             self.set_font(ps_name, prop.get_size_in_points(), False)
+2025-05-01 19:58:01,820 - INFO - Eval script for matplotlib__matplotlib-23964 written to logs/run_evaluation/20250501_195119/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/matplotlib__matplotlib-23964/eval.sh; copying to container...
+2025-05-01 19:58:40,698 - INFO - Test runtime: 38.67 seconds
+2025-05-01 19:58:40,698 - INFO - Test output for matplotlib__matplotlib-23964 written to logs/run_evaluation/20250501_195119/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/matplotlib__matplotlib-23964/test_output.txt
+2025-05-01 19:58:40,822 - INFO - Git diff after:
+diff --git a/lib/matplotlib/backends/backend_ps.py b/lib/matplotlib/backends/backend_ps.py
+index f209e811f1..156b4ecc6a 100644
+--- a/lib/matplotlib/backends/backend_ps.py
++++ b/lib/matplotlib/backends/backend_ps.py
+@@ -669,6 +669,9 @@ grestore
+             stream.append(curr_stream)
+ 
+         self.set_color(*gc.get_rgb())
++            if stream is None:
++                continue
++
+ 
+         for ps_name, xs_names in stream:
+             self.set_font(ps_name, prop.get_size_in_points(), False)
+2025-05-01 19:58:40,822 - INFO - Grading answer for matplotlib__matplotlib-23964...
+2025-05-01 19:58:40,834 - INFO - report: {'matplotlib__matplotlib-23964': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['lib/matplotlib/tests/test_backend_ps.py::test_empty_line']}, 'PASS_TO_PASS': {'success': [], 'failure': ['lib/matplotlib/tests/test_backend_ps.py::test_savefig_to_stringio[ps-portrait]', 'lib/matplotlib/tests/test_backend_ps.py::test_savefig_to_stringio[ps-landscape]', 'lib/matplotlib/tests/test_backend_ps.py::test_savefig_to_stringio[ps', 'lib/matplotlib/tests/test_backend_ps.py::test_savefig_to_stringio[eps-portrait]', 'lib/matplotlib/tests/test_backend_ps.py::test_savefig_to_stringio[eps-landscape]', 'lib/matplotlib/tests/test_backend_ps.py::test_savefig_to_stringio[eps', 'lib/matplotlib/tests/test_backend_ps.py::test_patheffects', 'lib/matplotlib/tests/test_backend_ps.py::test_transparency[eps]', 'lib/matplotlib/tests/test_backend_ps.py::test_bbox', 'lib/matplotlib/tests/test_backend_ps.py::test_failing_latex', 'lib/matplotlib/tests/test_backend_ps.py::test_text_clip[eps]', 'lib/matplotlib/tests/test_backend_ps.py::test_d_glyph', 'lib/matplotlib/tests/test_backend_ps.py::test_fonttype[3]', 'lib/matplotlib/tests/test_backend_ps.py::test_fonttype[42]', 'lib/matplotlib/tests/test_backend_ps.py::test_linedash', 'lib/matplotlib/tests/test_backend_ps.py::test_no_duplicate_definition']}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for matplotlib__matplotlib-23964: resolved: False
+2025-05-01 19:58:40,834 - INFO - Attempting to stop container sweb.eval.matplotlib__matplotlib-23964.20250501_195119...
+2025-05-01 19:58:56,657 - INFO - Attempting to remove container sweb.eval.matplotlib__matplotlib-23964.20250501_195119...
+2025-05-01 19:58:56,692 - INFO - Container sweb.eval.matplotlib__matplotlib-23964.20250501_195119 removed.

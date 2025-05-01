@@ -1,0 +1,15 @@
+```diff
+--- a/django/db/migrations/serializer.py
++++ b/django/db/migrations/serializer.py
+@@ -168,7 +168,8 @@
+             path = module_name + "." + value.func.__qualname__
+         else:
+             # Ensure the full qualified name is used, including outer classes.
+-            path = module_name + "." + value.__qualname__
++            # value.__qualname__ should provide the full path like Outer.Inner.method
++            path = module_name + "." + value.__qualname__
+
+         # Check if the function is actually importable.
+         imported_value = import_string(path)
+
+```

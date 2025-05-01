@@ -1,0 +1,45 @@
+2025-04-30 20:03:17,902 - INFO - Creating container for django__django-11630...
+2025-04-30 20:03:17,930 - INFO - Container for django__django-11630 created: 8486ed57262887719484b407aa8bd01be38bfb63611eab2cce6cd41bc289c6ed
+2025-04-30 20:03:18,211 - INFO - Container for django__django-11630 started: 8486ed57262887719484b407aa8bd01be38bfb63611eab2cce6cd41bc289c6ed
+2025-04-30 20:03:18,212 - INFO - Intermediate patch for django__django-11630 written to logs/run_evaluation/20250430_200121/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/django__django-11630/patch.diff, now applying to container...
+2025-04-30 20:03:18,327 - INFO - Failed to apply patch to container: git apply --verbose
+2025-04-30 20:03:18,381 - INFO - Failed to apply patch to container: git apply --verbose --reject
+2025-04-30 20:03:18,437 - INFO - >>>>> Applied Patch:
+patching file django/core/checks/model_checks.py
+Hunk #1 succeeded at 4 with fuzz 2 (offset 3 lines).
+
+2025-04-30 20:03:19,768 - INFO - Git diff before:
+diff --git a/django/core/checks/model_checks.py b/django/core/checks/model_checks.py
+index 5c2266ca1d..e6cd4d886c 100644
+--- a/django/core/checks/model_checks.py
++++ b/django/core/checks/model_checks.py
+@@ -1,6 +1,7 @@
+ import inspect
+ import types
+ from collections import defaultdict
++from collections import defaultdict
+ from itertools import chain
+ 
+ from django.apps import apps
+2025-04-30 20:03:19,769 - INFO - Eval script for django__django-11630 written to logs/run_evaluation/20250430_200121/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/django__django-11630/eval.sh; copying to container...
+2025-04-30 20:03:28,876 - INFO - Test runtime: 9.05 seconds
+2025-04-30 20:03:28,877 - INFO - Test output for django__django-11630 written to logs/run_evaluation/20250430_200121/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/django__django-11630/test_output.txt
+2025-04-30 20:03:28,940 - INFO - Git diff after:
+diff --git a/django/core/checks/model_checks.py b/django/core/checks/model_checks.py
+index 5c2266ca1d..e6cd4d886c 100644
+--- a/django/core/checks/model_checks.py
++++ b/django/core/checks/model_checks.py
+@@ -1,6 +1,7 @@
+ import inspect
+ import types
+ from collections import defaultdict
++from collections import defaultdict
+ from itertools import chain
+ 
+ from django.apps import apps
+2025-04-30 20:03:28,940 - INFO - Grading answer for django__django-11630...
+2025-04-30 20:03:28,942 - INFO - report: {'django__django-11630': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_collision_across_apps_database_routers_installed (check_framework.test_model_checks.DuplicateDBTableTests)', 'test_collision_in_same_app_database_routers_installed (check_framework.test_model_checks.DuplicateDBTableTests)']}, 'PASS_TO_PASS': {'success': ['test_collision_abstract_model (check_framework.test_model_checks.IndexNameTests)', 'test_collision_across_apps (check_framework.test_model_checks.IndexNameTests)', 'test_collision_in_different_models (check_framework.test_model_checks.IndexNameTests)', 'test_collision_in_same_model (check_framework.test_model_checks.IndexNameTests)', 'test_no_collision_abstract_model_interpolation (check_framework.test_model_checks.IndexNameTests)', 'test_no_collision_across_apps_interpolation (check_framework.test_model_checks.IndexNameTests)', 'test_collision_abstract_model (check_framework.test_model_checks.ConstraintNameTests)', 'test_collision_across_apps (check_framework.test_model_checks.ConstraintNameTests)', 'test_collision_in_different_models (check_framework.test_model_checks.ConstraintNameTests)', 'test_collision_in_same_model (check_framework.test_model_checks.ConstraintNameTests)', 'test_no_collision_abstract_model_interpolation (check_framework.test_model_checks.ConstraintNameTests)', 'test_no_collision_across_apps_interpolation (check_framework.test_model_checks.ConstraintNameTests)', 'test_collision_across_apps (check_framework.test_model_checks.DuplicateDBTableTests)', 'test_collision_in_same_app (check_framework.test_model_checks.DuplicateDBTableTests)', 'test_no_collision_for_proxy_models (check_framework.test_model_checks.DuplicateDBTableTests)', 'test_no_collision_for_unmanaged_models (check_framework.test_model_checks.DuplicateDBTableTests)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-11630: resolved: False
+2025-04-30 20:03:28,942 - INFO - Attempting to stop container sweb.eval.django__django-11630.20250430_200121...
+2025-04-30 20:03:44,330 - INFO - Attempting to remove container sweb.eval.django__django-11630.20250430_200121...
+2025-04-30 20:03:44,362 - INFO - Container sweb.eval.django__django-11630.20250430_200121 removed.

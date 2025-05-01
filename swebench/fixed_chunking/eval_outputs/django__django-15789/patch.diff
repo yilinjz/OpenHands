@@ -1,0 +1,71 @@
+```patch
+--- a/django/template/defaultfilters.py
++++ b/django/template/defaultfilters.py
+@@ -1,5 +1,6 @@
+ import random
+ from decimal import ROUND_HALF_UP, Context, Decimal, DecimalException, InvalidOperation
++from functools import partial
+ 
+ from django.conf import settings
+ from django.template import Variable, VariableDoesNotExist
+@@ -8,7 +9,7 @@
+ from django.utils.dateformat import format, time_format
+ from django.utils.encoding import iri_to_uri
+ from django.utils.html import (
+-    _json_script, conditional_escape, escape, escapejs, format_html,
++    _json_script as _json_script_escaped, conditional_escape, escape, escapejs, format_html,
+     html_safe, linebreaks, strip_tags, urlize,
+ )
+ from django.utils.http import urlquote
+@@ -24,6 +25,8 @@
+ 
+ register = Library()
+ 
++# This avoids shadowing the built-in function (https://bugs.python.org/issue21278)
++_json_script = partial(_json_script_escaped, encoder=None)
+ 
+ 
+ @register.filter(is_safe=True)
+--- a/django/utils/html.py
++++ b/django/utils/html.py
+@@ -1,6 +1,7 @@
+ """HTML utilities suitable for global use."""
+ 
+ import html
++import json
+ import re
+ from html.parser import HTMLParser
+ from urllib.parse import parse_qsl, quote, unquote, urlencode, urlsplit, urlunsplit
+@@ -8,6 +9,7 @@
+ from django.utils.encoding import punycode
+ from django.utils.functional import Promise, keep_lazy, keep_lazy_text
+ from django.utils.http import RFC3986_GENDELIMS, RFC3986_SUBDELIMS
++from django.utils.module_loading import import_string
+ from django.utils.regex_helper import _lazy_re_compile
+ from django.utils.safestring import SafeData, SafeString, mark_safe
+ from django.utils.text import normalize_newlines
+@@ -41,17 +43,20 @@
+ }
+ 
+ 
+-def json_script(value, element_id=None):
++def json_script(value, element_id=None, encoder=None):
+     """
+     Escape all the HTML/XML special characters with their unicode escapes, so
+     value is safe to be output anywhere except for inside a tag attribute. Wrap
+     the escaped JSON in a script tag.
++
++    encoder is an optional JSONEncoder subclass to use. Default is
++    django.core.serializers.json.DjangoJSONEncoder.
+     """
+-    from django.core.serializers.json import DjangoJSONEncoder
++    if encoder is None:
++        from django.core.serializers.json import DjangoJSONEncoder
++        encoder = DjangoJSONEncoder
+ 
+-    json_str = json.dumps(value, cls=DjangoJSONEncoder).translate(_json_script_escapes)
++    json_str = json.dumps(value, cls=encoder).translate(_json_script_escapes)
+     if element_id:
+         template = '<script id="{}" type="application/json">{}</script>'
+         args = (element_id, mark_safe(json_str))
+```

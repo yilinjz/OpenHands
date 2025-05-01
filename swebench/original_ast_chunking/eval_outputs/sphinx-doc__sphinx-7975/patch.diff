@@ -1,0 +1,31 @@
+```patch
+--- a/sphinx/domains/std.py
++++ b/sphinx/domains/std.py
+@@ -634,6 +634,8 @@
+         submapping: dict[str, tuple[str, str]] = {}  # type: ignore
+         content: dict[str, list[IndexEntry]] = {}
+
++        symbols_key = _('Symbols')
++
+         # process main entries
+         for name, entries in sorted_entries:
+             main_entries, sub_entries = self._split_entries(entries)
+@@ -645,7 +647,7 @@
+                 if letter.isalpha():
+                     letter = letter.upper()
+                 else:
+-                    letter = _('Symbols')
++                    letter = symbols_key
+
+                 entry_list = self._prepare_index_entry(name, main_entries,
+                                                        sub_entries, key)
+@@ -673,7 +675,7 @@
+         # sort the result alphabetically
+         def sort_key(item: tuple[str, list[IndexEntry]]) -> tuple[int, str]:
+             # force 'Symbols' to be displayed at the front
+-            if item[0] == _('Symbols'):
++            if item[0] == symbols_key:
+                 return (0, item[0])
+             else:
+                 return (1, item[0])
+```

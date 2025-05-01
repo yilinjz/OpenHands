@@ -1,0 +1,61 @@
+```patch
+--- a/astropy/wcs/wcs.py
++++ b/astropy/wcs/wcs.py
+@@ -1217,10 +1217,16 @@
+         """
+ 
+         def _return_list_of_arrays(axes, origin):
++            # Store the broadcast shape for reshaping the output later.
+             try:
+-                axes = np.broadcast_arrays(*axes)
++                broadcast_axes = np.broadcast_arrays(*axes)
++                output_shape = broadcast_axes[0].shape
+             except ValueError:
+-                raise ValueError(
+-                    "Coordinate arrays are not broadcastable to each other")
++                # If broadcasting fails, check if it's because all inputs are empty.
++                if not all(np.asarray(x).size == 0 for x in axes):
++                    raise ValueError(
++                        "Coordinate arrays are not broadcastable to each other")
++                # If all inputs are size 0, use a default shape for the empty output.
++                output_shape = (0,)
+ 
+             xy = np.hstack([x.reshape((x.size, 1)) for x in axes])
+ 
++            # Check if the combined array is empty (has 0 coordinates)
++            if xy.shape[0] == 0:
++                # Return a list of empty arrays with the broadcasted shape
++                return [np.empty(output_shape, dtype=float) for _ in range(self.naxis)]
++
+             if ra_dec_order and sky == 'input':
+                 xy = self._denormalize_sky(xy)
+             output = func(xy, origin)
+@@ -1228,12 +1234,16 @@
+                 output = self._normalize_sky(output)
+                 return (output[:, 0].reshape(axes[0].shape),
+                         output[:, 1].reshape(axes[0].shape))
+-            return [output[:, i].reshape(axes[0].shape)
++            # Reshape output columns to the broadcasted shape
++            return [output[:, i].reshape(output_shape)
+                     for i in range(output.shape[1])]
+ 
+         def _return_single_array(xy, origin):
+             # Handle empty array input explicitly first
+             if xy.size == 0:
++                # Ensure the input wasn't something like np.empty((N, 0)) if naxis > 0
++                if xy.ndim > 1 and xy.shape[-1] == 0 and self.naxis > 0:
++                     raise ValueError("Input array has shape {}, expected (N, {})".format(xy.shape, self.naxis))
++                # Return an empty array shaped (0, naxis)
++                return np.empty((0, self.naxis), dtype=float)
+ 
+             if xy.shape[-1] != self.naxis:
+                 raise ValueError(
+@@ -1242,6 +1252,7 @@
+             if ra_dec_order and sky == 'input':
+                 xy = self._denormalize_sky(xy)
+             result = func(xy, origin)
++            # Result shape should be (N, naxis)
+             if ra_dec_order and sky == 'output':
+                 result = self._normalize_sky(result)
+             return result
+```

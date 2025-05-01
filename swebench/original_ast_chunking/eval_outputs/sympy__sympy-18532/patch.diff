@@ -1,0 +1,34 @@
+```patch
+--- a/sympy/core/basic.py
++++ b/sympy/core/basic.py
+@@ -70,14 +70,21 @@
+ 
+         """
+         if types:
+-            types = tuple(
+-                [t if isinstance(t, type) else type(t) for t in types])
++            _types = tuple(
++                t if isinstance(t, type) else type(t) for t in types)
++
++            result = set()
++            for expr in preorder_traversal(self):
++                if isinstance(expr, _types):
++                    result.add(expr)
+         else:
+-            types = (Atom,)
+-        result = set()
+-        for expr in preorder_traversal(self):
+-            if isinstance(expr, types):
+-                result.add(expr)
++            # default is no types: return leaves of the expression tree
++            # (items with no args)
++            result = set()
++            for expr in preorder_traversal(self):
++                if not expr.args:
++                    result.add(expr)
++
+         return result
+ 
+     @property
+
+```

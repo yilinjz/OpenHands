@@ -1,0 +1,48 @@
+2025-05-01 19:53:09,009 - INFO - Creating container for django__django-12113...
+2025-05-01 19:53:09,053 - INFO - Container for django__django-12113 created: d361708fe6b768c8cf650aab9296279e138f8a2d50ff1a31b66cae2b136e9400
+2025-05-01 19:53:09,462 - INFO - Container for django__django-12113 started: d361708fe6b768c8cf650aab9296279e138f8a2d50ff1a31b66cae2b136e9400
+2025-05-01 19:53:09,462 - INFO - Intermediate patch for django__django-12113 written to logs/run_evaluation/20250501_195119/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/django__django-12113/patch.diff, now applying to container...
+2025-05-01 19:53:09,618 - INFO - >>>>> Applied Patch:
+Checking patch django/db/backends/base/creation.py...
+Hunk #1 succeeded at 78 (offset 33 lines).
+Applied patch django/db/backends/base/creation.py cleanly.
+
+2025-05-01 19:53:11,199 - INFO - Git diff before:
+diff --git a/django/db/backends/base/creation.py b/django/db/backends/base/creation.py
+index dd3407bac3..d379a4f884 100644
+--- a/django/db/backends/base/creation.py
++++ b/django/db/backends/base/creation.py
+@@ -78,7 +78,9 @@ class BaseDatabaseCreation:
+         # who are testing on databases without transactions or who are using
+         # a TransactionTestCase still get a clean database on every test run.
+         if serialize:
+-            self.connection._test_serialized_contents = self.serialize_db_to_string()
++            # Don't serialize the database state when using keepdb with SQLite.
++            if not (self.connection.vendor == 'sqlite' and keepdb):
++                self.connection._test_serialized_contents = self.serialize_db_to_string()
+ 
+         call_command('createcachetable', database=self.connection.alias)
+2025-05-01 19:53:11,199 - INFO - Eval script for django__django-12113 written to logs/run_evaluation/20250501_195119/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/django__django-12113/eval.sh; copying to container...
+2025-05-01 19:53:20,679 - INFO - Test runtime: 9.41 seconds
+2025-05-01 19:53:20,680 - INFO - Test output for django__django-12113 written to logs/run_evaluation/20250501_195119/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/django__django-12113/test_output.txt
+2025-05-01 19:53:20,770 - INFO - Git diff after:
+diff --git a/django/db/backends/base/creation.py b/django/db/backends/base/creation.py
+index dd3407bac3..d379a4f884 100644
+--- a/django/db/backends/base/creation.py
++++ b/django/db/backends/base/creation.py
+@@ -78,7 +78,9 @@ class BaseDatabaseCreation:
+         # who are testing on databases without transactions or who are using
+         # a TransactionTestCase still get a clean database on every test run.
+         if serialize:
+-            self.connection._test_serialized_contents = self.serialize_db_to_string()
++            # Don't serialize the database state when using keepdb with SQLite.
++            if not (self.connection.vendor == 'sqlite' and keepdb):
++                self.connection._test_serialized_contents = self.serialize_db_to_string()
+ 
+         call_command('createcachetable', database=self.connection.alias)
+2025-05-01 19:53:20,770 - INFO - Grading answer for django__django-12113...
+2025-05-01 19:53:20,771 - INFO - report: {'django__django-12113': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_custom_test_name (backends.sqlite.test_creation.TestDbSignatureTests)']}, 'PASS_TO_PASS': {'success': [], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-12113: resolved: False
+2025-05-01 19:53:20,771 - INFO - Attempting to stop container sweb.eval.django__django-12113.20250501_195119...
+2025-05-01 19:53:36,246 - INFO - Attempting to remove container sweb.eval.django__django-12113.20250501_195119...
+2025-05-01 19:53:36,290 - INFO - Container sweb.eval.django__django-12113.20250501_195119 removed.

@@ -1,0 +1,25 @@
+```patch
+--- a/seaborn/axisgrid.py
++++ b/seaborn/axisgrid.py
+@@ -1360,7 +1360,7 @@
+                 hue_vals = np.unique(hue_data)
+                 kwargs["hue_order"] = hue_vals
+         else:
+-            vector = self.data[var]
++            vector = self.data.loc[:, var]
+             if self._dropna:
+                 vector = vector.dropna()
+             func(x=vector, ax=ax, **kwargs)
+@@ -1396,8 +1396,8 @@
+                 kwargs["hue_order"] = hue_vals
+                 func(x=x_data, y=y_data, hue=hue_data, ax=ax, **kwargs)
+         else:
+-            x_data = self.data[x_var]
+-            y_data = self.data[y_var]
++            x_data = self.data.loc[:, x_var]
++            y_data = self.data.loc[:, y_var]
+             if self._dropna:
+                 not_na = pd.notnull(x_data) & pd.notnull(y_data)
+                 x_data = x_data[not_na]
+
+```

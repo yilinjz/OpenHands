@@ -1,0 +1,13 @@
+```patch
+--- a/sympy/core/numbers.py
++++ b/sympy/core/numbers.py
+@@ -508,7 +508,7 @@
+         if expt.is_negative:
+             if expt.is_infinite: # exponent is -oo
+                 # See issue 6102 - discussion is needed over this point
+-                return S.Zero
++                return S.ComplexInfinity
+             else: # exponent is finite negative
+                 return S.ComplexInfinity
+         if expt.is_infinite: # exponent is complex infinity (zoo)
+```

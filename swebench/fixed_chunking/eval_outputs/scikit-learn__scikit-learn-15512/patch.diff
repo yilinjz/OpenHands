@@ -1,0 +1,20 @@
+```patch
+--- a/sklearn/cluster/_affinity_propagation.py
++++ b/sklearn/cluster/_affinity_propagation.py
+@@ -175,9 +175,10 @@
+     e = np.zeros((n_samples, convergence_iter))
+     ind = np.arange(n_samples)
+ 
++    converged = False  # Flag to track convergence status
+     it = 0
+     while it < max_iter:
+-        # Compute responsibilities
++        # Compute responsibilities (R)
+         Rold = R.copy()
+         AS = A + S
+         I = np.argmax(AS, axis=1)
+@@ -213,39 +214,53 @@
+             unconverged = (np.sum((se == convergence_iter) + (se == 0))
+                            != n_samples)
+             # Check convergence: stable exemplars and at least one cluster
+-            if (not

@@ -1,0 +1,55 @@
+```patch
+--- a/django/forms/models.py
++++ b/django/forms/models.py
+@@ -440,6 +440,22 @@
+         if hasattr(self, '_choices'):
+             return self._choices
+ 
++        # Prepare the queryset to be used for choices.
++        queryset = self.queryset
++        limit_choices_to = self.limit_choices_to
++        needs_distinct = False
++
++        # Apply limit_choices_to if present and determine if distinct() is needed.
++        if limit_choices_to is not None:
++            if callable(limit_choices_to):
++                limit_choices_to = limit_choices_to()
++            queryset = queryset.complex_filter(limit_choices_to)
++            # If limit_choices_to is a Q object, joins might add duplicates.
++            if isinstance(limit_choices_to, models.Q):
++                needs_distinct = True
++        if needs_distinct:
++            queryset = queryset.distinct()
++
+         # Appending choices for the selected value guarantees that the
+         # selected value appears in the choices, even if it's not in the
+         # queryset.
+@@ -450,7 +466,7 @@
+         else:
+             selected_choices = set()
+ 
+-        choices = list(self.iterator)
++        choices = list(self.iterator(queryset=queryset)) # Pass the prepared queryset
+         for i, (value, label) in enumerate(choices):
+             if value == '':
+                 # Keep the empty label option if it exists.
+@@ -470,7 +486,7 @@
+ 
+     choices = property(_get_choices, ChoiceField._set_choices)
+ 
+-    def iterator(self, field_name=None):
++    def iterator(self, field_name=None, queryset=None):
+         """
+         Yield tuples representing the choices for the field.
+ 
+@@ -478,7 +494,8 @@
+         queryset to allow customization of the choices in subclasses.
+         """
+         if field_name is None:
+-            queryset = self.queryset
++            if queryset is None:
++                queryset = self.queryset
+         else:
+             queryset = getattr(self.queryset.model, field_name).get_queryset()
+         if self.empty_label is not None:
+```

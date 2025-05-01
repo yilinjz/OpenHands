@@ -1,0 +1,29 @@
+```patch
+--- a/django/db/models/query.py
++++ b/django/db/models/query.py
+@@ -115,9 +115,11 @@
+      ):
+          """
+          Insert each of the instances into the database. Do *not* call
+-         save() on each of the instances, do not send any pre/post_save
+-         signals, and do not set the primary key attribute if it is an
+-         autoincrement field (except if features.can_return_rows_from_bulk_insert=True).
++         save() on each instance, do not send any pre/post_save signals.
++         The primary key attribute is assigned to the objects created on
++         backends that support returning primary keys from insert
++         (features.can_return_rows_from_bulk_insert=True), unless
++         ignore_conflicts=True is used.
+          Multi-table models are not supported.
+          """
+          # When you bulk insert you don't get the primary keys back (if it's an
+@@ -1445,7 +1447,8 @@
+             returning_fields = (
+                 opts.db_returning_fields
+                 if connection.features.can_return_rows_from_bulk_insert
+-                and on_conflict is None
++                # Allow returning fields for regular inserts and update_conflicts.
++                and (on_conflict is None or on_conflict == OnConflict.UPDATE)
+                 else ()
+             )
+             returned_columns = self._batched_insert(
+```

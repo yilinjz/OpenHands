@@ -1,0 +1,32 @@
+```patch
+--- a/django/db/models/sql/compiler.py
++++ b/django/db/models/sql/compiler.py
+@@ -1,5 +1,6 @@
+ from collections import Counter, namedtuple
+ from functools import partial
++from django.db import models
+ from django.core.exceptions import EmptyResultSet, FieldError, MultiValueDictKeyError
+ from django.db.models.constants import LOOKUP_SEP
+ from django.db.models.expressions import F, OrderBy, Ref, Star
+@@ -65,8 +66,16 @@
+         result = []
+         seen = set()
+         for expr in expressions:
+-            sql, params = self.compile(expr)
+-            key = sql % tuple(map(repr, params))
++            # Always compile Subquery expressions fully for GROUP BY to avoid
++            # potential ambiguity when the subquery alias is the same as a
++            # query column name.
++            if isinstance(expr, models.Subquery):
++                vendor_impl = getattr(expr, 'as_' + self.connection.vendor, None)
++                if vendor_impl:
++                    sql, params = vendor_impl(self, self.connection)
++                else:
++                    sql, params = expr.as_sql(self, self.connection)
++            else:
++                sql, params = self.compile(expr)
++            key = sql % tuple(map(repr, params)) # Use compiled SQL as key to avoid duplicates
+             if key not in seen:
+                 result.append((sql, params))
+                 seen.add(key)
+```

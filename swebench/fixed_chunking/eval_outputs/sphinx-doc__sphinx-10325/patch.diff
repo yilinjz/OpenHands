@@ -1,0 +1,127 @@
+```patch
+--- a/sphinx/ext/autodoc/__init__.py
++++ b/sphinx/ext/autodoc/__init__.py
+@@ -26,8 +26,24 @@
+                          if m.directly_defined]
+
+     def filter_members(self, members: ObjectMembers, want_all: bool
+-                       ) -> List[Tuple[str, Any, bool]]:
++                       ) -> List[Tuple[str, Any, bool]]:  # type: ignore
+         """Filter the given member list.
++
++        Members are skipped based on the options:
++
++        * ``members``: If this option is set (and not empty), only members mentioned
++          in this list are included.
++        * ``exclude-members``: Members mentioned in this list are excluded.
++        * ``private-members``: Members starting with ``_`` are included if this
++          option is set.
++        * ``special-members``: Members starting with ``__`` are included if this
++          option is set.
++        * ``inherited-members``:
++            * If the option is not set, only members directly defined in the class are included.
++            * If the option is set as a flag (`True`), all inherited members are included.
++            * If the option is set to a comma-separated list of class names, inherited members are
++              included, *except* for those inherited from any of the specified classes.
++        * ``undoc-members``: Members without a docstring are included if this option is set.
+ 
+         Members are skipped if
+ 
+@@ -40,20 +56,23 @@
+         The user can override the skipping decision by connecting to the
+         ``autodoc-skip-member`` event.
+         """
+-        def is_filtered_inherited_member(name: str, obj: Any) -> bool:
+-            if inspect.isclass(self.object):
+-                for cls in self.object.__mro__:
+-                    if cls.__name__ == self.options.inherited_members and cls != self.object:
+-                        # given member is a member of specified *super class*
+-                        return True
+-                    elif name in cls.__dict__:
+-                        return False
+-                    elif name in self.get_attr(cls, '__annotations__', {}):
+-                        return False
+-                    elif isinstance(obj, ObjectMember) and obj.class_ is cls:
+-                        return False
+-
+-            return False
++        # Parse the :inherited-members: option
++        # Note: This requires the option spec in directive.py to use something like
++        #       'inherited-members': unchanged_required
++        #       instead of bool_option or similar. This change is not included in this patch.
++        inherited_members_option = self.options.get('inherited-members')
++        consider_inherited = 'inherited-members' in self.options
++        ignored_base_classes = set()
++        is_ignore_list_mode = False
++
++        if isinstance(inherited_members_option, str) and inherited_members_option.strip():
++            # Value provided, treat as comma-separated list of classes to ignore
++            ignored_base_classes = {name.strip() for name in inherited_members_option.split(',')
++                                    if name.strip()}
++            is_ignore_list_mode = True
++            consider_inherited = True  # Ignore list implies considering inherited members
++        elif inherited_members_option is None and 'inherited-members' in self.options:
++            # Flag is present without value (:inherited-members:)
++            consider_inherited = True
++        # else: option not present, consider_inherited remains False (default)
+ 
+         ret = []
+ 
+@@ -67,10 +86,22 @@
+         else:
+             attr_docs = {}
+ 
++        # Process members
++        membernames = list(members.keys())
++
++        # Reorder members
++        member_order = self.options.get('member-order', self.config.autodoc_member_order)
++        if member_order == 'alphabetical':
++            membernames.sort()
++        elif member_order == 'groupwise':
++            # requires members values to have an 'order' attribute
++            # which ObjectMember has.
++            membernames.sort(key=lambda name: members[name].order)
++        # Note: 'bysource' is handled by get_object_members()
++
+         # process members and determine which to skip
+-        for obj in members:
++        for membername in membernames:
+             try:
+-                membername, member = obj
++                member_info = members[membername]
++                member = member_info.value
+                 # if isattr is True, the member is documented as an attribute
+                 if member is INSTANCEATTR:
+                     isattr = True
+@@ -80,6 +111,20 @@
+                 else:
+                     isattr = False
+ 
++                # Determine origin of member
++                origin_cls = member_info.cls
++                is_inherited = origin_cls is not self.object
++
++                # Skip based on :inherited-members: option
++                if is_inherited:
++                    if not consider_inherited:
++                        logger.debug('[autodoc] skipping inherited member %s.%s',
++                                     self.fullname, membername)
++                        continue  # Skip inherited members if option not set
++                    if is_ignore_list_mode and origin_cls.__name__ in ignored_base_classes:
++                        logger.debug('[autodoc] skipping member %s.%s inherited from ignored class %s',
++                                     self.fullname, membername, origin_cls.__name__)
++                        continue  # Skip members inherited from specified ignored classes
++
+                 doc = getdoc(member, self.get_attr, self.config.autodoc_inherit_docstrings,
+                              self.object, membername)
+                 if not isinstance(doc, str):
+@@ -93,6 +138,7 @@
+                 if cls:
+                     cls_doc = self.get_attr(cls, '__doc__', None)
+                     if cls_doc == doc:
++                        # Member docstring is inherited from the class, ignore it
+                         doc = None
+ 
+                 # determine skip decision - may be overridden by user code
+```

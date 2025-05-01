@@ -1,0 +1,21 @@
+```patch
+--- a/xarray/core/dataarray.py
++++ b/xarray/core/dataarray.py
+@@ -60,8 +60,12 @@
+ 
+         # pull variables out of datarray
+         data_dict = {}
+-        for k in variables:
+-            data_dict[k] = self.sel({variable_dim: k}).squeeze(drop=True)
++        for var_name in variables:
++            # Select the data for the current variable level
++            selected_da = self.sel({variable_dim: var_name})
++            # Squeeze dimensions and drop scalar coordinates from the selection
++            squeezed_da = selected_da.squeeze(drop=True)
++            # Explicitly drop the coordinate corresponding to the unstacked dimension
++            # as it holds conflicting scalar values after selection.
++            data_dict[var_name] = squeezed_da.drop_vars(dim, errors="ignore")
+ 
+         # unstacked dataset
+         return Dataset(data_dict)
+```

@@ -1,0 +1,42 @@
+```patch
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -6,8 +6,8 @@
+     """
+     empty_strings_allowed = False
+     default_error_messages = {
+-        'invalid': _("'%(value)s' value has an invalid format. It must be in "
+-                     "[DD] [HH:[MM:]]ss[.uuuuuu] format.")
++        'invalid': _("'%(value)s' value has an invalid format. It must be in "
++                     "[DD] [[HH:]MM:]ss[.uuuuuu] format.")
+     }
+     description = _("Duration")
+ 
+--- a/django/forms/fields.py
++++ b/django/forms/fields.py
+@@ -1,11 +1,20 @@
++import datetime
++
++from django.core.exceptions import ValidationError
++from django.forms.widgets import TextInput
++from django.utils.dateparse import parse_duration
++from django.utils.duration import duration_string
++from django.utils.translation import gettext_lazy as _
++
+ class DurationField(Field):
++    widget = TextInput
+     default_error_messages = {
+         'invalid': _('Enter a valid duration.'),
+         'overflow': _('The number of days must be between {min_days} and {max_days}.')
+     }
++    # Translators: Examples of accepted duration formats.
++    default_help_text = _('e.g. "3 days 04:05:06.000007" or "4:05:06" or "05:06".')
++
++    def __init__(self, *, help_text=None, **kwargs):
++        if help_text is None:
++            help_text = self.default_help_text
++        super().__init__(help_text=help_text, **kwargs)
+
+     def prepare_value(self, value):
+         if isinstance(value, datetime.timedelta):
+```

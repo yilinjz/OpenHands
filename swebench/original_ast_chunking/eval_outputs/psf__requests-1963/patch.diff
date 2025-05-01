@@ -1,0 +1,22 @@
+```patch
+--- a/requests/sessions.py
++++ b/requests/sessions.py
+@@ -1,5 +1,7 @@
+         while resp.is_redirect:
+-            prepared_request = req.copy()
++            # Copy the request that resulted in this redirect response.
++            # This ensures features like authentication handled by prepare_X are retained.
++            prepared_request = resp.request.copy()
+
+             resp.content  # Consume socket so it can be released
+
+@@ -9,7 +11,7 @@
+             resp.close()
+
+             url = resp.headers['location']
+-            method = req.method
++            method = prepared_request.method
+
+             # Handle redirection without scheme (see: RFC 1808 Section 4)
+             if url.startswith('//'):
+```

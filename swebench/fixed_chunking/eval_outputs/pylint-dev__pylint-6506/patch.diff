@@ -1,0 +1,60 @@
+```patch
+--- a/pylint/config/config_initialization.py
++++ b/pylint/config/config_initialization.py
+@@ -4,7 +4,7 @@
+ import sys
+ from typing import Any
+ 
+-from pylint.config.exceptions import _UnrecognizedOptionError
++from pylint.config.exceptions import ConfigurationError, _UnrecognizedOptionError
+ from pylint.config.find_default_config_files import find_default_config_files
+ from pylint.config.toml_parser import parse_toml_file
+ from pylint.constants import MAIN_CHECKER_NAME
+@@ -82,7 +82,7 @@
+     if unrecognized_options:
+         msg = ", ".join(unrecognized_options)
+         linter.add_message("unrecognized-option", line=0, args=msg)
+-        raise _UnrecognizedOptionError(options=unrecognized_options)
++        raise _UnrecognizedOptionError(options=unrecognized_options)  # Raise to exit early
+ 
+     # Set the current module to configuration as we don't know where
+     # the --load-plugins key is coming from
+--- a/pylint/lint/run.py
++++ b/pylint/lint/run.py
+@@ -11,7 +11,10 @@
+ from pylint import config, reporters
+ from pylint.config.arguments_manager import _ArgumentsManager
+ from pylint.config.config_initialization import _config_initialization
+-from pylint.config.find_default_config_files import find_pylintrc
++from pylint.config.exceptions import _UnrecognizedOptionError
++from pylint.config.find_default_config_files import (
++    find_default_config_files,
++)
+ from pylint.constants import (
+     DEFAULT_PYLINT_HOME,
+     MAIN_CHECKER_NAME,
+@@ -129,13 +132,16 @@
+         # Load command line arguments
+         # pylint: disable=protected-access
+         try:
+-            args = _config_initialization(
+-                linter=self.linter,
+-                config_file=config_file,
+-                config_file_options=config_file_options,
+-                command_line_options=command_line_options,
+-                args_list=args_list,
+-                reporter=reporter,
++            args = _config_initialization(  # type: ignore[assignment]
++                linter=self.linter,  # type: ignore[arg-type]
++                config_file=config_file,  # type: ignore[arg-type]
++                config_file_options=config_file_options,  # type: ignore[arg-type]
++                command_line_options=command_line_options,  # type: ignore[arg-type]
++                args_list=args_list,  # type: ignore[arg-type]
++                reporter=reporter,  # type: ignore[arg-type]
++            )
++        except _UnrecognizedOptionError:
++            sys.exit(32)  # Stop Pylint execution and exit with code 32
+ 
+         # If the command line arguments are valid, then walk the arguments list
+         # to discover python modules and packages candidates to lint.
+```

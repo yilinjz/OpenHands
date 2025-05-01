@@ -1,0 +1,16 @@
+```patch
+--- a/sphinx/ext/autodoc/importer.py
++++ b/sphinx/ext/autodoc/importer.py
+@@ -269,8 +269,9 @@
+         for name in cls_annotations:
+             if name not in members:
+                 docstring = None
+-                if clsname:
+-                    docstring = '\n'.join(attr_docs.get((clsname, name), ''))
++                # Use simple class name to match the key used in attr_docs.
++                # refs: https://github.com/sphinx-doc/sphinx/issues/8735
++                docstring = '\n'.join(attr_docs.get((cls.__name__, name), ''))
+
+                 members[name] = ObjectMember(name, INSTANCEATTR, class_=cls,
+                                              docstring=docstring)
+```

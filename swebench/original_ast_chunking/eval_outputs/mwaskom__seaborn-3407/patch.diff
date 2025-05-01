@@ -1,0 +1,16 @@
+```patch
+--- a/seaborn/axisgrid.py
++++ b/seaborn/axisgrid.py
+@@ -1221,9 +1221,10 @@
+     def _select_variables(self, data):
+         """Select variables from the dataframe."""
+         try:
+-            variables = data.select_dtypes(include=np.number).columns
++            # Ensure variables is always a list, converting index objects
++            variables = list(data.select_dtypes(include=np.number).columns)
+         except AttributeError:
+             # Assume data is already numpy array-like
+-            variables = np.arange(data.shape[1])
++            variables = list(np.arange(data.shape[1]))
+         return variables
+```

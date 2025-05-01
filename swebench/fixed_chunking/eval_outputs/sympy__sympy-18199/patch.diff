@@ -1,0 +1,57 @@
+```patch
+--- a/sympy/ntheory/residue_ntheory.py
++++ b/sympy/ntheory/residue_ntheory.py
+@@ -101,10 +101,18 @@
+     """
+     from sympy.core.numbers import igcdex
+     a, n, p = as_int(a), as_int(n), as_int(p)
++
++    # Handle the trivial case x = 0 mod p
++    a_mod_p = a % p
++    if a_mod_p == 0:
++        if all_roots:
++            return [0]
++        else:
++            return 0
++
+     if n == 2:
+         return sqrt_mod(a, p, all_roots)
+     # see Hackman "Elementary Number Theory" (2009), page 76
+-    if not is_nthpow_residue(a, n, p):
++    if not is_nthpow_residue(a_mod_p, n, p): # Check residue for a mod p
+         return None
+     if not isprime(p):
+         raise NotImplementedError("Not implemented for composite p")
+@@ -112,13 +120,13 @@
+     if (p - 1) % n == 0:
+         # _nthroot_mod1 assumes q | p-1 and finds roots of x**q = s mod p
+         # s should be a mod p
+-        return _nthroot_mod1(a, n, p, all_roots)
++        return _nthroot_mod1(a_mod_p, n, p, all_roots)
+     # The roots of ``x**n - a = 0 (mod p)`` are roots of
+     # ``gcd(x**n - a, x**(p - 1) - 1) = 0 (mod p)``
+     pa = n
+     pb = p - 1
+     b = 1
+-    if pa < pb:
++    a = a_mod_p # Use a mod p for the gcd algorithm ('a' represents the constant term)
++    if pa < pb: # pragma: no cover
+         a, pa, b, pb = b, pb, a, pa
+     while pb:
+         # x**pa - a = 0; x**pb - b = 0
+@@ -136,12 +144,12 @@
+         res = [a]
+     else:
+         res = a
+-    elif pa == 2:
++    elif pa == 2: # pragma: no cover
+         return sqrt_mod(a, p , all_roots)
+     else:
+         res = _nthroot_mod1(a, pa, p, all_roots)
+     return res
+-
++
+ 
+ def quadratic_residues(p):
+     """
+```

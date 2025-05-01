@@ -1,0 +1,28 @@
+```patch
+--- a/sklearn/base.py
++++ b/sklearn/base.py
+@@ -16,6 +16,7 @@
+ from .utils import _IS_32BIT
+ from . import get_config
+ from ._config import config_context
++from .utils.fixes import _array_equal
+
+
+ def _is_pairwise(estimator):
+@@ -213,11 +214,10 @@
+                 # Consider the constructor parameters with default values
+                 if default_value is not param.empty and \
+                         param.kind is not param.VAR_KEYWORD and \
+-                        param.kind is not param.VAR_POSITIONAL and \
+-                        self.get_params(deep=False)[name] != default_value:
+-
++                        param.kind is not param.VAR_POSITIONAL:
++                    current_value = self.get_params(deep=False)[name]
++                    if not _array_equal(current_value, default_value):
+                         value_str = _pprint(
+-                            self.get_params(deep=False)[name],
++                            current_value,
+                             offset=len(name) + 1, N_CHAR_MAX=N_CHAR_MAX)
+                         params_str.append('%s=%s' % (name, value_str))
+
+```

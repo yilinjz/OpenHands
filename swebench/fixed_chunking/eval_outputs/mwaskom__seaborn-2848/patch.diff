@@ -1,0 +1,21 @@
+```patch
+<patch>
+--- a/seaborn/axisgrid.py
++++ b/seaborn/axisgrid.py
+@@ -1257,6 +1257,14 @@
+             # Get the names of the hue levels
+             hue_names = utils.categorical_order(data[hue], hue_order)
+
++            # Filter the data frame to only include the hue levels
++            # that will be plotted.
++            if hue_order is not None:
++                data = data[data[hue].isin(hue_order)]
++                if data.empty:
++                    warnings.warn(f"Dataset is empty after filtering by `hue_order`.")
++                    # Note: plotting functions should handle empty data gracefully
++
+             # --- Map hue levels to colors ---
+             n_colors = len(hue_names)
+             self.palette = palettes.color_palette(palette, n_colors)
+</patch>
+```

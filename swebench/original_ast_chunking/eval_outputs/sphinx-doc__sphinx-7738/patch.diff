@@ -1,0 +1,12 @@
+```patch
+--- a/sphinx/ext/napoleon/docstring.py
++++ b/sphinx/ext/napoleon/docstring.py
+@@ -306,6 +306,6 @@
+             # It should not be escaped.
+             return name
+         # This replaces any asterisks or underscores with an escaped version.
+-        # Note: this does not escape adjacent asterisks or underscores.
+-        return re.sub(r'([*_])', r'\\\1', name)
++        # Note: this does not escape adjacent asterisks.
++        return re.sub(r'([*])', r'\\\1', name)
+```

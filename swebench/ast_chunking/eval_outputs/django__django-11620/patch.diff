@@ -1,0 +1,64 @@
+```diff
+--- a/django/views/debug.py
++++ b/django/views/debug.py
+@@ -1,22 +1,31 @@
+ def technical_404_response(request, exception):
+     """Create a technical 404 error response. `exception` is the Http404."""
++    error_url = request.path_info[1:]  # Default: Trim leading slash.
++    tried = []                         # Default.
++    resolver_info_available = False
++
++    # Check if exception args match the resolver's structure.
++    if exception.args and isinstance(exception.args[0], dict):
++        resolver_info = exception.args[0]
++        resolver_info_available = True
++        try:
++            error_url = resolver_info['path']
++        except KeyError:
++            pass  # Keep default error_url.
++        try:
++            tried = resolver_info['tried']
++        except KeyError:
++            pass  # Keep default tried = [].
+     try:
+-        error_url = exception.args[0]['path']
+-    except (IndexError, TypeError, KeyError):
+-        error_url = request.path_info[1:]  # Trim leading slash
+-
+-    try:
+-        tried = exception.args[0]['tried']
+-    except (IndexError, TypeError, KeyError):
+-        tried = []
+-    else:
+-        if (not tried or (                  # empty URLconf
+-            request.path == '/' and
+-            len(tried) == 1 and             # default URLconf
+-            len(tried[0]) == 1 and
+-            getattr(tried[0][0], 'app_name', '') == getattr(tried[0][0], 'namespace', '') == 'admin'
+-        )):
++        # Check for default URLconf only if resolver info was available and matched structure.
++        if resolver_info_available and (not tried or (  # empty URLconf
++                request.path == '/' and
++                len(tried) == 1 and             # default URLconf
++                len(tried[0]) == 1 and
++                getattr(tried[0][0], 'app_name', '') == getattr(tried[0][0], 'namespace', '') == 'admin'
++        )):
+             return default_urlconf(request)
++    except Exception:
++        # If accessing tried patterns somehow fails, ignore the check for
++        # default URLconf. It's not worth crashing for.
++        pass
+ 
+     urlconf = getattr(request, 'urlconf', settings.ROOT_URLCONF)
+     if isinstance(urlconf, types.ModuleType):
+@@ -25,6 +34,8 @@
+     caller = ''
+     try:
+         resolver_match = resolve(request.path)
++    except Http404:
++        # Raised by the resolver's pattern finding logic or a converter.
++        pass
+     except Resolver404:
+         pass
+     else:
+```

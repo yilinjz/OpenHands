@@ -1,0 +1,47 @@
+2025-05-01 20:06:06,801 - INFO - Creating container for sympy__sympy-20212...
+2025-05-01 20:06:06,842 - INFO - Container for sympy__sympy-20212 created: 6a981951b01f3917b29f239434ef4671b607b3c76efdf62c543d82467dd420c9
+2025-05-01 20:06:07,367 - INFO - Container for sympy__sympy-20212 started: 6a981951b01f3917b29f239434ef4671b607b3c76efdf62c543d82467dd420c9
+2025-05-01 20:06:07,367 - INFO - Intermediate patch for sympy__sympy-20212 written to logs/run_evaluation/20250501_195119/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/sympy__sympy-20212/patch.diff, now applying to container...
+2025-05-01 20:06:07,562 - INFO - Failed to apply patch to container: git apply --verbose
+2025-05-01 20:06:07,647 - INFO - Failed to apply patch to container: git apply --verbose --reject
+2025-05-01 20:06:07,753 - INFO - >>>>> Applied Patch:
+patching file sympy/core/numbers.py
+Hunk #1 succeeded at 774 with fuzz 3 (offset 266 lines).
+
+2025-05-01 20:06:08,504 - INFO - Git diff before:
+diff --git a/sympy/core/numbers.py b/sympy/core/numbers.py
+index 2c50002de3..c1f129acc9 100644
+--- a/sympy/core/numbers.py
++++ b/sympy/core/numbers.py
+@@ -774,7 +774,7 @@ def __truediv__(self, other):
+             if other is S.NaN:
+                 return S.NaN
+             elif other is S.Infinity or other is S.NegativeInfinity:
+-                return S.Zero
++                return S.ComplexInfinity
+         return AtomicExpr.__truediv__(self, other)
+ 
+     def __eq__(self, other):
+2025-05-01 20:06:08,504 - INFO - Eval script for sympy__sympy-20212 written to logs/run_evaluation/20250501_195119/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/sympy__sympy-20212/eval.sh; copying to container...
+2025-05-01 20:07:01,718 - INFO - Test runtime: 53.15 seconds
+2025-05-01 20:07:01,718 - INFO - Test output for sympy__sympy-20212 written to logs/run_evaluation/20250501_195119/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/sympy__sympy-20212/test_output.txt
+2025-05-01 20:07:01,852 - INFO - Git diff after:
+diff --git a/sympy/core/numbers.py b/sympy/core/numbers.py
+index 2c50002de3..c1f129acc9 100644
+--- a/sympy/core/numbers.py
++++ b/sympy/core/numbers.py
+@@ -774,7 +774,7 @@ def __truediv__(self, other):
+             if other is S.NaN:
+                 return S.NaN
+             elif other is S.Infinity or other is S.NegativeInfinity:
+-                return S.Zero
++                return S.ComplexInfinity
+         return AtomicExpr.__truediv__(self, other)
+ 
+     def __eq__(self, other):
+2025-05-01 20:07:01,852 - INFO - Grading answer for sympy__sympy-20212...
+2025-05-01 20:07:01,855 - INFO - report: {'sympy__sympy-20212': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_zero']}, 'PASS_TO_PASS': {'success': ['test_rational', 'test_large_rational', 'test_negative_real', 'test_expand', 'test_issue_3449', 'test_issue_3866', 'test_negative_one', 'test_issue_4362', 'test_Pow_Expr_args', 'test_Pow_signs', 'test_power_with_noncommutative_mul_as_base', 'test_power_rewrite_exp', 'test_pow_as_base_exp', 'test_nseries', 'test_issue_6100_12942_4473', 'test_issue_6208', 'test_issue_6990', 'test_issue_6068', 'test_issue_6782', 'test_issue_6653', 'test_issue_6429', 'test_issue_7638', 'test_issue_8582', 'test_issue_8650', 'test_issue_13914', 'test_better_sqrt', 'test_issue_2993', 'test_issue_17450', 'test_issue_18190', 'test_issue_14815', 'test_issue_18509', 'test_issue_18762'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-20212: resolved: False
+2025-05-01 20:07:01,855 - INFO - Attempting to stop container sweb.eval.sympy__sympy-20212.20250501_195119...
+2025-05-01 20:07:17,171 - INFO - Attempting to remove container sweb.eval.sympy__sympy-20212.20250501_195119...
+2025-05-01 20:07:17,204 - INFO - Container sweb.eval.sympy__sympy-20212.20250501_195119 removed.

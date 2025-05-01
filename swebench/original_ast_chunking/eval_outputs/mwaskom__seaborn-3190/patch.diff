@@ -1,0 +1,13 @@
+```patch
+--- a/seaborn/_core/plot.py
++++ b/seaborn/_core/plot.py
+@@ -491,7 +491,7 @@
+             # Infer the type of the variable
+             # TODO make boolean_type configurable?
+             # Use boolean_type="numeric" pending resolution of GH3084
+-            var_type = variable_type(vector, boolean_type="numeric")
++            var_type = variable_type(vector, boolean_type="categorical")
+             self._variables[var] = vector
+             self._var_types[var] = var_type
+ 
+```

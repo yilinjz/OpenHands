@@ -1,0 +1,33 @@
+```patch
+--- a/src/_pytest/assertion/util.py
++++ b/src/_pytest/assertion/util.py
+@@ -313,18 +313,26 @@
+ 
+     # Generate explanations for extra items.
+     if len_left > len_right:
++        first_extra_item = left[len_min]
++        if isinstance(left, bytes):
++            formatted_item = f"{repr(bytes([first_extra_item]))} ({first_extra_item})"
++        else:
++            formatted_item = saferepr(first_extra_item)
+         explanation.extend(
+             [
+-                f"Left contains more items, first extra item: {saferepr(left[len_min])}",
++                f"Left contains more items, first extra item: {formatted_item}",
+                 f"Use -v to get the full diff",
+             ]
+         )
+     elif len_right > len_left:
++        first_extra_item = right[len_min]
++        if isinstance(right, bytes):
++            formatted_item = f"{repr(bytes([first_extra_item]))} ({first_extra_item})"
++        else:
++            formatted_item = saferepr(first_extra_item)
+         explanation.extend(
+             [
+-                f"Right contains more items, first extra item: {saferepr(right[len_min])}",
++                f"Right contains more items, first extra item: {formatted_item}",
+                 f"Use -v to get the full diff",
+             ]
+         )
+```

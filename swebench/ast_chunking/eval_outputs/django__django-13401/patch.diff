@@ -1,0 +1,45 @@
+```diff
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -10,17 +10,34 @@
+     def __eq__(self, other):
+         # Needed for @total_ordering
+         if isinstance(other, Field):
+-            return self.creation_counter == other.creation_counter
++            # Compare creation_counter first for performance.
++            if self.creation_counter != other.creation_counter:
++                return False
++            # If creation counters are equal, compare models.
++            self_model = getattr(self, 'model', None)
++            other_model = getattr(other, 'model', None)
++            return self_model == other_model
+         return NotImplemented
+ 
+     def __lt__(self, other):
+         # This is needed because bisect does not take a comparison function.
+         if isinstance(other, Field):
+-            return self.creation_counter < other.creation_counter
++            # Order by creation_counter first, then model.
++            if self.creation_counter != other.creation_counter:
++                return self.creation_counter < other.creation_counter
++            self_model = getattr(self, 'model', None)
++            other_model = getattr(other, 'model', None)
++            # Model instances should sort after None.
++            if self_model is None and other_model is None:
++                return False  # Equal
++            if self_model is None:
++                return True   # self (None) < other (Model)
++            if other_model is None:
++                return False  # self (Model) > other (None)
++            # Both have models, compare by model label.
++            return self.model._meta.label < other.model._meta.label
+         return NotImplemented
+ 
+     def __hash__(self):
+-        return hash(self.creation_counter)
++        return hash((self.creation_counter, getattr(self, 'model', None)))
+ 
+     def __deepcopy__(self, memodict):
+         # We don't have to deepcopy very much here, since most things are not
+
+```

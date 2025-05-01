@@ -1,0 +1,121 @@
+```patch
+--- a/django/templatetags/static.py
++++ b/django/templatetags/static.py
+@@ -1,10 +1,12 @@
+ from urllib.parse import quote, urljoin
+ 
+ from django import template
+-from django.apps import apps
+ from django.conf import settings
+ from django.templatetags.static import PrefixNode as OldPrefixNode
+ from django.utils.encoding import iri_to_uri
+ from django.utils.html import conditional_escape
++from django.utils.http import prepend_script_name_if_relative
++
++from django.apps import apps # Keep this import
+ 
+ register = template.Library()
+ 
+@@ -29,10 +31,17 @@
+         return prefix
+ 
+     def render(self, context):
++        # Get request and script_name from context if available
++        request = context.get('request')
++        script_name = getattr(request, 'META', {}).get('SCRIPT_NAME') if request else None
++
++        # Get the base prefix (STATIC_URL or MEDIA_URL) from settings
+         prefix = self.handle_simple(self.name)
++
++        # Prepend script_name if the prefix is relative
++        if script_name:
++            prefix = prepend_script_name_if_relative(prefix, script_name)
++
+         if self.varname is None:
+             return prefix
+         context[self.varname] = prefix
+@@ -68,12 +77,26 @@
+         self.varname = varname
+ 
+     def url(self, context):
++        # Get request and script_name from context if available
++        request = context.get('request')
++        script_name = getattr(request, 'META', {}).get('SCRIPT_NAME') if request else None
++
++        # Resolve the path from the template variable
+         path = self.path.resolve(context)
+-        return self.handle_simple(path)
++        quoted_path = quote(path)
++
++        if apps.is_installed('django.contrib.staticfiles'):
++            from django.contrib.staticfiles.storage import staticfiles_storage
++            # Get the URL from the staticfiles storage backend
++            url = staticfiles_storage.url(path)
++        else:
++            # Build the URL manually using STATIC_URL from settings
++            base_url = PrefixNode.handle_simple("STATIC_URL")
++            url = urljoin(base_url, quoted_path)
++
++        # Prepend script_name if the resulting URL is relative
++        if script_name:
++            url = prepend_script_name_if_relative(url, script_name)
++
++        return url
+ 
+     def render(self, context):
+         url = self.url(context)
+         if context.autoescape:
++            # Ensure conditional_escape is still applied correctly
+             url = conditional_escape(url)
+         if self.varname is None:
+             return url
+@@ -81,16 +104,6 @@
+         return ''
+ 
+     @classmethod
+-    def handle_simple(cls, path):
+-        if apps.is_installed('django.contrib.staticfiles'):
+-            from django.contrib.staticfiles.storage import staticfiles_storage
+-            return staticfiles_storage.url(path)
+-        else:
+-            # This logic is now moved into the url method to access context/request
+-            # return urljoin(PrefixNode.handle_simple("STATIC_URL"), quote(path))
+-            raise RuntimeError("This method should not be called directly anymore if context is needed.") # Or adjust if needed elsewhere
+-
+-    @classmethod
+     def handle_token(cls, parser, token):
+         """
+         Class method to parse prefix node and return a Node.
+--- a/django/utils/http.py
++++ b/django/utils/http.py
+@@ -1,5 +1,6 @@
+ import datetime
+ import re
++from urllib.parse import urljoin, urlparse
+ from urllib.parse import quote as urlquote
+ from urllib.parse import urlsplit, urlunsplit
+ 
+@@ -10,6 +11,22 @@
+ from django.utils.regex_helper import _lazy_re_compile
+ from django.utils.translation import get_language
+ 
++
++def prepend_script_name_if_relative(url_string, script_name):
++    """
++    Prepend SCRIPT_NAME to a URL path if the URL is relative and SCRIPT_NAME
++    is not empty.
++    """
++    if not script_name:
++        return url_string
++    # Don't modify absolute URLs (with scheme or netloc)
++    parsed = urlparse(url_string)
++    if parsed.scheme or parsed.netloc:
++        return url_string
++    # Ensure script_name ends with a slash for urljoin.
++    script_prefix = script_name.rstrip('/') + '/'
++    return urljoin(script_prefix, url_string.lstrip('/'))
++
+ RFC3986_SUBDELIMS = "!$&'()*+,;="
+ RFC3986_GENDELIMS = ":/?#[]@"
+ 
+```

@@ -1,0 +1,129 @@
+```patch
+--- a/sympy/printing/pretty/pretty.py
++++ b/sympy/printing/pretty/pretty.py
+@@ -34,41 +34,44 @@
+     def _print_Product(self, expr):
+         func = expr.term
+         pretty_func = self._print(func)
++        func_height = pretty_func.height()
++        func_width = pretty_func.width()
+
+-        horizontal_chr = xobj('_', 1)
+-        corner_chr = xobj('_', 1)
+-        vertical_chr = xobj('|', 1)
+-
++        # Determine characters based on unicode setting
+         if self._use_unicode:
+-            # use unicode corners
+             horizontal_chr = xobj('-', 1)
+-            corner_chr = u'\N{BOX DRAWINGS LIGHT DOWN AND HORIZONTAL}'
++            corner_chr = u'\N{BOX DRAWINGS LIGHT DOWN AND HORIZONTAL}' # '┬'
++            vertical_chr = xobj('|', 1) # Using '|' for simplicity
++        else:
++            horizontal_chr = xobj('_', 1)
++            corner_chr = xobj('_', 1) # ASCII uses '_' for corner too
++            vertical_chr = xobj('|', 1)
+
+-        func_height = pretty_func.height()
++        # Calculate the width of the space inside the product symbol
++        # Make width depend on the function's width, min 1.
++        width = max(1, func_width)
++
++        # Construct the product symbol lines
++        sign_lines = []
++        if self._use_unicode:
++            # Use extended top bar for Unicode
++            top_bar = horizontal_chr + corner_chr + horizontal_chr * width + corner_chr + horizontal_chr
++            vert_segment = ' ' + vertical_chr + ' ' * width + vertical_chr + ' '
++        else:
++            # Original bar shape for ASCII
++            top_bar = corner_chr + horizontal_chr * width + corner_chr
++            vert_segment = vertical_chr + ' ' * width + vertical_chr
++
++        sign_lines.append(top_bar)
++        # Loop func_height times (instead of func_height + 1) to remove extra bottom line
++        for i in range(func_height):
++            sign_lines.append(vert_segment)
++
++        # Stack the lines to form the core symbol
++        pretty_sign = stringPict('')
++        pretty_sign = prettyForm(*pretty_sign.stack(*sign_lines))
++        sign_height = pretty_sign.height() # Store height of the core symbol
+
+         first = True
+         max_upper = 0
+-        sign_height = 0
+-
+-        for lim in expr.limits:
+-            width = (func_height + 2) * 5 // 3 - 2
+-            sign_lines = []
+-            sign_lines.append(corner_chr + (horizontal_chr*width) + corner_chr)
+-            for i in range(func_height + 1):
+-                sign_lines.append(vertical_chr + (' '*width) + vertical_chr)
+-
+-            pretty_sign = stringPict('')
+-            pretty_sign = prettyForm(*pretty_sign.stack(*sign_lines))
+-
+-            pretty_upper = self._print(lim[2])
+-            pretty_lower = self._print(Equality(lim[0], lim[1]))
+-
+-            max_upper = max(max_upper, pretty_upper.height())
+-
+-            if first:
+-                sign_height = pretty_sign.height()
+-
+-            pretty_sign = prettyForm(*pretty_sign.above(pretty_upper))
+-            pretty_sign = prettyForm(*pretty_sign.below(pretty_lower))
+-
+-            if first:
+-                pretty_func.baseline = 0
+-                first = False
+-
+-            height = pretty_sign.height()
+-            padding = stringPict('')
+-            padding = prettyForm(*padding.stack(*[' ']*(height - 1)))
+-            pretty_sign = prettyForm(*pretty_sign.right(padding))
+-
+-            pretty_func = prettyForm(*pretty_sign.right(pretty_func))
+-
+-        pretty_func.baseline = max_upper + sign_height//2
+-        pretty_func.binding = prettyForm.MUL
+-        return pretty_func
++        lim_form = None # This will store the combined limit symbols
++
++        for lim in expr.limits:
++            pu = self._print(lim[2]) # Upper limit
++            pl = self._print(Equality(lim[0], lim[1])) # Lower limit (var=lower)
++            max_upper = max(max_upper, pu.height())
++
++            # Create the symbol with limits for this iteration
++            # Use the pre-calculated core symbol (pretty_sign)
++            # Need to render/split to ensure we work with a copy for each limit
++            current_lim_sign = prettyForm(*pretty_sign.render().split('\n'))
++            current_lim_sign = prettyForm(*current_lim_sign.above(pu))
++            current_lim_sign = prettyForm(*current_lim_sign.below(pl))
++
++            if lim_form is None:
++                lim_form = current_lim_sign # First limit symbol
++            else:
++                # Add subsequent symbols to the left
++                lim_form = prettyForm(*lim_form.left(current_lim_sign))
++
++        # Choose the base symbol part (either with limits or the core symbol)
++        if lim_form is None: # No limits were processed
++            final_sign_part = pretty_sign
++        else:
++            final_sign_part = lim_form
++
++        # Combine the final sign part with the function
++        final_form = prettyForm(*final_sign_part.right(pretty_func))
++
++        # Set the baseline: center of the core symbol, offset by max upper limit height
++        final_form.baseline = max_upper + sign_height // 2
++        final_form.binding = prettyForm.MUL
++        return final_form
++
+ 
+     def _print_Sum(self, expr):
+         ascii_mode = not self._use_unicode
+```

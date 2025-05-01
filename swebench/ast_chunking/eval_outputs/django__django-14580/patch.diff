@@ -1,0 +1,12 @@
+```patch
+--- a/django/db/migrations/writer.py
++++ b/django/db/migrations/writer.py
+@@ -170,6 +170,7 @@
+             # It's a Model subclass
+             elif isinstance(value, type) and issubclass(value, models.Model):
+                 if value is models.Model:
++                    self.imports.add("from django.db import models")
+                     return "models.Model"
+                 elif hasattr(value, '_meta') and value._meta.auto_created:
+                     # Using a class which was created during migration execution
+```

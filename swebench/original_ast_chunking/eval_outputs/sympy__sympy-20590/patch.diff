@@ -1,0 +1,24 @@
+```patch
+--- a/sympy/core/compatibility.py
++++ b/sympy/core/compatibility.py
+@@ -10,6 +10,8 @@
+ 
+ 
+ class Comparable:
++    """ Controls the comparison of Basic objects """
++    __slots__ = []
+ 
+     def __hash__(self):
+         # cached property requires this to be defined
+--- a/sympy/core/evalf.py
++++ b/sympy/core/evalf.py
+@@ -10,6 +10,8 @@
+ 
+ 
+ class EvalfMixin:
++    """Mixin class adding evalf capability."""
++    __slots__ = []
+ 
+     def __float__(self):
+         result = self.evalf()
+```

@@ -1,0 +1,16 @@
+```patch
+--- a/sympy/tensor/array/ndim_array.py
++++ b/sympy/tensor/array/ndim_array.py
+@@ -116,6 +116,10 @@
+             if not hasattr(pointer, "__iter__") or isinstance(pointer, (str, bytes)):
+                 return [pointer], ()
+
++            # Handle empty iterables:
++            if not pointer:
++                return [], (0,)
++
+             elems, shapes = zip(*[f(i) for i in pointer])
+             # Check if all shapes are equal, return the shape of the first element:
+             if len(set(shapes)) != 1:
+
+```

@@ -1,0 +1,16 @@
+```diff
+--- a/django/db/models/enums.py
++++ b/django/db/models/enums.py
+@@ -16,8 +16,8 @@
+                 len(value) > 1 and
+                 isinstance(value[-1], (Promise, str))
+             ):
+-                *value, label = value
+-                value = tuple(value)
++                *values, label = value
++                value = values[0] if len(values) == 1 else tuple(values)
+             else:
+                 label = key.replace('_', ' ').title()
+             labels.append(label)
+
+```

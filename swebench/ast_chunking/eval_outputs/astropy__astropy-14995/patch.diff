@@ -1,0 +1,43 @@
+```diff
+--- a/astropy/nddata/mixins/ndarithmetic.py
++++ b/astropy/nddata/mixins/ndarithmetic.py
+@@ -29,15 +29,23 @@
+          28             ``handle_mask`` must create (and copy) the returned mask.
+          29         """
+          30         # If only one mask is present we need not bother about any type checks
+-         31         if (
+-         32             self.mask is None and operand is not None and operand.mask is None
+-         33         ) or handle_mask is None:
+-         34             return None
+-         35         elif self.mask is None and operand is not None:
+-         36             # Make a copy so there is no reference in the result.
+-         37             return deepcopy(operand.mask)
+-         38         elif operand is None:
+-         39             return deepcopy(self.mask)
+-         40         else:
+-         41             # Now lets calculate the resulting mask (operation enforces copy)
+-         42             return handle_mask(self.mask, operand.mask, **kwds)
++         31         if handle_mask is None:
++         32             return None
++         33 
++         34         self_has_mask = self.mask is not None
++         35         operand_is_none = operand is None
++         36         # operand should be None if operating with a constant, or an NDData-like object
++         37         operand_has_mask = not operand_is_none and getattr(operand, "mask", None) is not None
++         38 
++         39         if not self_has_mask and not operand_has_mask:
++         40             # Case: Neither has a mask
++         41             return None
++         42         elif not self_has_mask and operand_has_mask:
++         43             # Case: Only operand has a mask
++         44             # Make a copy so there is no reference in the result.
++         45             return deepcopy(operand.mask)
++         46         elif self_has_mask and (operand_is_none or not operand_has_mask):
++         47             # Case: Only self has a mask (operand is None or operand has no mask)
++         48             return deepcopy(self.mask)
++         49         else:  # Both self_has_mask and operand_has_mask are True
++         50             # Case: Both have masks, apply handle_mask
++         51             # Now lets calculate the resulting mask (operation enforces copy)
++         52             return handle_mask(self.mask, operand.mask, **kwds)
+
+```

@@ -1,0 +1,13 @@
+```patch
+--- a/sympy/polys/partfrac.py
++++ b/sympy/polys/partfrac.py
+@@ -208,7 +208,7 @@
+ 
+         if n_i == 1:
+             if Q_i.degree() == 1:
+-                A = P.eval(Q_i.root(0))/Q.diff().eval(Q_i.root(0))
++                A = Q_i.LC() * P.eval(Q_i.root(0)) / Q.diff().eval(Q_i.root(0))
+                 partial.append(((A, Q_i, 1)))
+             else:
+                 partial.append(((P % Q_i, Q_i, 1)))
+```

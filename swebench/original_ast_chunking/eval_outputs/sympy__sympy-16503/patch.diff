@@ -1,0 +1,82 @@
+```patch
+--- a/sympy/printing/pretty/pretty.py
++++ b/sympy/printing/pretty/pretty.py
+@@ -49,12 +49,13 @@
+         if f.is_Add:  # add parens
+             prettyF = prettyForm(*prettyF.parens())
+ 
+-        H = prettyF.height() + 2
++        H = prettyF.height() + 2 # minimum height for the sign
++        fb_orig = prettyF.baseline # Store original baseline of function
+ 
+         # \sum \sum \sum ...
+         first = True
+         max_upper = 0
+-        sign_height = 0
++        first_sign_height = 0 # Height of the first summation sign
++        f_vadjust = 0   # Vertical adjustment applied to f's baseline
+ 
+         for lim in expr.limits:
+             if len(lim) == 3:
+@@ -75,14 +76,17 @@
+             # Create sum sign based on the height of the argument
+             d, h, slines, adjustment = asum(
+                 H, prettyLower.width(), prettyUpper.width(), ascii_mode)
+-            prettySign = stringPict('')
+-            prettySign = prettyForm(*prettySign.stack(*slines))
++            current_Sign = stringPict('')
++            current_Sign = prettyForm(*current_Sign.stack(*slines))
++            current_sign_height = current_Sign.height()
+ 
+             if first:
+-                sign_height = prettySign.height()
++                first_sign_height = current_sign_height # Store height of the first sign
++                # Calculate shift needed to center F on the first sign
++                shift = d - (prettyF.height()//2 - fb_orig) - adjustment
++                f_vadjust = shift # Store for final baseline calculation
++                # Apply the shift to F's baseline for alignment with the first sign
++                prettyF.baseline -= shift
++                first = False
+ 
+-            prettySign = prettyForm(*prettySign.above(prettyUpper))
+-            prettySign = prettyForm(*prettySign.below(prettyLower))
+-
+-            if first:
+-                # change F baseline so it centers on the sign
+-                prettyF.baseline -= d - (prettyF.height()//2 -
+-                                         prettyF.baseline) - adjustment
+-                first = False
++            # Stack limits onto the current sign
++            current_Sign = prettyForm(*current_Sign.above(prettyUpper))
++            current_Sign = prettyForm(*current_Sign.below(prettyLower))
+ 
+             # put padding to the right
+             pad = stringPict('')
+-            pad = prettyForm(*pad.stack(*[' ']*h))
+-            prettySign = prettyForm(*prettySign.right(pad))
+-            # put the present prettyF to the right
+-            prettyF = prettyForm(*prettySign.right(prettyF))
++            # Use the height of the sign+limits for padding height
++            pad = prettyForm(*pad.stack(*[' ']*current_Sign.height()))
++            current_Sign = prettyForm(*current_Sign.right(pad))
++            # Combine the current sign+limits structure with the existing prettyF
++            # .right() aligns baselines
++            prettyF = prettyForm(*current_Sign.right(prettyF))
+ 
+-        prettyF.baseline = max_upper + sign_height//2
++        # Set the final baseline for the entire expression
++        # It should correspond to the original baseline of the function f,
++        # adjusted by the vertical shift applied for centering.
++        # ps_baseline: baseline of the first sign+limits part.
++        # fb_shifted: baseline of the function after vertical shift.
++        # baseline_after_align: baseline resulting from .right() alignment.
++        # The final baseline is the position of fb_orig within the combined form.
++        ps_baseline = max_upper + first_sign_height // 2
++        fb_shifted = fb_orig - f_vadjust
++        baseline_after_align = max(ps_baseline, fb_shifted)
++        prettyF.baseline = baseline_after_align + f_vadjust
++
+         prettyF.binding = prettyForm.MUL
+         return prettyF
+ 
+```

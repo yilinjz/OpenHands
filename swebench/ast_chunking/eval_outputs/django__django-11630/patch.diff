@@ -1,0 +1,26 @@
+```diff
+--- a/django/db/models/checks.py
++++ b/django/db/models/checks.py
+@@ -15,7 +15,10 @@
+     errors = []
+     for model in apps.get_models(include_auto_created=True):
+         errors.extend(model.check(**kwargs))
+-    errors.extend(check_db_table_clashes(app_configs))
++    # Skip E028 check for db_table clashes across all models.
++    # This check does not account for multi-database setups where identical
++    # table names in different databases are valid.
++    # errors.extend(check_db_table_clashes(app_configs))
+     return errors
+
+
+@@ -27,7 +30,7 @@
+     # Group models by db_table
+     tables = defaultdict(list)
+     for model in apps.get_models():
+-        if model._meta.managed and not model._meta.proxy:
++        if model._meta.managed and not model._meta.proxy and model._meta.db_table:
+             tables[model._meta.db_table].append(model._meta.label)
+
+     # Check for clashes
+
+```

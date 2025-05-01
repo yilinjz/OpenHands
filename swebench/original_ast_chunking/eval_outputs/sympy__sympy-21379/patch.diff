@@ -1,0 +1,26 @@
+```patch
+--- a/sympy/polys/densebasic.py
++++ b/sympy/polys/densebasic.py
+@@ -186,10 +186,6 @@
+             for monom, coeff in self.items():
+                 coeffs.append(coeff)
+ 
+-        # TODO: Move this check to Poly.__new__
+-        for g in self.gens:
+-            if isinstance(g, Piecewise):
+-                raise PolynomialError("Piecewise generators do not make sense")
+         return coeffs
+ 
+     def terms(self):
+@@ -205,10 +201,6 @@
+             for monom, coeff in self.items():
+                 terms.append((monom, coeff))
+ 
+-        # TODO: Move this check to Poly.__new__
+-        for g in self.gens:
+-            if isinstance(g, Piecewise):
+-                raise PolynomialError("Piecewise generators do not make sense")
+         return terms
+ 
+     def coeffs_monoms(self):
+```

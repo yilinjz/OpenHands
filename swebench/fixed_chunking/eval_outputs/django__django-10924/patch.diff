@@ -1,0 +1,117 @@
+```patch
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -1,13 +1,44 @@
+-                    "FilePathFields must have either 'allow_files' or 'allow_folders' set to True.",
++import os
++from django import forms
++from django.core import checks
++from django.core.exceptions import ImproperlyConfigured
++from django.utils.translation import gettext_lazy as _
++
++# Assuming Field is imported correctly above this snippet
++# from django.db.models.fields import Field
++
++class FilePathField(Field):
++    description = _("File path")
++
++    def __init__(self, verbose_name=None, name=None, path='', match=None,  # path can be str or callable
++                 recursive=False, allow_files=True, allow_folders=False, **kwargs):
++        # Store path as provided (string or callable)
++        self.path = path
++        self.match = match
++        self.recursive = recursive
++        self.allow_files = allow_files
++        self.allow_folders = allow_folders
++        kwargs['max_length'] = kwargs.get('max_length', 100)
++        super().__init__(verbose_name, name, **kwargs)
++
++    # Method to get the actual path string, evaluating callables
++    @property
++    def effective_path(self):
++        path = self.path
++        if callable(path):
++            path = path()
++        return path
++
++    def _check_path_attribute(self):
++        # Skip the check if path is callable, as it will be evaluated later.
++        if callable(self.path):
++            return []
++        # Check if the path is a directory only if it's a string
++        if not os.path.isdir(self.path):
++            return [
++                checks.Error(
++                    "FilePathField's path argument must point to a directory.",
++                    hint="The path '{}' is not a directory.".format(self.path),
+                     obj=self,
+-                    id='fields.E140',
++                    id='fields.E141',
+                 )
+             ]
+         return []
+@@ -15,9 +46,20 @@
+     def check(self, **kwargs):
+         errors = super().check(**kwargs)
+         errors.extend(self._check_path_attribute())
++        # Use a single check for allow_files/allow_folders
+         if not self.allow_files and not self.allow_folders:
++            errors.append(
++                checks.Error(
++                    "FilePathFields must have either 'allow_files' or 'allow_folders' set to True.",
++                    obj=self,
++                    id='fields.E140',
++                )
++            )
++        return errors
++
++    def deconstruct(self):
++        name, import_path, args, kwargs = super().deconstruct() # Use import_path as variable name
+         if self.path != '':
+-            kwargs['path'] = self.path
++            kwargs['path'] = self.path  # Will be serialized by migration framework
+         if self.match is not None:
+             kwargs['match'] = self.match
+         if self.recursive is not False:
+@@ -26,9 +68,10 @@
+             kwargs['allow_files'] = self.allow_files
+         if self.allow_folders is not False:
+             kwargs['allow_folders'] = self.allow_folders
++        # Remove default max_length if present
+         if kwargs.get("max_length") == 100:
+             del kwargs["max_length"]
+-        return name, path, args, kwargs
++        return name, import_path, args, kwargs
+ 
+     def get_prep_value(self, value):
+         value = super().get_prep_value(value)
+@@ -37,13 +80,26 @@
+         return str(value)
+ 
+     def formfield(self, **kwargs):
++        # Evaluate the path when the form field is needed
++        try:
++            path = self.effective_path
++            # Check if the evaluated path is a directory *here*
++            if not os.path.isdir(path):
++                raise ValueError(
++                    "FilePathField's path '{}' is not a directory.".format(path)
++                )
++        except Exception as e:
++            # Handle potential errors during callable evaluation or path checking
++            raise ImproperlyConfigured(
++                f"FilePathField's path callable failed to return a valid directory: {e}"
++            ) from e
++
++        # Pass the evaluated path to the form field
+         return super().formfield(**{
+-            'path': self.path,
++            'path': path,
+             'match': self.match,
+             'recursive': self.recursive,
+             'form_class': forms.FilePathField,
+             'allow_files': self.allow_files,
+             'allow_folders': self.allow_folders,
+             **kwargs,
+         })
+```

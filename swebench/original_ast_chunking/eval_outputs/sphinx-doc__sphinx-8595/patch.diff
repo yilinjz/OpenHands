@@ -1,0 +1,22 @@
+```patch
+--- a/sphinx/ext/autodoc/importer.py
++++ b/sphinx/ext/autodoc/importer.py
+@@ -164,6 +164,17 @@
+     # __all__ exists, means module/class wants to restrict public interface
+     obj_all = safe_getattr(obj, '__all__', None)
+     if obj_all is not None:
++        if not obj_all:
++            # __all__ is empty, all members are skipped.
++            # (we must first determine the members, then filter based
++            # on __all__, so members are returned, but marked as skipped).
++            members = {}
++            for name in dir(obj):
++                try:
++                    members[name] = ObjectMember(name, safe_getattr(obj, name), skipped=True)
++                except AttributeError:
++                    continue
++            return members
+         members = {}
+         membernames = set(obj_all)
+         for name in membernames:
+```

@@ -1,0 +1,74 @@
+```patch
+--- a/pylint/reporters/text.py
++++ b/pylint/reporters/text.py
+@@ -1,10 +1,10 @@
+ # Licensed under the GPL: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ # For details: https://github.com/PyCQA/pylint/blob/main/LICENSE
+ 
+-import re
+ import sys
++import string
+ import warnings
+-from dataclasses import asdict
++from dataclasses import asdict, fields
+ from io import TextIOWrapper
+ from typing import TYPE_CHECKING, Optional, TextIO
+ 
+@@ -68,22 +68,37 @@
+         if template == self._template:
+             return
+ 
+-        # Set template to the currently selected template
++        # Store the user-provided template
+         self._template = template
+ 
+-        # Check to see if all parameters in the template are attributes of the Message
+-        arguments = re.findall(r"\{(.+?)(:.*)?\}", template)
+-        for argument in arguments:
+-            if argument[0] not in MESSAGE_FIELDS:
++        # Check to see if all parameters in the template are attributes of the Message.
++        # Use string.Formatter().parse to correctly handle literal braces {{ }}
++        formatter = string.Formatter()
++        fixed_template_parts = []
++        has_invalid_args = False
++
++        try:
++            for literal_text, field_name, format_spec, conversion in formatter.parse(
++                template
++            ):
++                fixed_template_parts.append(literal_text)
++                if field_name is not None:
++                    if field_name not in MESSAGE_FIELDS:
++                        warnings.warn(
++                            f"Don't recognize the argument '{field_name}' in the --msg-template. "
++                            "Are you sure it is supported on the current version of pylint?"
++                        )
++                        has_invalid_args = True
++                        # Skip adding this field to the fixed template
++                    else:
++                        # Reconstruct the valid field part
++                        field_part = "{" + field_name
++                        if conversion:
++                            field_part += "!" + conversion
++                        if format_spec:
++                            field_part += ":" + format_spec
++                        field_part += "}"
++                        fixed_template_parts.append(field_part)
++        except ValueError as e:
++            # Handle potential errors during parsing, e.g., unmatched braces
++            warnings.warn(f"Failed to parse --msg-template: '{template}'. Error: {e}")
++            # Fallback: keep the original template but issue a warning.
++            self._fixed_template = template
++            return
++
++        self._fixed_template = "".join(fixed_template_parts)
+-                warnings.warn(
+-                    f"Don't recognize the argument '{argument[0]}' in the --msg-template. "
+-                    "Are you sure it is supported on the current version of pylint?"
+-                )
+-                template = re.sub(r"\{" + argument[0] + r"(:.*?)?\}", "", template)
+-        self._fixed_template = template
+ 
+     def write_message(self, msg: Message) -> None:
+         """Convenience method to write a formatted message with class default
+```

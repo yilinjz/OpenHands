@@ -1,0 +1,23 @@
+```diff
+--- a/requests/sessions.py
++++ b/requests/sessions.py
+@@ -738,7 +738,7 @@
+         hist = [] # Keep track of requests for cycles
+
+         while resp.is_redirect:
+-            prepared_request = req.copy()
++            prepared_request = resp.request.copy()
+
+             # Exhaust read stream so that the connection can be reused.
+             # This only needs to be done if an explicit stream=True is not passed.
+@@ -749,7 +749,7 @@
+             resp.close()
+
+             url = resp.headers['location']
+-            method = req.method
++            method = resp.request.method
+
+             # Handle redirection without scheme (see: RFC 1808 Section 4)
+             if url.startswith('//'):
+
+```

@@ -1,0 +1,15 @@
+```patch
+--- a/pylint/utils/__init__.py
++++ b/pylint/utils/__init__.py
+@@ -106,7 +106,9 @@
+         # Filter based on ignore list / patterns
+         for root, dirs, files in os.walk(directory, topdown=True):
+             # Use file_state object to check ignores
+-            if file_state._is_ignored(root, ignore_list, ignore_list_re):
++            if file_state._is_ignored(  # Pass all ignore lists/patterns
++                root, ignore_list, ignore_list_re, ignore_list_paths_re
++            ):
+                 skip_subtrees[:] = dirs  # Modify skip_subtrees directly
+                 continue
+ 
+```

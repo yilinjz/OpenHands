@@ -1,0 +1,61 @@
+```diff
+--- a/lib/matplotlib/colorbar.py
++++ b/lib/matplotlib/colorbar.py
+@@ -958,6 +958,11 @@
+         Destroy and rebuild the colorbar. This is definitely not
+         efficient, but it is reliable.
+         """
++        _api.check_isinstance(cm.ScalarMappable, mappable=mappable)
++        # Ensure the mappable's norm is autoscale before using it,
++        # especially if the norm was recently replaced.
++        if mappable.get_array() is not None:
++            mappable.autoscale_None()
+ 
+         # Remove the current callback and connect to the new one.
+         # We need to do this because the mappable may be replaced by a new
+@@ -1008,23 +1013,26 @@
+         """
+         Update the colormapping and ticks.
+         """
++        _api.check_isinstance(cm.ScalarMappable, mappable=mappable)
+         self.mappable = mappable
+-        # Ensure the given mappable's norm has appropriate vmin and vmax set
+-        # even if mappable.draw has not yet been called.
+-        self.mappable.autoscale_None()
++
++        # Check if the norm or cmap has changed.
++        if self.mappable.norm is not self.norm or self.mappable.cmap is not self.cmap:
++            # Update the colorbar's norm and cmap
++            self.norm = self.mappable.norm
++            self.cmap = self.mappable.cmap
++            # Ensure the new norm is autoscale before drawing
++            arr = self.mappable.get_array()
++            if arr is not None:
++                # Use autoscale_None to avoid overriding limits already set
++                # on the norm instance by the user.
++                self.norm.autoscale_None(arr)
++            # Need to trigger a full redraw, mark relevant state.
++            # This ensures that things like ticks and labels which depend
++            # on the norm are recalculated.
++            self._update_dict['all'] = True
+ 
+         # Update the text properties from the mappable
+         self._label = self.mappable.colorbar_label
+-        # Update the colorbar label font properties
+-        # Need to check whether the mappable has had these properties set
+-        # before trying to sync them
+-        if self.mappable.colorbar_label_properties:
+-            self.ax.set_ylabel(
+-                self._label,
+-                fontproperties=self.mappable.colorbar_label_properties)
+-        else:
+-            self.ax.set_ylabel(self._label)
++        # Sync the label text and font properties.
++        self.ax.set_ylabel(
++            self._label,
++            fontproperties=getattr(self.mappable,
++                                   'colorbar_label_properties', None))
+ 
+         self.stale = True
+
+```

@@ -1,0 +1,12 @@
+```patch
+--- a/sklearn/mixture/base.py
++++ b/sklearn/mixture/base.py
+@@ -250,4 +250,6 @@
+                         # Set converged status based on best run
+                         self.converged_ = is_converged
+ 
+-            return resp.argmax(axis=1)
++        # Calculate labels using the final fitted parameters
++        _, log_resp = self._e_step(X)
++        return log_resp.argmax(axis=1)
+```

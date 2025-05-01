@@ -1,0 +1,157 @@
+```patch
+--- a/django/db/migrations/operations/models.py
++++ b/django/db/migrations/operations/models.py
+@@ -1,5 +1,6 @@
+ from django.db.migrations.operations.base import Operation
+ from django.db.models.options import normalize_together
++from django.db.models.fields import FieldDoesNotExist
+ 
+ from .fields import FieldOperation, RemoveField, RenameField
+ from .utils import field_references, get_references, resolve_relation
+@@ -44,15 +45,82 @@
+         )
+ 
+     def database_forwards(self, app_label, schema_editor, from_state, to_state):
+-        new_model = to_state.apps.get_model(app_label, self.name)
+-        if self.allow_migrate_model(schema_editor.connection.alias, new_model):
+-            old_model = from_state.apps.get_model(app_label, self.name)
+-            alter_together = getattr(schema_editor, "alter_%s" % self.option_name)
+-            alter_together(
+-                new_model,
+-                getattr(old_model._meta, self.option_name, set()),
+-                getattr(new_model._meta, self.option_name, set()),
+-            )
++        new_model = to_state.apps.get_model(app_label, self.name)
++        if self.allow_migrate_model(schema_editor.connection.alias, new_model):
++            old_model = from_state.apps.get_model(app_label, self.name)
++
++            # Get old and new sets of constraints/indexes
++            old_options = getattr(old_model._meta, self.option_name, set())
++            new_options = getattr(new_model._meta, self.option_name, set())
++            old_option_tuples = {tuple(fields) for fields in old_options}
++            new_option_tuples = {tuple(fields) for fields in new_options}
++
++            # Determine constraint type and SQL command
++            if self.option_name == "unique_together":
++                constraint_kwargs = {"unique": True, "primary_key": False}
++                sql_delete_constraint = schema_editor.sql_delete_unique
++                sql_create_constraint = schema_editor._create_unique_sql
++            elif self.option_name == "index_together":
++                constraint_kwargs = {"index": True, "unique": False}
++                sql_delete_constraint = schema_editor.sql_delete_index
++                sql_create_constraint = schema_editor._create_index_sql
++            else:
++                # Should not happen for AlterUniqueTogether or AlterIndexTogether
++                return
++
++            # Handle deletions using old_model state
++            for field_names in old_option_tuples.difference(new_option_tuples):
++                try:
++                    # Validate fields exist in old_model before proceeding
++                    for field_name in field_names:
++                        old_model._meta.get_field(field_name)
++
++                    # Call _delete_composed_index using the old_model
++                    schema_editor._delete_composed_index(
++                        old_model,
++                        field_names,
++                        constraint_kwargs,
++                        sql_delete_constraint,
++                    )
++                except FieldDoesNotExist:
++                    # This might happen if a field involved in the constraint was
++                    # also removed in the same migration. Deleting the constraint
++                    # might be unnecessary or handled differently (e.g., cascade).
++                    pass
++
++            # Handle creations using new_model state
++            for field_names in new_option_tuples.difference(old_option_tuples):
++                try:
++                    fields = [new_model._meta.get_field(field) for field in field_names]
++                    if self.option_name == "index_together":
++                        # _create_index_sql needs a suffix for index_together
++                        schema_editor.execute(
++                            sql_create_constraint(
++                                new_model, fields=fields, suffix="_idx"
++                            )
++                        )
++                    else:
++                        # _create_unique_sql does not need suffix
++                        schema_editor.execute(sql_create_constraint(new_model, fields))
++                except FieldDoesNotExist:
++                    # This indicates a problem with the migration or model state.
++                    raise ValueError(
++                        f"Field missing in new model state while trying to create "
++                        f"{self.option_name} {field_names}"
++                    )
+ 
+     def database_backwards(self, app_label, schema_editor, from_state, to_state):
+-        return self.database_forwards(app_label, schema_editor, from_state, to_state)
++        # The state logic is reversed: from_state is the new state, to_state is the old state.
++        current_model = from_state.apps.get_model(
++            app_label, self.name
++        )  # State *after* forward migration
++        target_model = to_state.apps.get_model(
++            app_label, self.name
++        )  # State we are reverting *to*
++
++        if self.allow_migrate_model(
++            schema_editor.connection.alias, current_model
++        ):  # Check based on current model
++            # Get options from the state *after* forward migration (current)
++            # and the state we are reverting *to* (target)
++            current_options = getattr(current_model._meta, self.option_name, set())
++            target_options = getattr(target_model._meta, self.option_name, set())
++            current_option_tuples = {tuple(fields) for fields in current_options}
++            target_option_tuples = {tuple(fields) for fields in target_options}
++
++            # Determine constraint type and SQL command (same as forwards)
++            if self.option_name == "unique_together":
++                constraint_kwargs = {"unique": True, "primary_key": False}
++                sql_delete_constraint = schema_editor.sql_delete_unique
++                sql_create_constraint = schema_editor._create_unique_sql
++            elif self.option_name == "index_together":
++                constraint_kwargs = {"index": True, "unique": False}
++                sql_delete_constraint = schema_editor.sql_delete_index
++                sql_create_constraint = schema_editor._create_index_sql
++            else:
++                return
++
++            # Handle deletions (constraints/indexes that exist in 'current' but not in 'target')
++            # Use 'current_model' state to find and delete them (reversing creation).
++            for field_names in current_option_tuples.difference(target_option_tuples):
++                try:
++                    for field_name in field_names:
++                        current_model._meta.get_field(field_name)
++
++                    schema_editor._delete_composed_index(
++                        current_model,  # Use current_model for deletion in backwards
++                        field_names,
++                        constraint_kwargs,
++                        sql_delete_constraint,
++                    )
++                except FieldDoesNotExist:
++                    pass
++
++            # Handle creations (constraints/indexes that exist in 'target' but not in 'current')
++            # Use 'target_model' state to create them (reversing deletion).
++            for field_names in target_option_tuples.difference(current_option_tuples):
++                try:
++                    fields = [target_model._meta.get_field(field) for field in field_names]
++                    if self.option_name == "index_together":
++                        schema_editor.execute(
++                            sql_create_constraint(
++                                target_model, fields=fields, suffix="_idx"
++                            )
++                        )
++                    else:
++                        schema_editor.execute(sql_create_constraint(target_model, fields))
++                except FieldDoesNotExist:
++                    raise ValueError(
++                        f"Field missing in target model state while trying to create "
++                        f"{self.option_name} {field_names} during backwards migration"
++                    )
+ 
+     def references_field(self, model_name, name, app_label):
+         return self.references_model(model_name, app_label) and (
+```

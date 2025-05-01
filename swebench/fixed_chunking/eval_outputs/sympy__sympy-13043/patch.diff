@@ -1,0 +1,122 @@
+```patch
+--- a/sympy/integrals/intpoly.py
++++ b/sympy/integrals/intpoly.py
+@@ -1,5 +1,12 @@
+ """Algorithms for integrating polynomials over geometric regions"""
+ 
++# Add necessary imports
++from sympy.core.singleton import S
++from sympy.core.expr import Expr
++from sympy.core.add import Add
++from sympy.core.symbol import Symbol
++from sympy.polys.polyfuncs import total_degree # Import total_degree
++from sympy.core.sorting import default_sort_key # Import default_sort_key
+ from sympy.functions.elementary.miscellaneous import Max, Min
+ from sympy.functions.elementary.piecewise import Piecewise
+ from sympy.geometry.entity import GeometryEntity
+@@ -11,11 +18,7 @@
+ from sympy.polys.polytools import poly_from_expr, Poly
+ from sympy.polys.polyutils import _sort_gens
+ from sympy.polys.domains import ZZ, QQ
+-from sympy.core.singleton import S
+-from sympy.core.expr import Expr
+-from sympy.core.add import Add
+-from sympy.core.symbol import Symbol
+-from sympy.polys.polyfuncs import degree_list
++from collections import defaultdict # Import defaultdict
+ 
+ 
+ def poly_degree(p, *gens):
+@@ -168,38 +171,51 @@
+ 
+ def decompose(expr, separate=False):
+     """Decomposes an input polynomial into homogeneous ones of
+-    smaller or equal degree.
+-    Returns a dictionary with keys as the degree of the smaller
+-    constituting polynomials. Values are the constituting polynomials.
++    smaller or equal degree.
++
++    If `separate` is False (default), returns a dictionary where keys
++    are the degrees and values are the corresponding homogeneous
++    polynomials.
++    If `separate` is True, returns a list of all constituent monomials
++    sorted in a canonical order.
++
+     Parameters
+     ==========
+-    expr : Polynomial(SymPy expression)
+-
+-    Optional Parameters :
+-
+-    separate : If True then simply return a list of the constituent monomials
+-               If not then break up the polynomial into constituent homogeneous
+-               polynomials.
++    expr : Polynomial (SymPy expression)
++    separate : bool, optional
++        If True, return a sorted list of constituent monomials.
++        If False (default), return a dictionary grouping homogeneous parts by degree.
++
+     Examples
+     ========
+     >>> from sympy.abc import x, y
+     >>> from sympy.integrals.intpoly import decompose
+-    >>> decompose(x**2 + x*y + x + y + x**3*y**2 + y**5)
++
++    >>> p = x**2 + x*y + x + y + x**3*y**2 + y**5
++
++    >>> decompose(p)
+     {1: x + y, 2: x**2 + x*y, 5: x**3*y**2 + y**5}
+-    >>> decompose(x**2 + x*y + x + y + x**3*y**2 + y**5, True)
+-    [x, y, x**2, y**5, x*y, x**3*y**2]
++
++    >>> decompose(p, separate=True)
++    [x, y, x*y, x**2, y**5, x**3*y**2]
++
+     """
+     expr = S(expr)
+-    poly_dict = {}
++    poly_dict = defaultdict(lambda: S.Zero) # Use defaultdict for summing
++    all_monomials = []
+ 
+     if isinstance(expr, Expr) and not expr.is_number:
+-        if expr.is_Symbol:
+-            poly_dict[1] = expr
+-        elif expr.is_Add:
+-            symbols = expr.atoms(Symbol)
+-            degrees = [(sum(degree_list(monom, *symbols)), monom)
+-                       for monom in expr.args]
++        # Use free_symbols which is standard
++        symbols = expr.free_symbols
++        # Use as_ordered_terms to get monomials in a standard order initially
++        monomials = expr.as_ordered_terms()
+ 
+-            # The code below needs to handle the grouping and separate logic
+-            # This part is missing in the provided snippet but is where the fix is needed.
+-            # Assuming the original code populated poly_dict and returned list(poly_dict.values()) for separate=True
++        for monom in monomials:
++            if monom.is_number: # Handle constant terms
++                deg = 0
++            else:
++                # Use total_degree for robustness
++                deg = total_degree(monom, *symbols)
++
++            if separate:
++                all_monomials.append(monom)
++            else:
++                poly_dict[deg] += monom
++
++    elif expr.is_number: # Handle case where input is just a number
++        if separate:
++            if expr != 0:
++                all_monomials.append(expr)
++        else:
++            poly_dict[0] = expr
++
++    # Return based on separate flag
++    if separate:
++        # Sort the collected monomials using the standard SymPy sort key
++        return sorted(all_monomials, key=default_sort_key)
++    else:
++        # Convert defaultdict back to a regular dict for output
++        return dict(poly_dict)
+```

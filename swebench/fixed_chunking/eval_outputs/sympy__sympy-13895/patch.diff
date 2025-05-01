@@ -1,0 +1,13 @@
+```patch
+--- a/sympy/simplify/radsimp.py
++++ b/sympy/simplify/radsimp.py
+@@ -470,7 +470,7 @@
+     # We also need to ensure that all Pow are simplified, otherwise we might
+     # miss some possible simplifications.
+     expr = expr.replace(
+-        Pow, lambda b, e: powdenest(Pow(expand_mul(b), e), force=True))
++        Pow, lambda b, e: powdenest(Pow(expand_mul(b), e)))
+
+     # Denest Bases
+     def _denest_term(term, positive_vars):
+```

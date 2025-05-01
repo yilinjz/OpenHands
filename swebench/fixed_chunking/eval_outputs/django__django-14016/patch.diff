@@ -1,0 +1,36 @@
+```patch
+--- a/django/db/models/query_utils.py
++++ b/django/db/models/query_utils.py
+@@ -1,10 +1,16 @@
+ import copy
++import collections.abc
+ from functools import partialmethod
+ 
+ from django.core.exceptions import FieldError, EmptyResultSet
+ from django.db.models.constants import LOOKUP_SEP
+ from django.utils.tree import Node
+ 
++# Dictionary view types are not pickleable. Convert them to lists before
++# storing them in Q objects.
++dict_view_types = (type({}.keys()), type({}.values()), type({}.items()))
++
++
+ class Q(Node):
+     """Encapsulate filters as objects that can be combined logically."""
+     # Connection types
+@@ -12,6 +18,11 @@
+     OR = 'OR'
+     default = AND
+ 
++    def __init__(self, *args, _connector=None, _negated=False, **kwargs):
++        # Convert dictionary view objects to lists to avoid problems with pickling.
++        for key, value in kwargs.items():
++            if isinstance(value, dict_view_types):
++                kwargs[key] = list(value)
++        super().__init__(children=[*args, *sorted(kwargs.items())], connector=_connector, negated=_negated)
++
+     def _combine(self, other, conn):
+         if not isinstance(other, Q):
+             raise TypeError(other)
+
+```

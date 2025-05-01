@@ -1,0 +1,33 @@
+```patch
+--- a/sphinx/writers/html.py
++++ b/sphinx/writers/html.py
+@@ -1,10 +1,18 @@
+ """HTML writers."""
+ 
++from typing import cast
++
+ from docutils import nodes
+ from docutils.nodes import Element, Node, Text
+ from docutils.writers.html5_polyglot import HTMLTranslator as BaseTranslator
+ 
+ from sphinx import addnodes
++from sphinx.builders.html import StandaloneHTMLBuilder
++from sphinx.builders.singlehtml import SingleHTMLBuilder
+ from sphinx.locale import _, __
+ from sphinx.util import logging
+ from sphinx.util.docutils import SphinxTranslator
+@@ -31,7 +39,12 @@
+             prefix = self.config.numfig_format.get(figtype)
+ 
+             def append_fignumber(figtype: str, figure_id: str) -> None:
+-                key = figtype
++                if isinstance(self.builder, SingleHTMLBuilder):
++                    key = "%s/%s" % (self.builder.current_docname, figtype)
++                elif isinstance(self.builder, StandaloneHTMLBuilder):
++                    key = figtype
++                else:
++                    key = figtype  # XXX: other builders?
+ 
+                 if key in self.builder.fignumbers:
+                     if figure_id in self.builder.fignumbers[key]:
+```

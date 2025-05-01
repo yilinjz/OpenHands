@@ -1,0 +1,158 @@
+2025-04-30 20:06:41,363 - INFO - Creating container for django__django-13768...
+2025-04-30 20:06:41,401 - INFO - Container for django__django-13768 created: 701d430619a4ef9f2b6b644709d2efc5758b6df0ab6dce6b644153f32d117b26
+2025-04-30 20:06:41,700 - INFO - Container for django__django-13768 started: 701d430619a4ef9f2b6b644709d2efc5758b6df0ab6dce6b644153f32d117b26
+2025-04-30 20:06:41,701 - INFO - Intermediate patch for django__django-13768 written to logs/run_evaluation/20250430_200121/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/django__django-13768/patch.diff, now applying to container...
+2025-04-30 20:06:41,815 - INFO - Failed to apply patch to container: git apply --verbose
+2025-04-30 20:06:41,879 - INFO - Failed to apply patch to container: git apply --verbose --reject
+2025-04-30 20:06:41,935 - INFO - >>>>> Applied Patch:
+patching file django/dispatch/dispatcher.py
+Hunk #1 succeeded at 3 with fuzz 3 (offset 2 lines).
+Hunk #2 succeeded at 15 with fuzz 2 (offset 1 line).
+Hunk #3 succeeded at 125 with fuzz 3 (offset 1 line).
+Hunk #4 succeeded at 137 with fuzz 3 (offset 1 line).
+
+2025-04-30 20:06:43,596 - INFO - Git diff before:
+diff --git a/django/dispatch/dispatcher.py b/django/dispatch/dispatcher.py
+index b7d9d26389..05889af829 100644
+--- a/django/dispatch/dispatcher.py
++++ b/django/dispatch/dispatcher.py
+@@ -1,6 +1,10 @@
+ import threading
+ import warnings
++import logging
+ import weakref
++from functools import partial
++
++from django.utils.deprecation import RemovedInDjango51Warning
+ 
+ from django.utils.deprecation import RemovedInDjango40Warning
+ from django.utils.inspect import func_accepts_kwargs
+@@ -11,12 +15,16 @@ def _make_id(target):
+         return (id(target.__self__), id(target.__func__))
+     return id(target)
+ 
++logger = logging.getLogger('django.dispatch')
++
+ 
+ NONE_ID = _make_id(None)
+ 
+ # A marker for caching
+ NO_RECEIVERS = object()
+ 
++logger = logging.getLogger('django.dispatch')
++
+ 
+ class Signal:
+     """
+@@ -117,6 +125,11 @@ class Signal:
+     def disconnect(self, receiver=None, sender=None, dispatch_uid=None):
+         """
+         Disconnect receiver from sender for signal.
++            receiver_name = (
++                receiver.__name__ if hasattr(receiver, '__name__') else
++                getattr(receiver, '__class__', type(receiver)).__name__
++            )
++            extra = {'signal': self, 'receiver': receiver_name}
+ 
+         If weak references are used, disconnect need not be called. The receiver
+         will be removed from dispatch automatically.
+@@ -124,6 +137,10 @@ class Signal:
+         Arguments:
+ 
+             receiver
++                logger.exception(
++                    'Error calling receiver %s for signal %s',
++                    receiver_name, self.providing_args, extra=extra,
++                )
+                 The registered receiver to disconnect. May be none if
+                 dispatch_uid is specified.
+ 
+@@ -205,6 +222,11 @@ class Signal:
+         # Return a list of tuple pairs [(receiver, response), ... ].
+         responses = []
+         for receiver in self._live_receivers(sender):
++            receiver_name = (
++                receiver.__name__ if hasattr(receiver, '__name__') else
++                getattr(receiver, '__class__', type(receiver)).__name__
++            )
++            extra = {'signal': self, 'receiver': receiver_name}
+             try:
+                 response = receiver(signal=self, sender=sender, **named)
+             except Exception as err:
+2025-04-30 20:06:43,597 - INFO - Eval script for django__django-13768 written to logs/run_evaluation/20250430_200121/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/django__django-13768/eval.sh; copying to container...
+2025-04-30 20:06:51,731 - INFO - Test runtime: 8.08 seconds
+2025-04-30 20:06:51,732 - INFO - Test output for django__django-13768 written to logs/run_evaluation/20250430_200121/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/django__django-13768/test_output.txt
+2025-04-30 20:06:51,808 - INFO - Git diff after:
+diff --git a/django/dispatch/dispatcher.py b/django/dispatch/dispatcher.py
+index b7d9d26389..05889af829 100644
+--- a/django/dispatch/dispatcher.py
++++ b/django/dispatch/dispatcher.py
+@@ -1,6 +1,10 @@
+ import threading
+ import warnings
++import logging
+ import weakref
++from functools import partial
++
++from django.utils.deprecation import RemovedInDjango51Warning
+ 
+ from django.utils.deprecation import RemovedInDjango40Warning
+ from django.utils.inspect import func_accepts_kwargs
+@@ -11,12 +15,16 @@ def _make_id(target):
+         return (id(target.__self__), id(target.__func__))
+     return id(target)
+ 
++logger = logging.getLogger('django.dispatch')
++
+ 
+ NONE_ID = _make_id(None)
+ 
+ # A marker for caching
+ NO_RECEIVERS = object()
+ 
++logger = logging.getLogger('django.dispatch')
++
+ 
+ class Signal:
+     """
+@@ -117,6 +125,11 @@ class Signal:
+     def disconnect(self, receiver=None, sender=None, dispatch_uid=None):
+         """
+         Disconnect receiver from sender for signal.
++            receiver_name = (
++                receiver.__name__ if hasattr(receiver, '__name__') else
++                getattr(receiver, '__class__', type(receiver)).__name__
++            )
++            extra = {'signal': self, 'receiver': receiver_name}
+ 
+         If weak references are used, disconnect need not be called. The receiver
+         will be removed from dispatch automatically.
+@@ -124,6 +137,10 @@ class Signal:
+         Arguments:
+ 
+             receiver
++                logger.exception(
++                    'Error calling receiver %s for signal %s',
++                    receiver_name, self.providing_args, extra=extra,
++                )
+                 The registered receiver to disconnect. May be none if
+                 dispatch_uid is specified.
+ 
+@@ -205,6 +222,11 @@ class Signal:
+         # Return a list of tuple pairs [(receiver, response), ... ].
+         responses = []
+         for receiver in self._live_receivers(sender):
++            receiver_name = (
++                receiver.__name__ if hasattr(receiver, '__name__') else
++                getattr(receiver, '__class__', type(receiver)).__name__
++            )
++            extra = {'signal': self, 'receiver': receiver_name}
+             try:
+                 response = receiver(signal=self, sender=sender, **named)
+             except Exception as err:
+2025-04-30 20:06:51,809 - INFO - Grading answer for django__django-13768...
+2025-04-30 20:06:51,809 - INFO - report: {'django__django-13768': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_send_robust_fail (dispatch.tests.DispatcherTests)']}, 'PASS_TO_PASS': {'success': [], 'failure': ['test_receiver_signal_list (dispatch.tests.ReceiverTestCase)', 'test_receiver_single_signal (dispatch.tests.ReceiverTestCase)', 'test_cached_garbaged_collected (dispatch.tests.DispatcherTests)', 'test_cannot_connect_no_kwargs (dispatch.tests.DispatcherTests)', 'test_cannot_connect_non_callable (dispatch.tests.DispatcherTests)', 'test_disconnection (dispatch.tests.DispatcherTests)', 'test_garbage_collected (dispatch.tests.DispatcherTests)', 'test_has_listeners (dispatch.tests.DispatcherTests)', 'test_multiple_registration (dispatch.tests.DispatcherTests)', 'test_send (dispatch.tests.DispatcherTests)', 'test_send_connected_no_sender (dispatch.tests.DispatcherTests)', 'test_send_different_no_sender (dispatch.tests.DispatcherTests)', 'test_send_no_receivers (dispatch.tests.DispatcherTests)', 'test_send_robust_ignored_sender (dispatch.tests.DispatcherTests)', 'test_send_robust_no_receivers (dispatch.tests.DispatcherTests)', 'test_send_robust_success (dispatch.tests.DispatcherTests)', 'test_uid_registration (dispatch.tests.DispatcherTests)', 'test_values_returned_by_disconnection (dispatch.tests.DispatcherTests)']}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-13768: resolved: False
+2025-04-30 20:06:51,810 - INFO - Attempting to stop container sweb.eval.django__django-13768.20250430_200121...
+2025-04-30 20:07:07,057 - INFO - Attempting to remove container sweb.eval.django__django-13768.20250430_200121...
+2025-04-30 20:07:07,076 - INFO - Container sweb.eval.django__django-13768.20250430_200121 removed.

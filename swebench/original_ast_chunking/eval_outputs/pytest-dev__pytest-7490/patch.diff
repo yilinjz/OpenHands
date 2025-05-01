@@ -1,0 +1,29 @@
+```patch
+--- a/src/_pytest/skipping.py
++++ b/src/_pytest/skipping.py
+@@ -171,5 +171,22 @@
+                 else:
+                     rep.outcome = "passed"  # XPASS.
+                     rep.wasxfail = f"reason: {evalxfail.reason}"
++    # Check if an xfail marker was added dynamically.
++    elif call.when == "call" and rep.outcome == "failed":
++        xfail_marker = item.get_closest_marker("xfail")
++        if xfail_marker:
++            # This test was not marked xfail during setup, but has the marker now
++            # and failed. Treat it as an xfail, respecting 'raises'.
++            raises = xfail_marker.kwargs.get("raises")
++            reason = xfail_marker.kwargs.get("reason", "")
++            if raises:
++                # Check if the failure exception matches 'raises'.
++                if call.excinfo and call.excinfo.errisinstance(raises):
++                    # Failed with expected exception.
++                    rep.outcome = "skipped"
++                    rep.wasxfail = reason
++                # else: Failed with unexpected exception, remains "failed".
++            else:
++                # No raises specified, failure counts as xfail.
++                rep.outcome = "skipped"
++                rep.wasxfail = reason
+
+     outcome.force_result(rep)
+```

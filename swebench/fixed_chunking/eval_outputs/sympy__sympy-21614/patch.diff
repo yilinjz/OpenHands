@@ -1,0 +1,21 @@
+```patch
+--- a/sympy/core/function.py
++++ b/sympy/core/function.py
+@@ -2163,6 +2163,16 @@
+     # Note: This is important for Derivative subclasses
+     # to work with AppliedUndef. Otherwise Derivative specific
+     # properties are not available. See issue #15522.
++
++    @property
++    def kind(self):
++        """
++        Return the kind of the derivative.
++
++        The kind of the derivative is the same as the kind of the
++        expression being differentiated.
++        """
++        return self.expr.kind
+ 
+     def __new__(cls, expr, *variables, **kwargs):
+         from sympy.matrices.expressions.matexpr import MatrixExpr
+```

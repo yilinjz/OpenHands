@@ -1,0 +1,88 @@
+```patch
+--- a/sphinx/ext/napoleon/docstring.py
++++ b/sphinx/ext/napoleon/docstring.py
+@@ -460,6 +460,11 @@
+     _google_typed_arg_regex = re.compile(r'\s*(.+?)\s*\(\s*(.*[^\s]+)\s*\)')
+
+
++    # Copied from sphinx.util.rst.escape, but without escaping backslash
++    rst_escape_table = {ord('*'): r'\*', ord('`'): r'\`'}
++    rst_escape_regex = re.compile(r'([*`])')
++
++
+     def __init__(self, docstring: Union[str, List[str]], config: SphinxConfig = None,
+                  app: Sphinx = None, what: str = '', name: str = '',
+                  obj: Any = None, options: Any = None) -> None:
+@@ -520,6 +525,7 @@
+     def _escape_args_and_kwargs(self, name: str) -> str:
+         """Escapes special characters in parameter names.
+
++        Escapes `*`, `` ` ``, and trailing `_` in parameter names. Also escapes quotes
+         and backticks in default arguments.
+
+         Parameters
+@@ -531,33 +537,33 @@
+         str
+             The name with special characters escaped.
+
+-        Examples
+-        --------
+-        >>> _escape_args_and_kwargs('param1 = None')
+-        'param1 = None'
+-        >>> _escape_args_and_kwargs('param1 = "hello world"')
+-        'param1 = "hello world"'
+-        >>> _escape_args_and_kwargs("param1 = 'hello world'")
+-        'param1 = \\'hello world\\''
+-        >>> _escape_args_and_kwargs('param1 = `hello world`')
+-        'param1 = ``hello world``'
+-
+         """
+         if '=' in name:
+             _name, _default = name.split('=', 1)
++            _name = _name.rstrip()
++            _default = _default.lstrip()
++
++            # Escape quotes/backticks in default value
+             if _default.startswith(('"', "'", '`')):
+-                # escape string or code literals which contain ', " or `
+-                if _default.startswith('"') and '"' in _default[1:-1]:
+-                    _default = '"' + _default[1:-1].replace('"', '\\"') + '"'
+-                elif _default.startswith("'") and "'" in _default[1:-1]:
+-                    _default = "'" + _default[1:-1].replace("'", "\\'") + "'"
+-                elif _default.startswith('`') and '`' in _default[1:-1]:
+-                    _default = '``' + _default[1:-1] + '``'
+-            name = '%s=%s' % (_name, _default)
++                quote_char = _default[0]
++                unescaped_default = _default[1:-1]
++                if quote_char == '`':
++                    if '`' in unescaped_default:
++                        _default = '``' + unescaped_default + '``'
++                elif quote_char in unescaped_default:
++                    _default = quote_char + unescaped_default.replace(quote_char, '\\' + quote_char) + quote_char
++
++            # Escape *, ` in name part
++            _name = self.rst_escape_regex.sub(r'\\\1', _name)
++            # Escape trailing underscore in name part
++            if _name.endswith('_') and not _name.endswith(r'\_'):
++                _name = _name[:-1] + r'\_'
++
++            name = '%s = %s' % (_name, _default)
++        else:
++            # No default argument
++            name = name.strip()
++            # Escape *, ` in name
++            name = self.rst_escape_regex.sub(r'\\\1', name)
++            # Escape trailing underscore in name
++            if name.endswith('_') and not name.endswith(r'\_'):
++                # Check if inside xref/code
++                parts = _xref_or_code_regex.split(name)
++                if parts[-1].endswith('_'):
++                    name = name[:-1] + r'\_'
+ 
+         # Note: This is done *after* potentially adding backticks
+         #       because we don't want to escape stars/underscores
+-        #       that are inside of inline code blocks.
+-        return re.sub(r'([*])', r'\\\1', name)
++        #       that are inside of inline code blocks or sphinx roles.
++        return name
+```

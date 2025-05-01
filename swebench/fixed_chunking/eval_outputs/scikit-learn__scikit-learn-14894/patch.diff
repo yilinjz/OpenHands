@@ -1,0 +1,38 @@
+```patch
+--- a/sklearn/svm/base.py
++++ b/sklearn/svm/base.py
+@@ -297,17 +297,25 @@
+         # with shape (n_support_vectors, n_features), where
+         # n_support_vectors = sum(self.n_support_). The support vectors
+         # are ordered by class.
+-        self.support_vectors_ = X[self.support_]
+ 
+         # dual_coef has shape (n_class-1, n_SV) for SVC
+         # dual_coef has shape (1, n_SV) for SVR and OneClass
+         # We need to convert it to a sparse matrix format
+-        dual_coef_indices = np.where(dual_coef)[1]
+-        dual_coef_data = dual_coef[dual_coef != 0]
+-        self.dual_coef_ = sp.csr_matrix(
+-            (dual_coef_data, dual_coef_indices, np.arange(n_class)),
+-            shape=(n_class - 1, dual_coef_indices.size // (n_class - 1)))
++        n_sv = self.support_.shape[0]
++
++        if self._impl in ('epsilon_svr', 'nu_svr', 'one_class'):
++            n_rows = 1
++        else:  # c_svc, nu_svc
++            n_rows = len(self.classes_) - 1
++
++        if n_sv == 0:
++            # empty support vectors, dual_coef should be empty with correct shape
++            self.support_vectors_ = sp.csr_matrix((0, X.shape[1]),
++                                                  dtype=X.dtype)
++            self.dual_coef_ = sp.csr_matrix((n_rows, 0),
++                                            dtype=dual_coef.dtype)
++        else:
++            self.support_vectors_ = X[self.support_]
++            # convert dense dual_coef to sparse matrix
++            self.dual_coef_ = sp.csr_matrix(dual_coef, shape=(n_rows, n_sv))
+ 
+         if hasattr(self, 'probA_'):
+             self.probA_ = model['probA']
+```

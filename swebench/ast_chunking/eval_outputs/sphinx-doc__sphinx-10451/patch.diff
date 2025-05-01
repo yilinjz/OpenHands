@@ -1,0 +1,121 @@
+```diff
+--- a/sphinx/ext/autodoc/__init__.py
++++ b/sphinx/ext/autodoc/__init__.py
+@@ -12,7 +12,7 @@
+ from types import ModuleType
+ from typing import (TYPE_CHECKING, Any, Callable, Dict, Iterator, List, Optional, Sequence,
+                     Set, Tuple, Type, TypeVar, Union)
+-
++from collections import defaultdict
+ from docutils.statemachine import StringList
+ 
+ import sphinx
+@@ -616,44 +616,55 @@
+         if 'return' in fields:
+             self._merge_typehints_for_return(fields['return'], sig)
+ 
+-    def _merge_typehints_for_params(self, fields: List[Tuple[str, List[str]]],
++    def _merge_typehints_for_params(self, fields: List[Tuple[str, List[str]]],  # NoQA: C901
+                                     sig: Signature) -> None:
+         """Merge typehints from signature to docstring."""
+         annotations = get_type_hints(self.object, None, self.config)
+-        param_fields = {}
+-        for name, lines in fields:
+-            param_fields.setdefault(name, []).append(lines)
+ 
++        # Keep track of parameters from the signature that have been handled
++        handled_sig_params: Set[str] = set()
++
++        # First pass: Iterate through existing fields and merge type hints from signature
++        for i in range(len(fields)):
++            name, lines = fields[i]
++
++            # Determine the corresponding signature parameter based on the field name
++            param = None
++            sig_param_name = None
++            if name.startswith('**'):
++                _sig_param_name = name[2:]
++                if _sig_param_name in sig.parameters and sig.parameters[_sig_param_name].kind == Parameter.VAR_KEYWORD:
++                    param = sig.parameters[_sig_param_name]
++                    sig_param_name = _sig_param_name
++            elif name.startswith('*'):
++                _sig_param_name = name[1:]
++                if _sig_param_name in sig.parameters and sig.parameters[_sig_param_name].kind == Parameter.VAR_POSITIONAL:
++                    param = sig.parameters[_sig_param_name]
++                    sig_param_name = _sig_param_name
++            elif name in sig.parameters and sig.parameters[name].kind not in (Parameter.VAR_POSITIONAL, Parameter.VAR_KEYWORD):
++                 param = sig.parameters[name]
++                 sig_param_name = name
++
++            if param and param.annotation is not Parameter.empty:
++                # Found a match in the signature with an annotation, merge it
++                annotation = stringify_typehint(annotations.get(param.name, param.annotation))
++                if param.kind == Parameter.VAR_POSITIONAL:
++                    marker = '*%s* --' % restify(annotation)
++                elif param.kind == Parameter.VAR_KEYWORD:
++                    marker = '**%s* --' % restify(annotation)
++                else:
++                    marker = '*%s* --' % restify(annotation)
++
++                field_lines = lines  # Use the lines directly from the current field tuple
++                if not field_lines or field_lines[0].strip() == '--':
++                    field_lines.insert(0, marker)
++                elif field_lines[0].strip().startswith(':') and '--' not in field_lines[0]:
++                    field_lines.insert(0, marker)
++                elif field_lines[0].strip().endswith('--'):
++                    field_lines[0] = field_lines[0].strip()[:-2] + marker
++                else:
++                    field_lines.insert(0, marker)
++
++                # Mark this signature parameter as handled
++                if sig_param_name:
++                    handled_sig_params.add(sig_param_name)
++
++        # Second pass: Add fields for signature parameters that were not in the docstring fields
+         for param in sig.parameters.values():
+-            if param.name not in param_fields:
++            if param.name not in handled_sig_params and param.annotation is not Parameter.empty:
+                 # Add a brief description for undocumented parameters
+                 # using typehints
+-                if param.annotation is not Parameter.empty:
+-                    annotation = stringify_typehint(annotations.get(param.name, param.annotation))
+-                    if param.kind == Parameter.VAR_POSITIONAL:
+-                        field = ('*' + param.name, ['*%s* --' % restify(annotation)])
+-                    elif param.kind == Parameter.VAR_KEYWORD:
+-                        field = ('**' + param.name, ['**%s* --' % restify(annotation)])
+-                    else:
+-                        field = (param.name, ['*%s* --' % restify(annotation)])
+-
+-                    fields.append(field)
+-            elif param.annotation is not Parameter.empty:
+-                # Merge typehint into field list
+                 annotation = stringify_typehint(annotations.get(param.name, param.annotation))
+                 if param.kind == Parameter.VAR_POSITIONAL:
+-                    marker = '*%s* --' % restify(annotation)
++                    field = ('*' + param.name, ['*%s* --' % restify(annotation)])
+                 elif param.kind == Parameter.VAR_KEYWORD:
+-                    marker = '**%s* --' % restify(annotation)
++                    field = ('**' + param.name, ['**%s* --' % restify(annotation)])
+                 else:
+-                    marker = '*%s* --' % restify(annotation)
+-
+-                field_lines = param_fields[param.name][0]  # Get the first definition
+-                if not field_lines or field_lines[0].strip() == '--':
+-                    # parameter is documented, but has no description.
+-                    field_lines.insert(0, marker)
+-                elif field_lines[0].strip().startswith(':') and '--' not in field_lines[0]:
+-                    # parameter is documented, but has no description (ex. for :type:).
+-                    field_lines.insert(0, marker)
+-                elif field_lines[0].strip().endswith('--'):
+-                    # parameter is documented, but has no description.
+-                    field_lines[0] = field_lines[0].strip()[:-2] + marker
+-                else:
+-                    # parameter is documented. merge typehint to the description.
+-                    field_lines.insert(0, marker)
++                    field = (param.name, ['*%s* --' % restify(annotation)])
++                fields.append(field)  # Append the new field
+
+     def _merge_typehints_for_return(self, fields: List[Tuple[str, List[str]]],
+                                     sig: Signature) -> None:
+
+```

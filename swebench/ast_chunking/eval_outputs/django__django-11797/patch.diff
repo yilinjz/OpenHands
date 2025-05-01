@@ -1,0 +1,18 @@
+```diff
+--- a/django/db/models/sql/compiler.py
++++ b/django/db/models/sql/compiler.py
+@@ -604,8 +604,10 @@
+             # guaranteed to be selected. Select it explicitly.
+             # If the queryset has been filtered, then the primary key is not
+             # guaranteed to be selected. Select it explicitly.
+-            if value.query.select_related or value.query.has_filters() or field.primary_key:
+-                value = value.values('pk')
++            if not value.query.values_select and (value.query.select_related or value.query.has_filters() or field.primary_key):
++                 # If values() has not been called, and any of these conditions are true,
++                 # ensure the PK is selected for the subquery.
++                 value = value.values('pk')
+
+         if hasattr(value.query, 'get_compiler'):
+             compiler = value.query.get_compiler(self.using, self.connection)
+
+```

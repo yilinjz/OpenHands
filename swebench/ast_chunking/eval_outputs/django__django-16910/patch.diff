@@ -1,0 +1,14 @@
+```diff
+--- a/django/db/models/sql/compiler.py
++++ b/django/db/models/sql/compiler.py
+@@ -34,7 +34,7 @@
+                     if o.field.unique and not o.many_to_many
+                 ]
+                 for related_field, model in related_fields:
+-                    related_select_mask = select_mask.get(related_field) or {}
++                    related_select_mask = select_mask.get(related_field.field) or {}
+                     if not select_related_descend(
+                         related_field,
+                         restricted,
+
+```

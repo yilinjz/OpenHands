@@ -1,0 +1,63 @@
+```patch
+--- a/sympy/matrices/expressions/blockmatrix.py
++++ b/sympy/matrices/expressions/blockmatrix.py
+@@ -1,8 +1,10 @@
++from itertools import accumulate
++
+ from sympy.core.basic import Basic
+ from sympy.core.numbers import Integer
+ from sympy.core.sympify import sympify
+-from sympy.matrices.expressions.matexpr import MatrixExpr
+-from sympy.matrices.expressions.special import ZeroMatrix, Identity
++from sympy.matrices.expressions.matexpr import MatrixExpr, MatrixElement
++from sympy.matrices.expressions.special import ZeroMatrix # Identity not used here directly
+ from sympy.utilities.misc import filldedent
+ from sympy import Symbol # Required for check below
+
+
+@@ -76,6 +78,43 @@
+     @property
+     def colblocksizes(self):
+         return [self.blocks[0, i].cols for i in range(self.blockshape[1])]
++
++    def _entry(self, i, j, **kwargs):
++        # Return symbolic element if indices are not integers
++        i, j = sympify(i), sympify(j)
++        if not (i.is_Integer and j.is_Integer):
++            # TODO: Add symbolic bounds checking?
++            #       Raise error if i, j are outside symbolic bounds?
++            return MatrixElement(self, i, j)
++
++        # Indices are integers, find the block and element
++        i_int, j_int = int(i), int(j)
++        rows, cols = self.shape
++        # Raise IndexError if index is outside symbolic bounds:
++        if not (0 <= i < rows and 0 <= j < cols):
++             raise IndexError("Index out of bounds: (%s, %s) for matrix of shape %s" % (i, j, self.shape))
++
++        # Find the block containing (i, j)
++        row_block_indices = [0] + list(accumulate(self.rowblocksizes))
++        col_block_indices = [0] + list(accumulate(self.colblocksizes))
++
++        block_i, block_j = -1, -1
++        rel_i, rel_j = -1, -1
++
++        for k in range(len(self.rowblocksizes)):
++            if row_block_indices[k] <= i_int < row_block_indices[k+1]:
++                block_i = k
++                rel_i = i_int - row_block_indices[k]
++                break
++
++        for k in range(len(self.colblocksizes)):
++            if col_block_indices[k] <= j_int < col_block_indices[k+1]:
++                block_j = k
++                rel_j = j_int - col_block_indices[k]
++                break
++
++        # Return the element from the specific block by calling its _entry method
++        return self.blocks[block_i, block_j]._entry(rel_i, rel_j, **kwargs)
+
+
+ class BlockDiagMatrix(BlockMatrix):
+
+```

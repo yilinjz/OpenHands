@@ -1,0 +1,68 @@
+```patch
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -1,6 +1,10 @@
++import enum
++import inspect
+ import warnings
+ from datetime import date, datetime, time, timezone
+ from decimal import Decimal, InvalidOperation
++
++from django.db.models.query_utils import DeferredAttribute
+ from django.utils.functional import Promise, cached_property
+
+ from django.core import checks, exceptions, validators
+@@ -57,6 +61,7 @@
+     empty_strings_allowed = True
+     empty_values = list(validators.EMPTY_VALUES)
+     creation_counter = 0
++    descriptor_class = DeferredAttribute
+
+     # Generic field type description, usually overridden by subclasses.
+     # Used by admin documentation generator.
+@@ -207,19 +212,37 @@
+         else:
+             cls._meta.add_field(self)
+
++        # Check if choices is an Enum class derived from enum.Enum.
++        # This is the check used elsewhere in Django for enum choices.
++        is_enum_choices = bool(
++            self.choices and
++            inspect.isclass(self.choices) and
++            issubclass(self.choices, enum.Enum)
++        )
++
++        if is_enum_choices:
++            # Use a custom descriptor that stores the enum's value on __set__
++            # for fields with enum choices.
++            class EnumAwareDeferredAttribute(self.descriptor_class):
++                def __set__(self, instance, value):
++                    if isinstance(value, self.field.choices):
++                        instance.__dict__[self.field.attname] = value.value
++                    else:
++                        super().__set__(instance, value)
++            descriptor = EnumAwareDeferredAttribute(self)
++        else:
++            # Default descriptor for other fields or fields with tuple choices.
++            descriptor = self.descriptor_class(self)
++
+         if self.column:
+             # Ensure the target column is represented by a descriptor.
+             # If the field is presenting a different model field (e.g.
+             # parent_link), include that field in the calculation.
+             related_field = getattr(self.remote_field, 'field', None)
+             if not private_only or not getattr(cls, self.attname, None):
+-                setattr(cls, self.attname, self.descriptor_class(self, related_field))
++                setattr(cls, self.attname, descriptor)
+         elif not private_only:
+-            # If self.column is None, this is an F() expression defined
+-            # models.py, not contributing an attribute to the real model. Let
+-            # the default manager find this field instead.
+-            # FIXME: Remove this condition when F() expressions defined in
+-            # models.py are removed (deprecated in Django 3.1).
+-            setattr(cls, self.attname, self.descriptor_class(self))
++            setattr(cls, self.attname, descriptor)
+
+     def set_attributes_from_name(self, name):
+         if not self.name:
+```

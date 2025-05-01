@@ -1,0 +1,15 @@
+```patch
+--- a/django/forms/formsets.py
++++ b/django/forms/formsets.py
+@@ -5,5 +5,8 @@
+         """
+         if self._non_form_errors is None:
+             self.full_clean()
++        # Ensure the ErrorList rendered via __str__ uses the 'nonform' class.
++        if self._non_form_errors is not None:
++            self._non_form_errors.error_class = 'nonform'
+         return self._non_form_errors
+ 
+     @property
+
+```

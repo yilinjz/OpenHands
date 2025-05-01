@@ -1,0 +1,43 @@
+```diff
+--- a/django/db/models/fields/related.py
++++ b/django/db/models/fields/related.py
+@@ -1017,6 +1017,9 @@
+             )
+         self.has_null_arg = 'null' in kwargs
+
++        # Store the original related_name argument for checks
++        self._related_name_passed_by_user = related_name
++
+         super().__init__(
+             related_name=related_name,
+             related_query_name=related_query_name,
+@@ -1034,6 +1037,7 @@
+             *self._check_relationship_model(**kwargs),
+             *self._check_ignored_options(**kwargs),
+             *self._check_table_uniqueness(**kwargs),
++            *self._check_related_name_for_symmetrical(**kwargs),
+         ]
+
+     def _check_unique(self, **kwargs):
+@@ -1106,6 +1110,19 @@
+             ]
+         return []
+
++    def _check_related_name_for_symmetrical(self, **kwargs):
++        if self.remote_field.symmetrical and self._related_name_passed_by_user is not None:
++            return [
++                checks.Error(
++                    "related_name must not be provided for symmetrical "
++                    "ManyToManyField instances.",
++                    hint="Remove the related_name argument.",
++                    obj=self,
++                    id='fields.E332',
++                )
++            ]
++        return []
++
+     def _check_relationship_model(self, from_model=None, **kwargs):
+         if self.remote_field.through is not None and not self.remote_field.through._meta.auto_created:
+             # Skip checks if the through model is abstract.
+
+```

@@ -1,0 +1,12 @@
+```patch
+--- a/django/db/models/expressions.py
++++ b/django/db/models/expressions.py
+@@ -713,6 +713,7 @@
+         # Deepcopy the query goal is to create a new query object which is
+         # decoupled from the original queryset. See RefsOuterRefs test case.
+         self.query = queryset.query.chain(Query)
++        self.query.subquery = True
+         if not self.output_field:
+             # If output_field is not specified, guess it from the queryset.
+             if self.query.values_select:
+```

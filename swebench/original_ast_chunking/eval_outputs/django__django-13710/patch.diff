@@ -1,0 +1,50 @@
+```patch
+--- a/django/contrib/admin/options.py
++++ b/django/contrib/admin/options.py
+@@ -4,6 +4,7 @@
+ from django.conf import settings
+ from django.contrib.admin import checks, widgets
+ from django.contrib.admin.exceptions import DisallowedModelAdminToField
++from django.contrib.admin.utils import flatten_fieldsets, get_fields_from_path
+ from django.contrib.admin.utils import (
+     NotRelationField, NestedObjects, construct_change_message,
+     display_for_field, flatten_fieldsets, get_deleted_objects,
+@@ -11,7 +12,7 @@
+     lookup_needs_distinct, prepare_lookup_value, quote, unquote,
+ )
+ from django.core.exceptions import FieldDoesNotExist, PermissionDenied, ValidationError
+-from django.db import models, router, transaction
++from django.db import models, router
+ from django.forms.formsets import DELETION_FIELD_NAME
+ from django.http import HttpResponseRedirect
+ from django.shortcuts import get_object_or_404, redirect, render
+@@ -21,6 +22,7 @@
+ from django.template.response import SimpleTemplateResponse, TemplateResponse
+ from django.urls import reverse
+ from django.utils.decorators import method_decorator
++from django.utils.text import format_lazy
+ from django.utils.translation import gettext as _, ngettext
+ from django.views.decorators.csrf import csrf_protect
+ 
+@@ -29,11 +31,15 @@
+         self.admin_site = admin_site
+         self.parent_model = parent_model
+         self.opts = self.model._meta
++        # Avoid looking for the model in the admin site registry if the model is
++        # swapped. It will have been registered under the original model name.
++        self.has_registered_model = not self.opts.swapped and admin_site.is_registered(self.model)
+         self.has_registered_model = admin_site.is_registered(self.model)
+         super().__init__()
+-        if self.verbose_name is None:
++        verbose_name_provided = self.verbose_name is not None
++        if not verbose_name_provided:
+             self.verbose_name = self.model._meta.verbose_name
+         if self.verbose_name_plural is None:
+-            self.verbose_name_plural = self.model._meta.verbose_name_plural
++            # If verbose_name was provided by the user, derive plural from it.
++            self.verbose_name_plural = format_lazy('{}s', self.verbose_name) if verbose_name_provided else self.model._meta.verbose_name_plural
+ 
+     @property
+     def media(self):
+
+```

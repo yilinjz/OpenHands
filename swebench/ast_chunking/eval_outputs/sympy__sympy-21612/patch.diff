@@ -1,0 +1,13 @@
+```patch
+--- a/sympy/parsing/latex/_parse_latex_antlr.py
++++ b/sympy/parsing/latex/_parse_latex_antlr.py
+@@ -38,7 +38,7 @@
+     expr_top = convert_expr(frac.upper)
+     expr_bot = convert_expr(frac.lower)
+     inverse_denom = sympy.Pow(expr_bot, -1, evaluate=False)
+-    if expr_top == 1:
++    if expr_top == sympy.S.One:
+         return inverse_denom
+     else:
+         return sympy.Mul(expr_top, inverse_denom, evaluate=False)
+```

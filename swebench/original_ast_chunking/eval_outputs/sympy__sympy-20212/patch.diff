@@ -1,0 +1,22 @@
+```patch
+--- a/sympy/core/power.py
++++ b/sympy/core/power.py
+@@ -111,6 +111,8 @@
+ 
+         if evaluate:
+             if e is S.ComplexInfinity:
++                # zoo as exponent is always NaN, even 1**zoo, 0**zoo
++                # see discussion in https://github.com/sympy/sympy/issues/6916
+                 return S.NaN
+             if e is S.Zero:
+                 return S.One
+@@ -118,6 +120,8 @@
+                 return b
+             elif e == -1 and not b:
+                 return S.ComplexInfinity
++            elif b is S.Zero and e is S.NegativeInfinity:
++                return S.ComplexInfinity # 0**-oo is zoo
+             # Only perform autosimplification if exponent or base is a Symbol or number
+             elif (b.is_Symbol or b.is_number) and (e.is_Symbol or e.is_number) and\
+                 e.is_integer and _coeff_isneg(b):
+```

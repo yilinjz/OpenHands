@@ -1,0 +1,17 @@
+```patch
+--- a/sympy/parsing/mathematica.py
++++ b/sympy/parsing/mathematica.py
+@@ -100,8 +100,9 @@
+         (?P<float>([+-]?\d+\.\d*|\.\d+)([eE][+-]?\d+)?) |
+         (?P<integer>[+-]?\d+) |
+         # Mathematica identifiers: can start with letter or $, contain letters, numbers, $
+-        # TODO: Needs proper Unicode support
+-        (?P<identifier>[a-zA-Z\$][a-zA-Z0-9\$]*) |
++        # Use \w for Unicode letters/numbers/_, add $, exclude leading digits/_.
++        # Start: non-digit, non-whitespace, non-underscore OR $
++        # Rest: \w (Unicode alphanum + _) OR $
++        (?P<identifier>([^\W\d_]|\$)[\w\$]*) |
+         # Operators: sequence of non-alphanumeric, non-whitespace, non-delimiter chars
+         # Need to be careful with characters like ., +, - which can be part of numbers
+         (?P<operator>[+\-*/^=<>!@&|;?~:%#\$']+) |
+```

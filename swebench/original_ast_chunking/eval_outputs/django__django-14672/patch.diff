@@ -1,0 +1,13 @@
+```patch
+--- a/django/db/models/fields/reverse_related.py
++++ b/django/db/models/fields/reverse_related.py
+@@ -201,7 +201,7 @@
+         # the relation object.
+         identity = super().identity + (
+             self.through._meta.label_lower if self.through else None,
+-            self.through_fields,
++            make_hashable(self.through_fields),
+             self.symmetrical,
+             self.db_constraint,
+         )
+```

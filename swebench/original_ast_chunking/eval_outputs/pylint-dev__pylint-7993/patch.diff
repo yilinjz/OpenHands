@@ -1,0 +1,27 @@
+```patch
+--- a/pylint/reporters/text.py
++++ b/pylint/reporters/text.py
+@@ -1,5 +1,10 @@
+ # Licensed under the GPL: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ # For details: https://github.com/PyCQA/pylint/blob/main/LICENSE
++
++from __future__ import annotations
++
++import re
++import warnings
+ from dataclasses import asdict
+ from typing import TYPE_CHECKING, TextIO
+ 
+@@ -23,7 +28,10 @@
+         self._template = template
+ 
+         # Check to see if all parameters in the template are attributes of the Message
+-        arguments = re.findall(r"\{(.+?)(:.*)?\}", template)
++        # Use a stricter regex to match only valid Python identifiers as field names,
++        # preventing issues with literal braces in the template.
++        # Matches {field_name} or {field_name!conversion} or {field_name:format_spec}
++        arguments = re.findall(r"\{([a-zA-Z_]\w*?)([:!].*)?\}", template)
+         for argument in arguments:
+             if argument[0] not in MESSAGE_FIELDS:
+                 warnings.warn(
+```

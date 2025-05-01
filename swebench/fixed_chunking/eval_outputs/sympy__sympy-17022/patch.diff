@@ -1,0 +1,121 @@
+```patch
+--- a/sympy/printing/lambdarepr.py
++++ b/sympy/printing/lambdarepr.py
+@@ -16,7 +16,7 @@
+ from sympy.core.compatibility import string_types, range
+ from sympy.core.function import UndefinedFunction
+ from sympy.external import import_module
+-from sympy.matrices import (MatrixBase, MatrixSlice, BlockMatrix, Identity,
++from sympy.matrices import (MatrixBase, MatrixSlice, BlockMatrix, Identity,
+                             ZeroMatrix, OneMatrix, DiagonalMatrix, DiagonalOf)
+ from sympy.tensor.array import NDimArray, DenseNDimArray, SparseNDimArray
+ from sympy.utilities.decorator import doctest_depends_on
+@@ -216,6 +216,10 @@
+         # Tensorflow specific printing of DiagMatrix
+         return "%s(%s)" % (self._module_format('diag'), self._print(expr.diagonal()))
+
++    def _print_Identity(self, expr):
++        # Tensorflow specific printing of Identity matrix
++        return "%s(%s)" % (self._module_format('eye'), self._print(expr.shape[0]))
++
+     def _print_Min(self, expr):
+         return "{0}({1})".format(self._module_format('reduce_min'), ', '.join(map(self._print, expr.args)))
+
+@@ -305,6 +309,10 @@
+         # Numpy specific printing of DiagMatrix
+         return "%s(%s)" % (self._module_format('diag'), self._print(expr.diagonal()))
+
++    def _print_Identity(self, expr):
++        # Numpy specific printing of Identity matrix
++        return "%s(%s)" % (self._module_format('eye'), self._print(expr.shape[0]))
++
+     def _print_MatrixBase(self, expr):
+         # Handle zero dimensions:
+         if expr.rows == 0 or expr.cols == 0:
+@@ -441,6 +449,10 @@
+         # Mpmath specific printing of DiagMatrix
+         return "%s(%s)" % (self._module_format('diag'), self._print(expr.diagonal()))
+
++    def _print_Identity(self, expr):
++        # Mpmath specific printing of Identity matrix
++        return "%s(%s)" % (self._module_format('eye'), self._print(expr.shape[0]))
++
+     def _print_Piecewise(self, expr):
+         # Taken from NumPyPrinter._print_Piecewise
+         "Piecewise function printer"
+
+--- a/sympy/utilities/tests/test_lambdify.py
++++ b/sympy/utilities/tests/test_lambdify.py
+@@ -1,6 +1,6 @@
+ from __future__ import division, print_function, absolute_import
+
+-from sympy import (symbols, lambdify, Matrix, MatrixSymbol, Function, sin, cos,
++from sympy import (symbols, lambdify, Matrix, MatrixSymbol, Function, sin, cos, I,
+                    tan, Mod, floor, ceiling, complex_valued, Dummy, Eq, Piecewise,
+                    Sum, factorial, gamma, loggamma, beta, polygamma, Abs, Max, Min,
+                    sign, conjugate, cot, acot, coth, acoth, sec, asec, csc, acsc,
+@@ -8,7 +8,7 @@
+                    re, im, arg, erf, erfc, erfinv, erfcinv, log, exp, sqrt, E,
+                    Rational, Float, Integer, Symbol, true, false, And, Or, Not, Xor,
+                    ITE, UnevaluatedExpr, oo, nan, zoo, pi, lowergamma, uppergamma,
+-                   LambertW, zeta, dirichlet_eta, KroneckerDelta, LeviCivita)
++                   LambertW, zeta, dirichlet_eta, KroneckerDelta, LeviCivita, Identity)
+ from sympy.codegen.cfunctions import Sqrt, log1p, expm1
+ from sympy.core.compatibility import range, PY3
+ from sympy.external import import_module
+@@ -1008,3 +1008,54 @@
+     assert f(1, 2) == 0
+     assert f(1, 1) == 1
+     assert f(2, 1) == 0
++
++
++def test_lambdify_matrix_identity():
++    # Test for issue #14719
++    # Ensure Identity matrix prints correctly for numpy/mpmath/tensorflow
++    n = symbols('n', integer=True)
++    A = MatrixSymbol("A", n, n)
++    Idn = Identity(n)
++    Id2 = Identity(2)
++    B = MatrixSymbol("B", 2, 2)
++    x = symbols('x')
++
++    # Numpy
++    np = import_module('numpy')
++    if np:
++        a = np.array([[1, 2], [3, 4]])
++        # Case 1: Symbolic dimension n passed as argument
++        f_sym = lambdify((A, n), A + Idn, modules='numpy')
++        np.testing.assert_array_equal(f_sym(a, 2), np.array([[2., 2.], [3., 5.]]))
++
++        # Case 2: Concrete dimension in expression
++        f_con = lambdify(B, B + Id2, modules='numpy')
++        np.testing.assert_array_equal(f_con(a), np.array([[2., 2.], [3., 5.]]))
++
++        # Case 3: Check generated code uses 'eye'
++        import inspect
++        assert 'eye' in inspect.getsource(f_con)
++
++        # Case 4: Ensure sympy.I still works and prints 'I'
++        f_I = lambdify(x, x + I, modules='numpy')
++        assert f_I(1) == 1 + 1j
++        assert 'I' in inspect.getsource(f_I) # Should print 'I' for sympy.I
++        assert f_I.__globals__['I'] == 1j # Check namespace mapping
++
++    # Mpmath
++    mpmath = import_module('mpmath')
++    if mpmath:
++        a = mpmath.matrix([[1, 2], [3, 4]])
++        # Case 1: Symbolic dimension n passed as argument
++        f_sym = lambdify((A, n), A + Idn, modules='mpmath')
++        assert f_sym(a, 2) == mpmath.matrix([[2, 2], [3, 5]])
++
++        # Case 2: Concrete dimension in expression
++        f_con = lambdify(B, B + Id2, modules='mpmath')
++        assert f_con(a) == mpmath.matrix([[2, 2], [3, 5]])
++
++        # Case 4: Ensure sympy.I still works
++        f_I = lambdify(x, x + I, modules='mpmath')
++        assert f_I(1) == mpmath.mpc(1, 1) # mpmath complex number
++
++    # Tensorflow test could be added here if needed
+```

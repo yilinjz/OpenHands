@@ -1,0 +1,29 @@
+```diff
+--- a/src/_pytest/skipping.py
++++ b/src/_pytest/skipping.py
+@@ -190,9 +190,21 @@
+ 
+     outcome = yield
+     report = outcome.get_result()
+-    evalxfail = getattr(item, "_evalxfail", None)
++
++    # Re-evaluate xfail marker for the call phase report, in case
++    # it was added dynamically during the test execution using
++    # request.node.add_marker(pytest.mark.xfail). Fixes #7799.
++    if report.when == "call":
++        xfail_marker = item.get_closest_marker("xfail")
++        if xfail_marker:
++            evalxfail: Optional[EvalXFail] = EvalXFail(item, xfail_marker)
++            item._evalxfail = evalxfail  # Update stored evalxfail for consistency.
++        else:
++            evalxfail = None
++            if hasattr(item, "_evalxfail"):
++                delattr(item, "_evalxfail")  # Clear if marker removed dynamically.
++    else:
++        # For setup/teardown, use the previously evaluated status.
++        evalxfail = getattr(item, "_evalxfail", None)
+
+     # Check if the test item was explicitly marked as xfail.
+     if evalxfail and evalxfail.wasvalid() and evalxfail.istrue():
+
+```

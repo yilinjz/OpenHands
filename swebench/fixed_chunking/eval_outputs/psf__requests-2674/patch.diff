@@ -1,0 +1,127 @@
+```patch
+--- a/requests/adapters.py
++++ b/requests/adapters.py
+@@ -36,12 +36,19 @@
+ from .compat import urlparse, basestring, urldefrag, unquote
+ from ._internal_utils import to_native_string
+ from .exceptions import (ConnectionError, ConnectTimeout, ReadTimeout, SSLError,
+-                         ProxyError, RetryError, InvalidSchema, InvalidURL)
++                         ProxyError, RetryError, InvalidSchema, InvalidURL, Timeout,
++                         ContentDecodingError, RequestException)
+ from .structures import CaseInsensitiveDict
+ from .utils import (get_encoding_from_headers, prepend_scheme_if_needed,
+                     get_auth_from_url, urldata, select_proxy)
+ from .cookies import extract_cookies_to_jar
+ from .packages.urllib3.exceptions import (
++    ConnectTimeoutError,
++    ReadTimeoutError,
++    NewConnectionError,
++    ProtocolError as _ProtocolError,
++    DecodeError as _DecodeError,
++    TimeoutError as _TimeoutError,
+     MaxRetryError,
+     SSLError as _SSLError,
+     ProxyError as _ProxyError,
+@@ -450,6 +457,10 @@
+             raise ConnectionError(err, request=request)
+ 
+         except SubjectAltNameWarning as err:
++            # In Python 3, this warning is caught as SSLError. Read more:
++            # https://github.com/shazow/urllib3/issues/1084
++            pass
++
+         except (BaseSSLError, CertificateError) as err:
+             # Handle specific SSL errors separately from other socket errors
+             if isinstance(err, CertificateError):
+@@ -464,6 +475,10 @@
+             # Catch read timeouts that occur during the initial connection
+             # attempt / request sending.
+             raise ReadTimeout(err, request=request)
++
++        # Catch specific urllib3 ReadTimeoutErrors first.
++        except ReadTimeoutError as err:
++            raise ReadTimeout(err, request=request)
+ 
+         except MaxRetryError as e:
+             if isinstance(e.reason, ConnectTimeoutError):
+@@ -487,13 +502,23 @@
+         except _ProxyError as e:
+             raise ProxyError(e)
+ 
+-        except (_SSLError, _HTTPError) as e:
++        # Catch other urllib3 errors
++        except (_SSLError,) as e:
++            # Catch remaining SSLErrors
+             if isinstance(e, _SSLError):
+                 raise SSLError(e, request=request)
+-            elif isinstance(e, ReadTimeoutError):
+-                # This branch is hopefully not reachable after adding specific ReadTimeoutError catch
+-                raise ReadTimeout(e, request=request)
+             else:
+-                pass
++                # This branch should not be hit, but as a safety measure raise generic RequestException.
++                raise RequestException(e, request=request)
++
++        except _ProtocolError as e:
++            raise ConnectionError(e, request=request)
++
++        except _DecodeError as e:
++            raise ContentDecodingError(e, request=request)
++
++        except _TimeoutError as e: # Fallback for base TimeoutError
++            raise Timeout(e, request=request)
+ 
+         except _HTTPError as e:
++            # Catch any remaining urllib3 HTTPError types
+             raise RequestException(e, request=request)
+ 
+         return self.build_response(request, resp)
+--- a/requests/exceptions.py
++++ b/requests/exceptions.py
+@@ -9,7 +9,7 @@
+ This module contains the set of Requests' exceptions.
+ 
+ """
+-from .packages.urllib3.exceptions import HTTPError as BaseHTTPError
++from .packages.urllib3.exceptions import DecodeError as _DecodeError, HTTPError as BaseHTTPError
+ 
+ 
+ class RequestException(IOError):
+@@ -80,7 +80,7 @@
+     """The server declared chunked encoding but sent an invalid chunk."""
+ 
+ 
+-class ContentDecodingError(RequestException):
++class ContentDecodingError(RequestException, BaseHTTPError):
+     """Failed to decode response content"""
+ 
+ 
+--- a/requests/models.py
++++ b/requests/models.py
+@@ -1,6 +1,10 @@
+ # -*- coding: utf-8 -*-
+ 
+ from .packages.urllib3.exceptions import (
++    DecodeError as Urllib3DecodeError,
++    ReadTimeoutError as Urllib3ReadTimeoutError,
++    ProtocolError as Urllib3ProtocolError,
++)
+ from .exceptions import (
+     RequestException, ConnectionError, HTTPError, StreamConsumedError,
+     ContentDecodingError, ChunkedEncodingError, RetryError, UnrewindableBodyError,
+@@ -751,10 +755,10 @@
+                 # Content-Length is defined. This check can be removed once
+                 # https://github.com/shazow/urllib3/issues/1084 is resolved.
+                 pass
+-            except (ProtocolError, DecodeError, ReadTimeoutError, AttributeError) as e:
+-                # Don't test for AttributeError because it's a bug in pyOpenSSL
+-                # See: https://github.com/shazow/urllib3/issues/1099
++            except Urllib3DecodeError as e:
++                raise ContentDecodingError(e)
++            except (Urllib3ProtocolError, AttributeError) as e:
+                 raise ChunkedEncodingError(e)
+-            except (_ConnectionError, _SocketError) as e:
++            except (_ConnectionError, _SocketError, Urllib3ReadTimeoutError) as e:
+                 # Catch ReadTimeoutError separately because it does not inherit from SocketError.
+                 raise ConnectionError(e)
+```

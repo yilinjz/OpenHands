@@ -1,0 +1,21 @@
+```diff
+--- a/django/db/models/query.py
++++ b/django/db/models/query.py
+@@ -908,8 +908,13 @@
+ 
+     def none(self):
+         """Return an empty QuerySet."""
+-        clone = self._chain()
++        clone = self._chain()
++        # If this is a combined query, cloning it will preserve the
++        # combinator. Clear the combination state to ensure the query is truly
++        # empty.
++        if clone.query.combinator:
++            clone.query.combinator = None
++            clone.query.combined_queries = ()
++            clone.query.combinator_all = False
+         clone.query.set_empty()
+         return clone
+ 
+
+```

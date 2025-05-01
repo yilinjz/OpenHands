@@ -1,0 +1,17 @@
+```patch
+--- a/django/utils/autoreload.py
++++ b/django/utils/autoreload.py
+@@ -160,6 +160,12 @@
+
+     def _watched_files(self, include_globs=True):
+         """Yield all files that need to be watched."""
++        # Add the script that started the process.
++        if sys.argv[0]:
++            script_path = Path(sys.argv[0]).resolve()
++            if script_path.is_file():
++                yield script_path
++
+         # sys.path contains duplicate directories (like site-packages).
+         # Watch only the unique directories.
+         watched_dirs = {Path(p).resolve() for p in sys.path if Path(p).is_dir()}
+```

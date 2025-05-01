@@ -1,0 +1,22 @@
+```patch
+--- a/src/_pytest/python.py
++++ b/src/_pytest/python.py
+@@ -38,10 +38,12 @@
+             if e.allow_module_level:
+                 raise
+             raise self.CollectError(
+-                "Using pytest.skip outside of a test is not allowed. "
+-                "To decorate a test function, use the @pytest.mark.skip "
+-                "or @pytest.mark.skipif decorators instead, and to skip a "
+-                "module use `pytestmark = pytest.mark.{skip,skipif}."
++                "Using pytest.skip outside of a test function is not allowed, unless "
++                "allow_module_level=True is used. To skip a test function, use the "
++                "@pytest.mark.skip or @pytest.mark.skipif decorators. To skip a module during "
++                "collection, use pytest.skip(..., allow_module_level=True) at the module level. "
++                "Using pytestmark = pytest.mark.skipif is generally recommended for conditional skipping "
++                "of modules, but may not work if the module contains syntax errors in the "
++                "skipping Python version."
+             ) from e
+         self.config.pluginmanager.consider_module(mod)
+         return mod
+```

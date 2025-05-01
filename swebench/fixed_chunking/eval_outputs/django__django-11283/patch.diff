@@ -1,0 +1,114 @@
+```patch
+--- a/django/contrib/auth/migrations/0011_update_proxy_permissions.py
++++ b/django/contrib/auth/migrations/0011_update_proxy_permissions.py
+@@ -1,30 +1,66 @@
+ from django.db import migrations
+-from django.db.models import Q
+ 
+ 
+ def update_proxy_model_permissions(apps, schema_editor, reverse=False):
+     """
+     Update the content_type of proxy model permissions to use the ContentType
+-    of the proxy model.
++    of the proxy model, or revert them to the concrete model's ContentType.
++
++    If a permission exists for the target content_type, the permission for the
++    source content_type is removed.
+     """
+     Permission = apps.get_model('auth', 'Permission')
+     ContentType = apps.get_model('contenttypes', 'ContentType')
++    db_alias = schema_editor.connection.alias
++
+     for Model in apps.get_models():
+         opts = Model._meta
+         if not opts.proxy:
+             continue
+-        proxy_default_permissions_codenames = [
+-            '%s_%s' % (action, opts.model_name)
+-            for action in opts.default_permissions
+-        ]
+-        permissions_query = Q(codename__in=proxy_default_permissions_codenames)
++
++        concrete_model = opts.concrete_model
++        try:
++            # Ensure we are using the ContentType from the correct app state
++            concrete_content_type = ContentType.objects.using(db_alias).get_for_model(
++                concrete_model, for_concrete_model=True
++            )
++            proxy_content_type = ContentType.objects.using(db_alias).get_for_model(
++                Model, for_concrete_model=False
++            )
++        except ContentType.DoesNotExist:
++            # Content types might not exist in edge cases (e.g. removing app
++            # without migrating first).
++            continue
++
++        if concrete_content_type == proxy_content_type:
++            # This model's proxy permissions are already correct.
++            continue
++
++        if reverse:
++            source_content_type = proxy_content_type
++            target_content_type = concrete_content_type
++        else:
++            source_content_type = concrete_content_type
++            target_content_type = proxy_content_type
++
++        # Permissions codenames to check
++        permissions_codenames = set()
++        # Default permissions
++        for action in opts.default_permissions:
++            permissions_codenames.add('%s_%s' % (action, opts.model_name))
++        # Custom permissions
+         for codename, name in opts.permissions:
+-            permissions_query = permissions_query | Q(codename=codename, name=name)
+-        concrete_content_type = ContentType.objects.get_for_model(Model, for_concrete_model=True)
+-        proxy_content_type = ContentType.objects.get_for_model(Model, for_concrete_model=False)
+-        old_content_type = proxy_content_type if reverse else concrete_content_type
+-        new_content_type = concrete_content_type if reverse else proxy_content_type
+-        Permission.objects.filter(
+-            permissions_query,
+-            content_type=old_content_type,
+-        ).update(content_type=new_content_type)
++            permissions_codenames.add(codename)
++
++        # Find permissions associated with the source content type.
++        source_permissions = Permission.objects.using(db_alias).filter(
++            content_type=source_content_type,
++            codename__in=permissions_codenames,
++        )
++        # Find existing permissions associated with the target content type.
++        target_permission_codenames = set(
++            Permission.objects.using(db_alias).filter(
++                content_type=target_content_type,
++                codename__in=permissions_codenames,
++            ).values_list('codename', flat=True)
++        )
++
++        permissions_to_delete_pks = []
++        permissions_to_update_pks = []
++        for perm in source_permissions:
++            if perm.codename in target_permission_codenames:
++                # Permission exists on the target content type, remove the
++                # source permission.
++                permissions_to_delete_pks.append(perm.pk)
++            else:
++                # Permission doesn't exist on the target content type, update
++                # the source permission.
++                permissions_to_update_pks.append(perm.pk)
++                # Add codename to target set to handle potential duplicates
++                # within the source_permissions list itself (which shouldn't
++                # happen with the unique constraint but is safer).
++                target_permission_codenames.add(perm.codename)
++
++        # Perform bulk operations.
++        if permissions_to_delete_pks:
++            Permission.objects.using(db_alias).filter(pk__in=permissions_to_delete_pks).delete()
++        if permissions_to_update_pks:
++            Permission.objects.using(db_alias).filter(pk__in=permissions_to_update_pks).update(
++                content_type=target_content_type
++            )
+ 
+ 
+ def revert_proxy_model_permissions(apps, schema_editor):
+```

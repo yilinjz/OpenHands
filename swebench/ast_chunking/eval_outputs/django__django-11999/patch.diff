@@ -1,0 +1,17 @@
+```diff
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -761,9 +761,10 @@
+             # if the model defines a field with the same name as a classmethod.
+             if not isinstance(getattr(cls, self.attname, None), classmethod):
+                 setattr(cls, self.attname, self)
+-        if self.choices:
++        # Only contribute the get_FIELD_display() method if the model doesn't
++        # already define a method with that name.
++        if self.choices and not hasattr(cls, 'get_%s_display' % self.name):
+             setattr(cls, 'get_%s_display' % self.name,
+                     curry(cls._get_FIELD_display, field=self))
+ 
+     def _check_fix_default_value(self):
+
+```

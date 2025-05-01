@@ -1,0 +1,16 @@
+```patch
+--- a/django/db/models/lookups.py
++++ b/django/db/models/lookups.py
+@@ -162,10 +162,7 @@
+             # Note that this will be used for SQLite, MySQL, and Oracle
+             # backends as they don't support VALUES lists.
+             if not self.rhs and not connection.features.can_use_in_subquery_with_values:
+-                # This will be executed for SQLite, MySQL, Oracle with empty list.
+-                # QuerySet(filter=~Q(pk__in=[])).exists() is False.
+-                # See #26753.
+-                return self.get_compiler(compiler.query.where_class).compile(self)
++                return '1=0', []
+
+             max_in_list_size = connection.ops.max_in_list_size()
+             if max_in_list_size and len(self.rhs) > max_in_list_size:
+```

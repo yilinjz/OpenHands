@@ -1,0 +1,23 @@
+```patch
+--- a/sympy/physics/units/util.py
++++ b/sympy/physics/units/util.py
+@@ -52,9 +52,14 @@
+ 
+     expr = sympify(expr)
+ 
+-    if not isinstance(expr, Quantity) and expr.has(Quantity):
+-        expr = expr.replace(lambda x: isinstance(x, Quantity), lambda x: x.convert_to(target_units, unit_system))
+-
++    # The following block was removed because it attempted component-wise conversion
++    # before checking overall dimensional consistency. This led to incorrect results
++    # or errors when a component's dimension didn't match the target units, or when
++    # the target units couldn't represent the overall expression's dimension.
++    # See issue #17170 on GitHub (https://github.com/sympy/sympy/issues/17170).
++    # Example: convert_to(joule*second, joule) would incorrectly try to convert
++    # `second` to `joule` dimensionally, leading to unexpected results.
++    # if not isinstance(expr, Quantity) and expr.has(Quantity):
++    #     expr = expr.replace(lambda x: isinstance(x, Quantity), lambda x: x.convert_to(target_units, unit_system))
+     def get_total_scale_factor(expr):
+         if isinstance(expr, Mul):
+             return reduce(lambda x, y: x * y, [get_total_scale_factor(i) for i in expr.args])
+```

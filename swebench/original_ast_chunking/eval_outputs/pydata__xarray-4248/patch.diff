@@ -1,0 +1,55 @@
+```patch
+--- a/xarray/core/formatting.py
++++ b/xarray/core/formatting.py
+@@ -191,10 +191,15 @@
+     extra_padding_width = 2
+ 
+     max_name_length = 0
++    unit_strs = {}
+     if variables:
+         max_name_length = max(len(k) for k in variables)
++        for k, v in variables:
++            unit_str = ""
++            if "units" in v.attrs and v.attrs["units"]:
++                unit_str = f", in {v.attrs['units']}"
++            unit_strs[k] = unit_str
++            max_name_length = max(max_name_length, len(k) + len(unit_str))
+ 
+     col_width = max(max_name_length, len(title)) + extra_padding_width
+ 
+@@ -202,7 +207,7 @@
+     summary = [f"{title}:"]
+ 
+     if variables:
+-        summary += [summarize_var_or_coord(k, v, is_index, col_width) for k, v in variables]
++        summary += [summarize_var_or_coord(k, v, is_index, col_width, unit_strs.get(k, "")) for k, v in variables]
+     else:
+         summary += ["    None"]
+ 
+@@ -210,7 +215,7 @@
+ 
+ 
+ def summarize_var_or_coord(
+-    name: Hashable, var: Variable, is_index: bool, col_width: int
++    name: Hashable, var: Variable, is_index: bool, col_width: int, unit_str: str
+ ) -> str:
+     """Summarize a single variable or coordinate.
+ 
+@@ -220,6 +225,7 @@
+     var : Variable
+         Variable to summarize.
+     col_width : int
++    unit_str : str
+         Width of the first column_width in the output string.
+     """
+     if is_index:
+@@ -230,7 +236,7 @@
+     else:
+         coord_marker = ""
+ 
+-    first_col = f"{index_marker}{name}{coord_marker}"
++    first_col = f"{index_marker}{name}{unit_str}{coord_marker}"
+ 
+     dims_str = f"({', '.join(map(str, var.dims))})" if var.dims else ""
+ 
+```

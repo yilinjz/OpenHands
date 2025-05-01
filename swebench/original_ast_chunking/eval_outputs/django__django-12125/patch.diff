@@ -1,0 +1,78 @@
+```patch
+--- a/django/db/migrations/serializer.py
++++ b/django/db/migrations/serializer.py
+@@ -108,10 +108,13 @@
+         Return the string import path for a type object. Handles various
+         special cases, including django.db.models.
+         """
++        # Use __qualname__ for nested types. Python 3.3+ includes __qualname__
++        # on types. See https://www.python.org/dev/peps/pep-3155/
++        qualname = getattr(value, '__qualname__', value.__name__)
++
+         # Handle builtins like str or int
+         if hasattr(builtins, value.__name__) and getattr(builtins, value.__name__) == value:
+             return value.__name__
+-        # Handle standard library types like datetime.date
+         elif value.__module__ in {"datetime", "decimal", "enum", "pathlib", "uuid"}:
+             # N.B. We rely on the MigrationWriter import collector detecting
+             # these and adding the correct import statement.
+@@ -119,29 +122,20 @@
+             # these and adding the correct import statement.
+             # We could add them here but it would lead to confusing imports,
+             # e.g. "import datetime.datetime".
+-            # N.B. We use __qualname__ here to support nested types like
+-            # enum.EnumMeta. Python 3.3+ includes __qualname__ on types.
+-            # See https://www.python.org/dev/peps/pep-3155/
+-            qualname = getattr(value, '__qualname__', value.__name__)
+             return '%s.%s' % (value.__module__, qualname)
+         # Django fields are special-cased due to the models package
+         elif hasattr(value, "__module__") and value.__module__.startswith("django.db.models"):
+             # It's a Django model field. Use the models prefix.
+-            # N.B. We use __qualname__ here to support nested types like
+-            # models.ForeignKey. Fixes #24068
+-            qualname = getattr(value, '__qualname__', value.__name__)
+             # If it's a relation to a model which is defined in the same app
+             # as the field's model, don't include the module name.
+             # Else, include the module name.
+             # The check for module starting with "django.db.models" should
+             # be verified from the perspective of the MigrationWriter's
+             # ability to resolve the reference.
+-            if hasattr(value, '_meta') and hasattr(self.field, 'model'):
++            if hasattr(value, '_meta') and hasattr(self, 'field') and hasattr(self.field, 'model'):
+                 # It's a model class. If it's in the same app as the model
+                 # the field belongs to, omit the module path.
+                 if value._meta.app_label == self.field.model._meta.app_label:
+-                    return "models.%s" % qualname
++                    return "models.%s" % qualname
+             # It's a field class. Use the models prefix.
+             return "models.%s" % qualname
+         # Tries to resolve the value by finding the matching module and attribute
+@@ -149,9 +143,6 @@
+             module_name = value.__module__
+             # We use __qualname__ here to support nested types like
+             # Outer.Inner. Fixes #24068
+-            qualname = getattr(value, '__qualname__', value.__name__)
+-            # Check if the module is specified in the project's settings.
+-            # If in INSTALLED_APPS, use the app label.
+             # This isn't perfect, but it's the only way we can guess
+             # the correct reference in a reliable way.
+             # This is relied upon by the autodetector to produce references
+@@ -161,13 +152,12 @@
+                 app_label = apps.get_containing_app_config(module_name).label
+             except LookupError:
+                 # It's not in an app; proceed with the full module path
+-                pass
++                return '%s.%s' % (module_name, qualname)
+             else:
+                 # If the module is the models module for the app, references
+                 # inside the app can be shortened.
+                 # eg. myapp.models.MyModel -> models.MyModel
+                 app_models_module = '%s.models' % app_label
+                 if module_name == app_models_module:
+-                    return "models.%s" % qualname
+-
+-            # Fallback to the full path.
+-            return '%s.%s' % (module_name, qualname)
++                    return "models.%s" % qualname
++                return '%s.%s' % (module_name, qualname)
+```

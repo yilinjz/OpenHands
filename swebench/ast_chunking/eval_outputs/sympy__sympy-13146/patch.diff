@@ -1,0 +1,20 @@
+```patch
+--- a/sympy/core/power.py
++++ b/sympy/core/power.py
+@@ -238,10 +238,11 @@
+     def _eval_evalf(self, prec):
+         base, exp = self.as_base_exp()
+         base = base._evalf(prec)
+-        if not exp.is_Number:
+-             # if the exponent is not a number, we are done
+-             return Pow(base, exp)
+-        # keep precision tracking only if the exponent is an Integer
++        # Also evaluate the exponent if it is numeric
++        if exp.is_Number:
++            exp = exp._evalf(prec)
++
++        # Keep precision tracking only if the exponent is an Integer
+         # but raise the precision of the base if the exponent is not an integer
+         if not exp.is_Integer:
+             prec = prec + max(0, int(math.log(abs(exp.evalf(3)), 10))) # XXX
+```

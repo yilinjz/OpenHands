@@ -1,0 +1,16 @@
+```patch
+--- a/sympy/printing/pretty/pretty.py
++++ b/sympy/printing/pretty/pretty.py
+@@ -1403,10 +1403,6 @@
+                 # print integer root
+                 return prettyForm(*root(e.base, pform_b))
+
+-            # Is the exponent 1/symbol?
+-            if isinstance(e, Pow) and e.base.is_Symbol and e.exp == -1:
+-                # print symbol root
+-                return prettyForm(*root(self._print(e.exp), pform_b))
+-
+         # Add parens if base requires them. Generally, we need parens
+         # if the base has lower precedence than power, e.g. -2**2 = -4, but
+         # (-2)**2 = 4. Also, if the base is complex, e.g. (1+I)**2.
+```

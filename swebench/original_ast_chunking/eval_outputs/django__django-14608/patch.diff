@@ -1,0 +1,113 @@
+```patch
+--- a/django/forms/formsets.py
++++ b/django/forms/formsets.py
+@@ -106,7 +106,7 @@
+         self._errors = None
+         self._non_form_errors = None
+ 
+-        messages = {}
++        messages = {}  # type: Dict[str, str]
+         for cls in reversed(type(self).__mro__):
+             messages.update(getattr(cls, 'default_error_messages', {}))
+         if error_messages is not None:
+@@ -130,7 +130,7 @@
+         if self._non_form_errors is None:
+             self.full_clean()
+         # Return a copy so that modifying the list does not affect the formset.
+-        return self._non_form_errors.copy()
++        return self._non_form_errors
+ 
+     @property
+     def errors(self):
+@@ -226,11 +226,11 @@
+         # Give self.clean() a chance to raise ValidationErrors.
+         try:
+             self.clean()
+-        except ValidationError as e:
+-            self._non_form_errors = self.error_class(e.error_list)
++        except ValidationError as e:  # type: ignore[misc]
++            self._non_form_errors = self.error_class(e.error_list, error_class='nonform')
+         else:
+             # If there were no errors, instantiate an empty error list.
+-            self._non_form_errors = self.error_class()
++            self._non_form_errors = self.error_class(error_class='nonform')
+ 
+     def clean(self):
+         """
+--- a/django/forms/forms.py
++++ b/django/forms/forms.py
+@@ -427,11 +427,11 @@
+         # Give self.clean() a chance to raise ValidationErrors.
+         try:
+             self.clean()
+-        except ValidationError as e:
+-            self.add_error(None, e)
++        except ValidationError as e:  # type: ignore[misc]
++            self.add_error(None, e)  # This will create/use self._non_field_errors
+         else:
+             # If there were no errors, instantiate an empty error list.
+-            self._non_field_errors = self.error_class()
++            self._non_field_errors = self.error_class(error_class='nonfield')
+ 
+     def clean(self):
+         """
+@@ -470,7 +470,7 @@
+         """
+         if self._non_field_errors is None:
+             self.full_clean()
+-        return self._non_field_errors
++        return self._non_field_errors  # Already has 'nonfield' class set
+ 
+     def add_error(self, field, error):
+         """
+@@ -490,7 +490,7 @@
+             self._errors[field].append(error)
+             if field is not None and field != NON_FIELD_ERRORS and field in self.fields:
+                 self.fields[field].widget.attrs = {'class': self.error_css_class}
+-        else:
++        elif field is None:  # NON_FIELD_ERRORS
+             # Non-field errors
+             if self._non_field_errors is None:
+                 self._non_field_errors = self.error_class(error_class='nonfield')
+--- a/django/forms/utils.py
++++ b/django/forms/utils.py
+@@ -22,9 +22,10 @@
+     A collection of errors that knows how to display itself in various HTML
+     formats.
+     """
+-    def __init__(self, initlist=None):
++    def __init__(self, initlist=None, error_class=None):
+         super().__init__(initlist or [])
+         self.error_class = error_class
++        self._cached_html_output = None
+ 
+     def as_data(self):
+         return list(self)
+@@ -41,14 +42,21 @@
+ 
+     def as_ul(self):
+         if not self:
+-            return ''
++            return mark_safe('')
++        if self._cached_html_output is None:
++            css_classes = ['errorlist']
++            if self.error_class:
++                css_classes.append(self.error_class)
+ 
+-        return format_html(
+-            '<ul class="errorlist">{}</ul>',
+-            format_html_join('', '<li>{}</li>', ((e,) for e in self))
+-        )
++            self._cached_html_output = format_html(
++                '<ul class="{}">{}</ul>',
++                ' '.join(css_classes),
++                format_html_join('', '<li>{}</li>', ((e,) for e in self))
++            )
++        return self._cached_html_output
+ 
+     def as_text(self):
++        # Need to return a plain string for backwards compatibility.
+         return '\n'.join('* %s' % e for e in self)
+ 
+     def __str__(self):
+```

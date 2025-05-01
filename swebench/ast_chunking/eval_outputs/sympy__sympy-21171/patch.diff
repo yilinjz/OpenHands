@@ -1,0 +1,17 @@
+```patch
+--- a/sympy/printing/latex.py
++++ b/sympy/printing/latex.py
+@@ -1000,8 +1000,10 @@
+         return r"\operatorname{Ci}{\left(%s\right)}" % self._print(expr.args[0])
+
+     def _print_SingularityFunction(self, expr, exp=None):
++        # The argument 'exp' is assigned implicitly when printing Pow(function, exp).
+         x, a, n = expr.args
+         tex = r"\left\langle %s \right\rangle^{%s}" % (self._print(x - a),
+                                                      self._print(n))
++        if exp is not None:
++            tex = r"\left(%s\right)^{%s}" % (tex, exp)
+         return tex
+
+     def _print_Si(self, expr):
+```

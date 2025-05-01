@@ -1,0 +1,80 @@
+```patch
+--- a/sklearn/utils/_set_output.py
++++ b/sklearn/utils/_set_output.py
+@@ -1,5 +1,6 @@
+ """Utilities to configure the output of estimators."""
+ import numpy as np
++import pandas as pd
+ 
+ from ..base import BaseEstimator, MetaEstimatorMixin, is_classifier, is_regressor
+ from ..config import get_config
+@@ -43,28 +44,40 @@
+ 
+ 
+ def _wrap_in_pandas_container(data_to_wrap, *, columns, index):
+-    """Wrap numpy array in pandas DataFrame.
++    """Wrap data structure in a pandas container.
+ 
+     Parameters
+     ----------
+-    data_to_wrap : ndarray
++    data_to_wrap : {ndarray, DataFrame, Series}
+         Data to wrap.
+     columns : callable, ndarray, or None
+         Callable that returns the column names or array of column names.
+     index : Index or None
+-        Index from the original input.
++        Index to set on the wrapped container. If None, the index of
++        `data_to_wrap` is left unchanged if it's already a pandas container.
++        Otherwise, a default index is created.
+ 
+     Returns
+     -------
+-    DataFrame
++    pandas container
++        DataFrame or Series.
+     """
+     if hasattr(data_to_wrap, "iloc"):
+-        # Already a pandas object
++        # Already a pandas object (DataFrame or Series)
+         if callable(columns):
+             columns = columns()
+-        if columns is not None:
++        if columns is not None and hasattr(data_to_wrap, "columns"):
+             data_to_wrap.columns = columns
+-        if index is not None:
+-            data_to_wrap.index = index
++
++        # Only assign index if it's not None and length is consistent
++        if index is not None:
++            try:
++                if len(index) == data_to_wrap.shape[0]:
++                    data_to_wrap.index = index
++                # Else: Do not assign index if lengths mismatch
++            except AttributeError:
++                # data_to_wrap might not have shape (e.g. scalar)
++                # or index might not have len. Avoid assignment.
++                pass
+         return data_to_wrap
+ 
+     # Convert numpy array to pandas DataFrame
+@@ -72,4 +85,17 @@
+     if callable(columns):
+         columns = columns()
+ 
+-    return pd.DataFrame(data_to_wrap, index=index, columns=columns)
++    # Check index length consistency before creating DataFrame/Series
++    index_to_set = None
++    if index is not None:
++        try:
++            if len(index) == data_to_wrap.shape[0]:
++                index_to_set = index
++            # Else: index_to_set remains None if lengths mismatch
++        except (AttributeError, TypeError):
++            # data_to_wrap might not have shape (e.g. scalar)
++            # or index might not have len. Avoid setting index.
++            pass
++
++    # Let pd.DataFrame / pd.Series handle creation with potentially None index
++    return pd.DataFrame(data_to_wrap, index=index_to_set, columns=columns)
+```

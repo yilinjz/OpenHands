@@ -1,0 +1,14 @@
+```patch
+--- a/django/contrib/auth/widgets.py
++++ b/django/contrib/auth/widgets.py
+@@ -15,3 +15,8 @@
+         context = super().get_context(name, value, attrs)
+         context['widget']['hash'] = value or _('Unknown')
+         return context
++
++    def id_for_label(self, id_):
++        """
++        Don't bind the 'for' attribute to the ID for this widget.
++        """
++        return None  # No labelable element is rendered.
+```

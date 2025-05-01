@@ -1,0 +1,16 @@
+```patch
+--- a/sympy/simplify/trigsimp.py
++++ b/sympy/simplify/trigsimp.py
+@@ -737,6 +737,11 @@
+         TR12,  # expand tan of sum
+         lambda x: _eapply(factor, x, trigs),
+         TR2,  # tan-cot -> sin-cos
++        # --- NEW STEP ---
++        # Rewrite exp(I*x) patterns into sin/cos using Euler's formula
++        # This helps simplify expressions like exp(I*x) + exp(-I*x) -> 2*cos(x)
++        # or -I/2*(exp(I*x) - exp(-I*x)) -> sin(x)
++        lambda x: x.rewrite(sin).rewrite(cos),
+         [identity, lambda x: _eapply(_mexpand, x, trigs)],
+         TR2i,  # sin-cos ratio -> tan
+         lambda x: _eapply(lambda i: factor(i.normal()), x, trigs),
+```

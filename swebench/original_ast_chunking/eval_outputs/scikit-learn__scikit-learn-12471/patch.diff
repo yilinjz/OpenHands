@@ -1,0 +1,55 @@
+```patch
+--- a/sklearn/preprocessing/_encoders.py
++++ b/sklearn/preprocessing/_encoders.py
+@@ -372,10 +372,43 @@
+                     # Set unknown values to -1 (indicator value)
+                     # Masked arrays are used internally to handle this
+                     Xi = Xi.copy()
++                    X_mask[:, i] = valid_mask
++
++                    # GH Issue #12461: Check if assignment of the first category
++                    # will truncate the string representation. If so, cast
++                    # Xi to object dtype to prevent truncation and ValueError.
++                    if Xi.dtype.kind in ('S', 'U'):
++                        first_category = self.categories_[i][0]
++                        needs_object_cast = False
++
++                        if Xi.dtype.kind == 'S':
++                            # Check bytes length against itemsize
++                            try:
++                                if isinstance(first_category, str):
++                                    # Estimate bytes needed. UTF-8 is a common default.
++                                    first_category_bytes = \
++                                        first_category.encode('utf-8')
++                                elif isinstance(first_category, bytes):
++                                    first_category_bytes = first_category
++                                else:
++                                    # Attempt conversion to bytes
++                                    first_category_bytes = bytes(first_category)
++
++                                if len(first_category_bytes) > Xi.dtype.itemsize:
++                                    needs_object_cast = True
++                            except (UnicodeEncodeError, TypeError):
++                                # If conversion fails, unsure about length; safer to cast?
++                                # For now, proceed without casting if conversion fails.
++                                pass
++                        elif Xi.dtype.kind == 'U':
++                            # Check string length against itemsize // 4
++                            try:
++                                # Convert first category to string and check length
++                                if len(str(first_category)) > Xi.dtype.itemsize // 4:
++                                    needs_object_cast = True
++                            except TypeError:
++                                pass # Ignore type error on str() conversion
++
++                        if needs_object_cast:
++                            Xi = Xi.astype(object)
++
+                     # now we can safely write the unknown values, if any
+                     # to the first category. This is used for computation
+                     # but will not be exposed to the user result.
+-                    X_mask[:, i] = valid_mask
+                     Xi[~valid_mask] = self.categories_[i][0]
+ 
+             # We use check_unknown=False here as we have handled this above
+```

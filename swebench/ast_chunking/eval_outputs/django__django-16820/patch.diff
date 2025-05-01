@@ -1,0 +1,44 @@
+```diff
+--- a/django/db/migrations/autodetector.py
++++ b/django/db/migrations/autodetector.py
+@@ -868,7 +868,35 @@
+                     (app_label, model_name, None, False),
+                 )
+ 
+-            yield (
++            # Check if this change is solely due to transitioning from
++            # index_together to Meta.indexes.
++            should_yield = True
++            if option_name == "index_together":
++                removed = old_value.difference(new_value)
++                added = new_value.difference(old_value)
++                # If index_together entries were added, or if entries were
++                # removed *without* a corresponding Meta.indexes entry, then
++                # AlterIndexTogether is required.
++                if not added and removed and new_model_state:
++                    # Only removals in index_together. Check for transitions.
++                    new_indexes = new_model_state.options.get("indexes", [])
++                    transitioned_removed = set()
++                    for rem_tuple in removed:
++                        for index in new_indexes:
++                            # Check if index corresponds to rem_tuple.
++                            # A simple index derived from index_together only
++                            # has fields and possibly a name.
++                            if index.fields == list(rem_tuple):
++                                _qn, args, kwargs = index.deconstruct()
++                                if not args and set(kwargs) <= {"fields", "name"}:
++                                    transitioned_removed.add(rem_tuple)
++                                    break  # Found corresponding index
++                    # If all removed items were transitioned, no need for
++                    # AlterIndexTogether. The transition is handled by
++                    # AddIndex/RemoveIndex logic (which might be optimized).
++                    if removed == transitioned_removed:
++                        should_yield = False
++
++            if should_yield:
++                yield (
+                 old_value,
+                 new_value,
+                 app_label,
+
+```

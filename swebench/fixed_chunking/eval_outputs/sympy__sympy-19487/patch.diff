@@ -1,0 +1,11 @@
+```patch
+--- a/sympy/functions/elementary/complexes.py
++++ b/sympy/functions/elementary/complexes.py
+@@ -87,3 +87,7 @@
+             if isinstance(arg, sign):
+                 return arg
++
++    def _eval_rewrite_as_Abs(self, arg, **kwargs):
++        """Rewrite sign(x) as x/Abs(x)."""
++        return arg / Abs(arg)
+```

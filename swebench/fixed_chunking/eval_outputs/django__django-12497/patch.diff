@@ -1,0 +1,42 @@
+```patch
+--- a/django/db/models/fields/related.py
++++ b/django/db/models/fields/related.py
+@@ -1111,11 +1111,11 @@
+                              "to '%s', which is ambiguous. You must specify "
+                              "which foreign key Django should use via the "
+                              "through_fields keyword argument." % (self, to_model_name),
+-                            hint=(
+-                                'If you want to create a recursive relationship, '
+-                                'use ForeignKey("%s", symmetrical=False, through="%s").'
+-                            ) % (
+-                                RECURSIVE_RELATIONSHIP_CONSTANT,
++                            hint=(
++                                'If this is a recursive relationship, use '
++                                'ManyToManyField("%s", through="%s"). Use the '
++                                '`through_fields` argument to specify the '
++                                'two foreign keys connecting to the model.'
++                            ) % (
++                                RECURSIVE_RELATIONSHIP_CONSTANT,
+                                 relationship_model_name,
+                             ),
+                             obj=self,
+@@ -1157,11 +1157,11 @@
+                               "from '%s', which is ambiguous. You must specify "
+                               "which foreign key Django should use via the "
+                               "through_fields keyword argument.") % (self, from_model_name),
+-                            hint=(
+-                                'If you want to create a recursive relationship, '
+-                                'use ForeignKey("%s", symmetrical=False, through="%s").'
+-                            ) % (
+-                                RECURSIVE_RELATIONSHIP_CONSTANT,
++                            hint=(
++                                'If this is a recursive relationship, use '
++                                'ManyToManyField("%s", through="%s"). Use the '
++                                '`through_fields` argument to specify the '
++                                'two foreign keys connecting to the model.'
++                            ) % (
++                                RECURSIVE_RELATIONSHIP_CONSTANT,
+                                 relationship_model_name,
+                             ),
+                             obj=self,
+```

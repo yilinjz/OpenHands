@@ -1,0 +1,18 @@
+```diff
+--- a/django/core/checks/model_checks.py
++++ b/django/core/checks/model_checks.py
+@@ -51,7 +51,10 @@
+     for model in models:
+         if model._meta.managed and not model._meta.proxy and not model._meta.abstract:
+             # Check for W042.
+-            if not any(f.primary_key for f in model._meta.local_fields):
++            # If the model has an explicit primary key, any primary key field
++            # inherited from an abstract base class, or a parent link to
++            # another model, use that field. Otherwise, check if default
++            # auto field is configured.
++            if model._meta.pk is None:
+                 app_label = model._meta.app_label
+                 try:
+                     app_config = apps.get_app_config(app_label)
+
+```

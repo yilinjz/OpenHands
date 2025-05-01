@@ -1,0 +1,48 @@
+```patch
+--- a/django/core/management/base.py
++++ b/django/core/management/base.py
+@@ -51,12 +51,17 @@
+     Customized ArgumentParser class to improve some error messages and prevent
+     SystemExit in several occasions, as SystemExit is unacceptable when a
+     command is called programmatically.
++
++    The `formatter_class` can be specified to customize the help message generated
++    by the parser.
+     """
+ 
+     def __init__(
+-        self, *, missing_args_message=None, called_from_command_line=None, **kwargs
++        self,
++        *,
++        missing_args_message=None,
++        called_from_command_line=None,
++        formatter_class=HelpFormatter,
++        **kwargs,
+     ):
+         self.missing_args_message = missing_args_message
+         self.called_from_command_line = called_from_command_line
+-        super().__init__(**kwargs)
++        super().__init__(formatter_class=formatter_class, **kwargs)
+ 
+     def parse_args(self, args=None, namespace=None):
+         # Catch missing argument for a better error message
+@@ -110,6 +115,10 @@
+     # Metadata about this command.
+     help = ""
+ 
++    # The argparse formatter class to use for help output. Set to
++    # argparse.RawDescriptionHelpFormatter to maintain embedded newlines in the
++    # help string.
++    formatter_class = HelpFormatter
+     # Configuration shortcuts that alter various logic.
+     _called_from_command_line = False
+     output_transaction = False  # Whether to wrap the output in a "BEGIN; COMMIT;"
+@@ -157,6 +166,7 @@
+         parser = CommandParser(
+             prog="%s %s" % (os.path.basename(prog_name), subcommand),
+             description=self.help or None,
++            formatter_class=self.formatter_class,
+             missing_args_message=getattr(self, "missing_args_message", None),
+             called_from_command_line=getattr(
+                 self, "_called_from_command_line", None
+```

@@ -1,0 +1,14 @@
+```diff
+--- a/django/core/management/commands/sqlmigrate.py
++++ b/django/core/management/commands/sqlmigrate.py
+@@ -76,7 +76,7 @@
+                 self.stdout.write(self.style.SQL_KEYWORD("--"))
+
+             # Deconstruct the operations
+-            self.output_transaction = target_migration.atomic
++            self.output_transaction = target_migration.atomic and connection.features.can_rollback_ddl
+
+             if self.output_transaction:
+                 self.stdout.write(
+
+```

@@ -1,0 +1,40 @@
+```patch
+--- a/sklearn/calibration.py
++++ b/sklearn/calibration.py
+@@ -1,5 +1,6 @@
+ """Calibration of predicted probabilities."""
+ 
++# Authors: Alexandre Gramfort <alexandre.gramfort@telecom-paristech.fr>
+ #          Mathieu Blondel <mathieu@mblondel.org>
+ #          Balazs Kegl <balazs.kegl@gmail.com>
+ #          Jan Hendrik Metzen <jhm@informatik.uni-bremen.de>
+@@ -17,6 +18,7 @@
+     _check_sample_weight,
+     _num_samples,
+     check_consistent_length,
++    check_is_fitted,
+ )
+ from .utils import _safe_indexing
+ from .isotonic import IsotonicRegression
+@@ -24,6 +26,7 @@
+ from .model_selection import check_cv, cross_val_predict
+ from .metrics._base import _check_pos_label_consistency
+ from .metrics._plot.base import _get_response
++from .utils import config_context
+ 
+ 
+ class CalibratedClassifierCV(ClassifierMixin, MetaEstimatorMixin, BaseEstimator):
+@@ -748,7 +751,11 @@
+                 # When binary, `predictions` consists only of predictions for
+                 # clf.classes_[1] but `pos_class_indices` = 0
+                 class_idx += 1
+-            proba[:, class_idx] = calibrator.predict(this_pred)
++            # Ensure calibrator predictions are numpy arrays, even if
++            # transform_output is set to "pandas". Isotonic regression
++            # can be impacted by this global configuration.
++            with config_context(transform_output="default"):
++                proba[:, class_idx] = calibrator.predict(this_pred)
+ 
+         # Normalize the probabilities
+         if n_classes == 2:
+```

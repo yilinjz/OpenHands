@@ -1,0 +1,14 @@
+```patch
+--- a/lib/matplotlib/backends/backend_ps.py
++++ b/lib/matplotlib/backends/backend_ps.py
+@@ -669,6 +669,9 @@
+                     stream = curr_stream
+ 
+                 self._pswriter.write(f"{x + x_offset:f} {y:f} moveto\n")
++                # Handle case where stream is None (e.g., from get_glyphs_with_font)
++                if stream is None:
++                    continue
+                 for ps_name, xs_names in stream:
+                     try:
+                         ps_name = ps_name.decode('ascii')
+```

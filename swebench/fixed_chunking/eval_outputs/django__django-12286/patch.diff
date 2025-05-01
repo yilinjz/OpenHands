@@ -1,0 +1,30 @@
+```patch
+--- a/django/core/checks/translation.py
++++ b/django/core/checks/translation.py
+@@ -1,5 +1,6 @@
+ from django.conf import settings
+ from django.utils.translation.trans_real import language_code_re
++from django.utils.translation import get_supported_language_variant
+ 
+ from . import Error, Tags, register
+ 
+@@ -50,3 +51,17 @@
+         Error(E003.msg.format(tag), id=E003.id)
+         for tag in settings.LANGUAGES_BIDI if not isinstance(tag, str) or not language_code_re.match(tag)
+     ]
++
++
++@register(Tags.translation, deploy=True)
++def check_language_code_in_languages(app_configs, **kwargs):
++    """
++    Check that LANGUAGE_CODE is compatible with LANGUAGES.
++    Allow fallback to base language.
++    """
++    try:
++        # get_supported_language_variant will raise LookupError if
++        # LANGUAGE_CODE is not in LANGUAGES and its base language isn't either.
++        get_supported_language_variant(settings.LANGUAGE_CODE)
++    except LookupError:
++        return [Error(E004.msg, id=E004.id)]
++    return []
+```

@@ -1,0 +1,107 @@
+```patch
+--- a/src/_pytest/reports.py
++++ b/src/_pytest/reports.py
+@@ -16,6 +16,9 @@
+ from _pytest.config import Config
+ from _pytest.config.exceptions import PrintHelp
+ from _pytest.nodes import Item
++from _pytest.outcomes import skip, xfail
++from _pytest.skipping import evaluate_xfail_marks
++from _pytest.skipping import skipped_by_mark_key, xfailed_key
+ from _pytest.store import StoreKey
+ 
+ if TYPE_CHECKING:
+@@ -206,10 +209,35 @@
+                 rep.outcome = "skipped"
+                 rep.longrepr = (item.path, call.excinfo.value.lineno, call.excinfo.value.msg)
+             elif call.excinfo.errisinstance(xfail.Exception):
+-                rep.outcome = "skipped"  # TODO: this is confusing
++                # pytest.xfail(...) was called
++                rep.outcome = "xfailed"
+                 rep.wasxfail = call.excinfo.value.msg
+                 rep.longrepr = call.excinfo
+-            else:
++            else:  # General failure
++                # Check if the failure corresponds to an xfail marker.
++                # This check is performed even if the marker was added dynamically during the call.
++                xfail_marker_matches = False
++                if not item.config.option.runxfail:
++                    # Evaluate marks at the time of failure, including dynamic ones.
++                    current_xfailed = evaluate_xfail_marks(item)
++                    if current_xfailed:
++                        rep.wasxfail = current_xfailed.reason  # Store reason
++                        # Check if the raised exception matches the 'raises' condition
++                        if current_xfailed.raises is None or call.excinfo.errisinstance(
++                            current_xfailed.raises
++                        ):
++                            # Failure was expected (matches marker and 'raises')
++                            if current_xfailed.strict:
++                                # Strict xfail: report as failed
++                                rep.outcome = "failed"
++                            else:
++                                # Non-strict xfail: report as xfailed
++                                rep.outcome = "xfailed"
++                            xfail_marker_matches = True
++                        # else: raises condition not met, treat as normal failure below
++
++                # If not handled by an xfail marker, treat as a normal failure
++                if not xfail_marker_matches:
++                    if not item._store.get(skipped_by_mark_key, False):
++                        rep.outcome = "failed"
++                    else:
++                        # This path indicates a skip marker was evaluated True
++                        # but the test still ran and failed. This shouldn't
++                        # happen with current skip logic. Default to failed.
++                        rep.outcome = "failed"
++
++                # Populate longrepr for failures/xfailed outcomes, unless skipped by mark
++                # (which shouldn't happen here, but check defensively).
+                 if not item._store.get(skipped_by_mark_key, False):
+-                    rep.outcome = "failed"
++                    # Use item.repr_failure for failed, exception info for xfailed.
++                    if rep.outcome == "failed":
++                        rep.longrepr = item.repr_failure(call.excinfo)
++                    elif rep.outcome == "xfailed":
++                        rep.longrepr = call.excinfo
++        else:  # Passed state
++            if item._store.get(skipped_by_mark_key, False):
++                # Skipped by mark but no exception? Should not happen.
++                rep.outcome = "passed"
++            else:
++                # Check for unexpected pass (xpass)
++                if not item.config.option.runxfail:
++                    # Check xfail status evaluated during setup. Dynamic marks
++                    # added during the test don't trigger xpass if the test passes.
++                    xfailed_at_setup = item._store.get(xfailed_key, None)
++                    if xfailed_at_setup:
++                        rep.wasxfail = xfailed_at_setup.reason
++                        if xfailed_at_setup.strict:
++                            # Strict xfail: passing is an error
++                            rep.outcome = "failed"
++                            msg = "strict xfail test passed unexpectedly"
++                            if rep.wasxfail:
++                                msg += f": {rep.wasxfail}"
++                            # Create a minimal longrepr for strict xpass failure
++                            rep.longrepr = msg
++                        else:
++                            # Non-strict xfail: passing is xpass
++                            rep.outcome = "xpassed"
++                            rep.longrepr = None  # No longrepr for xpass
++                    else:
++                        # No xfail marker from setup, normal pass
++                        rep.outcome = "passed"
++                else:
++                    # runxfail=True, treat as normal pass
+                     rep.longrepr = item.repr_failure(call.excinfo)
+-        else:
+-            if not item._store.get(skipped_by_mark_key, False):
+-                rep.outcome = "passed"
++                    rep.outcome = "passed"
++
++        # Ensure outcome is set
++        assert rep.outcome is not None
++
+         for name, content in item.user_properties:
+             rep.user_properties.append((name, content))
+         return rep
+```

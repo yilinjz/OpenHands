@@ -1,0 +1,39 @@
+```diff
+--- a/sympy/printing/lambdarepr.py
++++ b/sympy/printing/lambdarepr.py
+@@ -8,6 +8,7 @@
+ from sympy.sets.sets import Set, Interval, FiniteSet, Union
+ from sympy.matrices.expressions.matexpr import MatrixSymbol
+ from sympy.matrices.expressions.blockmatrix import BlockMatrix
++from sympy.matrices.expressions.special import Identity
+ from sympy.tensor.array import NDimArray, DenseNDimArray, SparseNDimArray
+ from sympy.utilities.decorator import doctest_depends_on
+ from sympy.utilities.exceptions import sympy_deprecation_warning
+@@ -101,6 +102,25 @@
+         # Piecewise function
+         return self._print_Piecewise(expr)
+ 
++    def _print_Identity(self, expr):
++        module_aliases = self.settings.get('module_aliases', {})
++
++        # Prefer numpy, then scipy
++        eye_alias = None
++        if 'numpy' in module_aliases:
++            eye_alias = module_aliases['numpy']
++        elif 'scipy' in module_aliases:
++            eye_alias = module_aliases['scipy']
++        # Add other potential modules here if needed (e.g., cupy, jax?)
++
++        if eye_alias:
++            n_str = self._print(expr.shape[0])
++            return "{}.eye({})".format(eye_alias, n_str)
++        else:
++            # No known module provides 'eye'
++            raise TypeError(
++                "lambdify cannot process Identity unless a suitable numerical "
++                "module (e.g., numpy or scipy) providing 'eye' is specified.")
+ 
+     def _print_MatrixBase(self, expr):
+         # Workaround for https://github.com/numpy/numpy/issues/2741
+
+```

@@ -1,0 +1,25 @@
+```patch
+--- a/src/_pytest/_py/path.py
++++ b/src/_pytest/_py/path.py
+@@ -14,12 +14,16 @@
+          if modname is None:
+              modname = self.purebasename
++         # Check sys.modules before trying to load module direct from path.
++         # Primarily useful for importlib mode to avoid importing a module
++         # twice due to sys.path modifications or namespace packages.
++         if modname in sys.modules:
++             return sys.modules[modname]
+          spec = importlib.util.spec_from_file_location(modname, str(self))
+          if spec is None or spec.loader is None:
+              raise ImportError(
+                  f"Can't find module {modname} at location {str(self)}"
+              )
+          mod = importlib.util.module_from_spec(spec)
++         # Cache the module in sys.modules before executing it to prevent
++         # recursive imports from creating a new instance.
++         # See https://docs.python.org/3/library/importlib.html#importing-a-source-file-directly
++         sys.modules[modname] = mod
+          spec.loader.exec_module(mod)
+          return mod
+
+```

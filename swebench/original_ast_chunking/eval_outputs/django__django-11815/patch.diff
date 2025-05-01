@@ -1,0 +1,53 @@
+```patch
+--- a/django/db/migrations/serializer.py
++++ b/django/db/migrations/serializer.py
+@@ -45,11 +45,6 @@
+         return repr(self.value), set()
+ 
+ 
+-class ChoicesSerializer(BaseSerializer):
+-    def serialize(self):
+-        return serializer_factory(self.value.value).serialize()
+-
+-
+ class DateTimeSerializer(BaseSerializer):
+     """For datetime.*, except datetime.datetime."""
+     def serialize(self):
+@@ -73,6 +68,24 @@
+ class DecimalSerializer(BaseSerializer):
+     def serialize(self):
+         return repr(self.value), {"from decimal import Decimal"}
++
++
++class EnumSerializer(BaseSerializer):
++    def serialize(self):
++        enum_class = type(self.value)
++        module_name = enum_class.__module__
++        class_name = enum_class.__name__
++        # Ensure the enum class itself is importable and not a local
++        # definition. This check might need refinement, but covers standard
++        # cases.
++        if module_name == '__main__' or '<locals>' in enum_class.__qualname__:
++            raise ValueError(
++                f"Cannot serialize enum {enum_class} defined locally or in "
++                f"__main__."
++            )
++        imports = {f"import {module_name}"}
++        representation = f"{module_name}.{class_name}['{self.value.name}']"
++        return representation, imports
+ 
+ 
+ class FloatSerializer(BaseSerializer):
+@@ -195,6 +208,11 @@
+         except KeyError:
+             pass
+ 
++        # Check for Enum BEFORE checking subtypes in the registry. This ensures
++        # EnumSerializer takes precedence over serializers for subtypes (e.g. int
++        # or str) if using IntegerChoices/TextChoices.
++        if isinstance(value, enum.Enum):
++            return EnumSerializer(value)
+         # Check for subtypes in registry
+         for type_, serializer in _registry.items():
+             if isinstance(value, type_):
+```

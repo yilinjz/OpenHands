@@ -1,0 +1,16 @@
+```patch
+--- a/django/views/debug.py
++++ b/django/views/debug.py
+@@ -42,7 +42,10 @@
+     caller = ''
+     try:
+         resolver_match = resolve(request.path)
+-    except Resolver404:
++    except Http404:  # catch plain Http404 from converters during resolve()
++        # If the Http404 was raised during URL resolution, trying to
++        # resolve the path again will likely fail with the same error.
++        # In this case, we cannot determine the view function name.
+         pass
+     else:
+         obj = resolver_match.func
+```

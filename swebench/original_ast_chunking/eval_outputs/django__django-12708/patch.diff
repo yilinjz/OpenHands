@@ -1,0 +1,488 @@
+```patch
+--- a/django/db/backends/base/schema.py
++++ b/django/db/backends/base/schema.py
+@@ -1,5 +1,6 @@
+ import logging
+ from io import StringIO
++from django.db.backends.utils import names_digest
+ 
+ from django.db.models.constraints import CheckConstraint, UniqueConstraint
+ from django.db.models.expressions import Col
+@@ -16,22 +17,49 @@
+     def _delete_composed_index(self, model, fields, constraint_kwargs, sql):
+         meta_constraint_names = {constraint.name for constraint in model._meta.constraints}
+         meta_index_names = {constraint.name for constraint in model._meta.indexes}
+-        columns = [model._meta.get_field(field).column for field in fields]
+-        constraint_names = self._constraint_names(
++        columns = [model._meta.get_field(field_name).column for field_name in fields]
++        # Get all constraints matching the columns, potentially ignoring index/unique
++        # distinction if the backend introspection doesn't filter perfectly based
++        # on constraint_kwargs.
++        all_constraint_names = self._constraint_names(
+             model, columns, exclude=meta_constraint_names | meta_index_names,
+             **constraint_kwargs
+         )
++        # Make a mutable copy
++        constraint_names = list(all_constraint_names)
++
++        if len(constraint_names) > 1:
++            # If multiple constraints match (e.g., both index and unique),
++            # try to identify the specific one requested for deletion based on convention.
++            if constraint_kwargs.get('index'):
++                # Try to find the conventionally named index (_idx suffix).
++                expected_name = self._create_index_name(model, columns, suffix='_idx')
++                # Filter by exact match.
++                filtered_names = [name for name in constraint_names if name == expected_name]
++                # If not found by exact match (e.g. backend truncated name),
++                # try filtering by suffix as a fallback (less reliable).
++                # Only use suffix fallback if exact match yielded 0 results.
++                if len(filtered_names) == 0:
++                    filtered_names = [name for name in constraint_names if name.endswith('_idx')]
++
++                if len(filtered_names) == 1:
++                    constraint_names = filtered_names
++                # If still ambiguous (0 or >1 found), constraint_names remains unchanged
++                # and the error below will be triggered.
++
++            elif constraint_kwargs.get('unique'):
++                # Try to find the unique constraint. Assume it's the one that
++                # doesn't match the conventional index name.
++                expected_index_name = self._create_index_name(model, columns, suffix='_idx')
++                filtered_names = [name for name in constraint_names if name != expected_index_name]
++
++                # If exactly one remains after removing the potential index name, assume it's the unique one.
++                if len(filtered_names) == 1:
++                    constraint_names = filtered_names
++                # If still ambiguous (0 or >1 found), constraint_names remains unchanged
++                # and the error below will be triggered.
++
+         if len(constraint_names) != 1:
+-            raise ValueError("Found wrong number (%s) of constraints for %s(%s)" % (
+-                len(constraint_names),
++            # Use the original list of names found for the error message.
++            raise ValueError(
++                "Found wrong number ({}) of constraints for {}({}). Found: {}".format(
++                    len(all_constraint_names),  # Report the number initially found
++                    model._meta.db_table,
++                    ", ".join(columns),
++                    ', '.join(all_constraint_names),  # List all names initially found
++                )
++            )
++        self.execute(self._delete_constraint_sql(sql, model, constraint_names[0]))
++
++    def alter_db_table(self, model, old_db_table, new_db_table):
++        """Rename the table a model points to."""
++        if (old_db_table == new_db_table or
++            (self.connection.features.ignores_table_name_case and
++                old_db_table.lower() == new_db_table.lower())):
++            return
++        self.execute(self.sql_rename_table % {
++            "old_table": self.quote_name(old_db_table),
++            "new_table": self.quote_name(new_db_table),
++        })
++        # Rename all references to the old table name.
++        for sql in self.deferred_sql:
++            if isinstance(sql, Statement):
++                sql.rename_table_references(old_db_table, new_db_table)
++
++    def alter_db_tablespace(self, model, old_db_tablespace, new_db_tablespace):
++        """Move a model's table between tablespaces."""
++        self.execute(self.sql_alter_table_tablespace % {
++            "table": self.quote_name(model._meta.db_table),
++            "tablespace": self.quote_name(new_db_tablespace),
++        })
++
++    def add_field(self, model, field):
++        """
++        Create a field on a model. Usually involves adding a column, but may
++        involve adding a table instead (for M2M fields).
++        """
++        # Special-case implicit M2M tables
++        if field.many_to_many and field.remote_field.through._meta.auto_created:
++            return self.create_model(field.remote_field.through)
++        # Get the column's definition
++        definition, params = self.column_sql(model, field, include_default=True)
++        # It might not actually have a column behind it
++        if definition is None:
++            return
++        # Check constraints can't be added to columns (see #23 constraints)
++        # They must be added using a separate statement.
++        check_sql = None
++        if self.connection.features.supports_table_check_constraints and field.check:
++            # Prepare the check SQL because it can't be used with ALTER TABLE ADD
++            # COLUMN.
++            check_sql = self._create_check_sql(model, field.name, field.column)
++        # Build the SQL and run it
++        sql = self.sql_create_column % {
++            "table": self.quote_name(model._meta.db_table),
++            "column": self.quote_name(field.column),
++            "definition": definition,
++        }
++        self.execute(sql, params)
++        # Check must be added separately.
++        if check_sql:
++            self.execute(check_sql)
++        # Add an index, if required
++        if field.db_index and not field.unique:
++            self.execute(self._create_index_sql(model, [field]))
++        # Add any FK constraints later
++        if field.remote_field and self.connection.features.supports_foreign_keys and field.db_constraint:
++            self.deferred_sql.append(self._create_fk_sql(model, field, "_fk_%(to_table)s_%(to_column)s"))
++        # Add any check constraints later
++        if field.check and not self.connection.features.supports_table_check_constraints:
++            self.deferred_sql.append(self._create_check_sql(model, field.name, field.column))
++
++    def remove_field(self, model, field):
++        """
++        Remove a field from a model. Usually involves deleting a column,
++        but for M2M fields involves deleting a table.
++        """
++        # Special-case implicit M2M tables
++        if field.many_to_many and field.remote_field.through._meta.auto_created:
++            return self.delete_model(field.remote_field.through)
++        # It might not actually have a column behind it
++        if not field.db_column:
++            return
++        # Remove any FK constraints, MySQL requires explicit deletion
++        if field.remote_field:
++            fk_names = self._constraint_names(model, [field.column], foreign_key=True)
++            for fk_name in fk_names:
++                self.execute(self._delete_constraint_sql(self.sql_delete_fk, model, fk_name))
++        # Remove any check constraints, SQL Server requires explicit deletion
++        if field.check and self.connection.features.supports_column_check_constraints:
++            constraint_names = self._constraint_names(model, [field.column], check=True)
++            for constraint_name in constraint_names:
++                self.execute(self._delete_constraint_sql(self.sql_delete_check, model, constraint_name))
++        # Delete the column
++        sql = self.sql_delete_column % {
++            "table": self.quote_name(model._meta.db_table),
++            "column": self.quote_name(field.column),
++        }
++        self.execute(sql)
++        # Reset connection sequences if needed
++        if self.connection.features.sequences_reset_django_sequence and field.primary_key:
++            self.connection.ops.sequence_reset_sql(self.style, [model])
++
++    def alter_field(self, model, old_field, new_field, strict=False):
++        """
++        Allow a field's type, uniqueness, nullability, default, column,
++        constraints, etc. to be modified.
++        `old_field` is required to compute the necessary changes.
++        If `strict=True`, raise errors if the transformation is
++        not supported (defaults to False).
++        """
++        # Ensure this field is even column-based
++        if not old_field.db_column or not new_field.db_column:
++            return
++
++        # M2M fields are effectively models, so we call model methods.
++        if old_field.many_to_many and new_field.many_to_many:
++            if old_field.remote_field.through._meta.auto_created and new_field.remote_field.through._meta.auto_created:
++                return self.alter_many_to_many(model, old_field, new_field, strict)
++            elif old_field.remote_field.through._meta.auto_created != new_field.remote_field.through._meta.auto_created:
++                # Changing an M2M field from implicit to explicit and
++                # vice-versa is not allowed.
++                raise ValueError("Cannot change a ManyToManyField from implicit to explicit, or vice versa.")
++
++        # Drop any FK constraints, we'll remake them later
++        if old_field.remote_field and old_field.db_constraint:
++            fk_names = self._constraint_names(model, [old_field.column], foreign_key=True)
++            if strict and len(fk_names) != 1:
++                raise ValueError("Found wrong number (%s) of foreign key constraints for %s.%s" % (
++                    len(fk_names),
++                    model._meta.db_table,
++                    old_field.column,
++                ))
++            for fk_name in fk_names:
++                self.execute(self._delete_constraint_sql(self.sql_delete_fk, model, fk_name))
++
++        # Drop any check constraints, we'll remake them later
++        if old_field.check and self.connection.features.supports_column_check_constraints:
++            constraint_names = self._constraint_names(model, [old_field.column], check=True)
++            if strict and len(constraint_names) != 1:
++                raise ValueError("Found wrong number (%s) of check constraints for %s.%s" % (
++                    len(constraint_names),
++                    model._meta.db_table,
++                    old_field.column,
++                ))
++            for constraint_name in constraint_names:
++                self.execute(self._delete_constraint_sql(self.sql_delete_check, model, constraint_name))
++
++        # Drop incoming FK constraints if the field is a primary key or unique,
++        # which might be referenced by other tables.
++        if (old_field.primary_key or old_field.unique) and self.connection.features.supports_foreign_keys:
++            # Query the database for incoming FKs
++            for table_name, column_name, constraint_name in self.connection.introspection.get_referencing_constraints(
++                    model._meta.db_table, old_field.column):
++                # Find the model referring to us
++                try:
++                    rel_model = model._meta.apps.get_model(model._meta.app_label, table_name)
++                except LookupError:
++                    # It's referencing a table we don't manage
++                    pass
++                else:
++                    # Delete the constraint
++                    self.execute(self._delete_constraint_sql(self.sql_delete_fk, rel_model, constraint_name))
++
++        # Change check constraints?
++        if old_field.check != new_field.check and self.connection.features.supports_table_check_constraints:
++            # Drop the old check constraint.
++            constraint_names = self._constraint_names(model, [old_field.column], check=True)
++            if strict and len(constraint_names) != 1:
++                raise ValueError("Found wrong number (%s) of check constraints for %s.%s" % (
++                    len(constraint_names),
++                    model._meta.db_table,
++                    old_field.column,
++                ))
++            for constraint_name in constraint_names:
++                self.execute(self._delete_constraint_sql(self.sql_delete_check, model, constraint_name))
++            # Add the new check constraint.
++            if new_field.check:
++                self.execute(self._create_check_sql(model, new_field.name, new_field.column))
++
++        # Rename the column if old and new column names differ
++        if old_field.column != new_field.column:
++            self.execute(self._rename_field_sql(model._meta.db_table, old_field, new_field, new_field.db_type(connection=self.connection)))
++
++        # Alter the SQL definition for the new field type, nullability, default.
++        # First, probe the backend features to see if we can do this in a single
++        # ALTER TABLE statement.
++        supports_combined_alters = self.connection.features.supports_combined_alters
++        supports_alter_column_type = self.connection.features.supports_alter_column_type
++        # If we're changing type, or the db backend doesn't support combined operations
++        if not supports_combined_alters or old_field.db_type(self.connection) != new_field.db_type(self.connection):
++            # We are definitely changing the type or nullability or default.
++            # We can't do this all in one go, so we need to fall back to ALTER TYPE.
++            # If the backend supports altering column type, use ALTER TYPE
++            if supports_alter_column_type:
++                # You might be wondering why the TYPE is being set here; it's because
++                # the ALTER TYPE statement might be the same as the ALTER COLUMN
++                # statement, so we need to do these actions at the same time.
++                fragment, params = self._alter_column_type_sql(model, old_field, new_field, new_field.db_type(connection=self.connection))
++                self.execute(fragment, params)
++            # Otherwise, this is an unsupported transformation
++            elif strict:
++                raise NotSupportedError(
++                    "Cannot alter field %s into %s - you cannot change the type "
++                    "of columns %s on %s (the database backend doesn't support it)." % (
++                        old_field,
++                        new_field,
++                        old_field.column,
++                        self.connection.display_name,
++                    )
++                )
++            # Else (if not strict), skip the ALTER TYPE, we are trying to cope
++            # as best as possible. The index and FK changes will still happen.
++
++            # Then, separately, alter the nullability and default, if they differ
++            if old_field.null != new_field.null:
++                fragment, params = self._alter_column_null_sql(model, old_field, new_field)
++                if fragment:
++                    self.execute(fragment, params)
++            if old_field.has_default() != new_field.has_default() or old_field.get_default() != new_field.get_default():
++                fragment, params = self._alter_column_default_sql(model, old_field, new_field)
++                if fragment:
++                    self.execute(fragment, params)
++        # If we're not changing type, and the db backend supports combined operations,
++        # we can do this in one step.
++        else:
++            # Prepare the fragments and parameters for the ALTER TABLE statement.
++            fragments = []
++            params = []
++            # Alter nullability?
++            if old_field.null != new_field.null:
++                null_fragment, null_params = self._alter_column_null_sql(model, old_field, new_field)
++                if null_fragment:
++                    fragments.append(null_fragment)
++                    params.extend(null_params)
++            # Alter default?
++            if old_field.has_default() != new_field.has_default() or old_field.get_default() != new_field.get_default():
++                default_fragment, default_params = self._alter_column_default_sql(model, old_field, new_field)
++                if default_fragment:
++                    fragments.append(default_fragment)
++                    params.extend(default_params)
++            # Execute the combined ALTER TABLE statement if we have anything to do.
++            if fragments:
++                sql = self.sql_alter_column % {
++                    "table": self.quote_name(model._meta.db_table),
++                    "changes": ", ".join(fragments),
++                }
++                self.execute(sql, params)
++
++        # Change uniqueness? We might need this later on if we have to change
++        # the PK; keep it here so we can compare it against the old PK.
++        old_unique, new_unique = old_field.unique, new_field.unique
++        if old_field.primary_key:
++            old_unique = True
++        if new_field.primary_key:
++            new_unique = True
++
++        # Drop the old index/unique constraint if we need to
++        if old_unique and (not new_unique or old_field.primary_key != new_field.primary_key):
++            # Dropping previous unique/pk constraint. Note that dropping
++            # primary keys is not supported in SQLite.
++            constraint_names = self._constraint_names(model, [old_field.column], unique=True, primary_key=True)
++            if strict and len(constraint_names) != 1:
++                raise ValueError("Found wrong number (%s) of unique constraints for %s.%s" % (
++                    len(constraint_names),
++                    model._meta.db_table,
++                    old_field.column,
++                ))
++            for constraint_name in constraint_names:
++                self.execute(self._delete_constraint_sql(self.sql_delete_unique, model, constraint_name))
++
++        # Drop the old index if we need to (we might want to change it)
++        if old_field.db_index and not new_field.db_index and not old_unique and not new_unique:
++            # Otherwise, we are dropping the index straight up
++            index_names = self._constraint_names(model, [old_field.column], index=True)
++            if strict and len(index_names) != 1:
++                raise ValueError("Found wrong number (%s) of index names for %s.%s" % (
++                    len(index_names),
++                    model._meta.db_table,
++                    old_field.column,
++                ))
++            for index_name in index_names:
++                self.execute(self._delete_constraint_sql(self.sql_delete_index, model, index_name))
++
++        # Make the new index/unique constraint if we need to
++        if new_unique and (not old_unique or old_field.primary_key != new_field.primary_key):
++            self.execute(self._create_unique_sql(model, [new_field.column]))
++
++        # Make the new index if we need to (but not if it's unique/PK)
++        if new_field.db_index and not new_unique and not old_field.db_index:
++            self.execute(self._create_index_sql(model, [new_field]))
++
++        # Remake any FK constraints pointing to us if we changed the PK
++        if old_field.primary_key and new_field.primary_key and old_field.column != new_field.column:
++            # We need to cascade any refs to the old PK column change.
++            # Query the database for incoming FKs
++            for table_name, column_name, constraint_name in self.connection.introspection.get_referencing_constraints(
++                    model._meta.db_table, old_field.column):
++                # Find the model referring to us
++                try:
++                    rel_model = model._meta.apps.get_model(model._meta.app_label, table_name)
++                except LookupError:
++                    # It's referencing a table we don't manage
++                    pass
++                else:
++                    # Find the field that references us
++                    for rel_field in rel_model._meta.local_fields:
++                        if rel_field.column == column_name:
++                            break
++                    else:
++                        raise ValueError("Could not find field for referenced column %s on %s" % (
++                            column_name,
++                            rel_model._meta.label,
++                        ))
++                    # Recreate the FK constraint - we know it will be the default name
++                    # as we previously dropped it.
++                    self.execute(self._create_fk_sql(rel_model, rel_field, "_fk_%(to_table)s_%(to_column)s"))
++
++        # Remake any FK constraints using us if we changed the column name
++        # (but not the PK)
++        if old_field.column != new_field.column and not old_field.primary_key and not new_field.primary_key:
++            # We need to cascade any refs to the old column name change.
++            # Query the database for incoming FKs
++            for table_name, column_name, constraint_name in self.connection.introspection.get_referencing_constraints(
++                    model._meta.db_table, old_field.column):
++                # Find the model referring to us
++                try:
++                    rel_model = model._meta.apps.get_model(model._meta.app_label, table_name)
++                except LookupError:
++                    # It's referencing a table we don't manage
++                    pass
++                else:
++                    # Find the field that references us
++                    for rel_field in rel_model._meta.local_fields:
++                        if rel_field.column == column_name:
++                            break
++                    else:
++                        raise ValueError("Could not find field for referenced column %s on %s" % (
++                            column_name,
++                            rel_model._meta.label,
++                        ))
++                    # Recreate the FK constraint - we know it will be the default name
++                    # as we previously dropped it.
++                    self.execute(self._create_fk_sql(rel_model, rel_field, "_fk_%(to_table)s_%(to_column)s"))
++
++        # Add any FK constraints now
++        if new_field.remote_field and self.connection.features.supports_foreign_keys and new_field.db_constraint:
++            self.execute(self._create_fk_sql(model, new_field, "_fk_%(to_table)s_%(to_column)s"))
++
++        # Add any check constraints now
++        if new_field.check and not self.connection.features.supports_column_check_constraints:
++            self.deferred_sql.append(self._create_check_sql(model, new_field.name, new_field.column))
++
++        # Reset connection sequences if needed
++        if self.connection.features.sequences_reset_django_sequence and (old_field.primary_key != new_field.primary_key):
++            self.connection.ops.sequence_reset_sql(self.style, [model])
++
++    def alter_many_to_many(self, model, old_field, new_field, strict):
++        """Alter M2M fields."""
++        # Rename the through table
++        if old_field.remote_field.through._meta.db_table != new_field.remote_field.through._meta.db_table:
++            self.alter_db_table(
++                new_field.remote_field.through,
++                old_field.remote_field.through._meta.db_table,
++                new_field.remote_field.through._meta.db_table,
++            )
++
++        # Ensure the new through model is not managed
++        if not new_field.remote_field.through._meta.managed:
++            return
++
++        # Alter the columns for the "from" side of the relation
++        old_from_field = old_field.remote_field.through._meta.get_field(old_field.m2m_field_name())
++        new_from_field = new_field.remote_field.through._meta.get_field(new_field.m2m_field_name())
++        self.alter_field(new_field.remote_field.through, old_from_field, new_from_field)
++
++        # Alter the columns for the "to" side of the relation
++        old_to_field = old_field.remote_field.through._meta.get_field(old_field.m2m_reverse_field_name())
++        new_to_field = new_field.remote_field.through._meta.get_field(new_field.m2m_reverse_field_name())
++        self.alter_field(new_field.remote_field.through, old_to_field, new_to_field)
++
++        # Alter the unique_together attribute
++        self.alter_unique_together(
++            new_field.remote_field.through,
++            old_field.remote_field.through._meta.unique_together,
++            new_field.remote_field.through._meta.unique_together,
++        )
++
++    def alter_unique_together(self, model, old_unique_together, new_unique_together):
++        """
++        Deal with a model changing its unique_together. The input
++        unique_togethers must be doubly-nested, not the single-nested
++        ["foo", "bar"] format.
++        """
++        olds = {tuple(fields) for fields in old_unique_together}
++        news = {tuple(fields) for fields in new_unique_together}
++        # Deleted uniques
++        for fields in olds.difference(news):
++            self._delete_composed_index(model, fields, {'unique': True}, self.sql_delete_unique)
++        # Created uniques
++        for field_names in news.difference(olds):
++            fields = [model._meta.get_field(field) for field in field_names]
++            self.execute(self._create_unique_sql(model, [field.column for field in fields]))
++
++    def alter_index_together(self, model, old_index_together, new_index_together):
++        """
++        Deal with a model changing its index_together. The input
++        index_togethers must be doubly-nested, not the single-nested
++        ["foo", "bar"] format.
++        """
++        olds = {tuple(fields) for fields in old_index_together}
++        news = {tuple(fields) for fields in new_index_together}
++        # Deleted indexes
++        for fields in olds.difference(news):
++            self._delete_composed_index(model, fields, {'index': True}, self.sql_delete_index)
++        # Created indexes
++        for field_names in news.difference(olds):
++            fields = [model._meta.get_field(field) for field in field_names]
++            self.execute(self._create_index_sql(model, fields, suffix="_idx"))
++
++    def _alter_column_type_sql(self, model, old_field, new_field, new_type):
++        """Hook to specialize column type alteration."""
++        return (self.sql_alter_column_type % {
++            "column": self.quote_name(new_field.column),
++            "type": new_type,
++        }, [])

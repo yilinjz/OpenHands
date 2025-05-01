@@ -1,0 +1,17 @@
+```diff
+--- a/django/contrib/admin/utils.py
++++ b/django/contrib/admin/utils.py
+@@ -20,6 +20,12 @@
+         return formats.number_format(value)
+     elif isinstance(field, models.FileField) and value:
+         return format_html('<a href="{}">{}</a>', value.url, value)
++    elif isinstance(field, models.JSONField):
++        try:
++            return field.get_prep_value(value)
++        except Exception:
++            # Fallback for non-serializable values.
++            return display_for_value(value, empty_value_display)
+     else:
+         return display_for_value(value, empty_value_display)
+ 
+```

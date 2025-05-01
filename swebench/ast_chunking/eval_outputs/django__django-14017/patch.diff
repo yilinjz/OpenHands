@@ -1,0 +1,72 @@
+```diff
+--- a/django/db/models/query_utils.py
++++ b/django/db/models/query_utils.py
+@@ -1,5 +1,6 @@
+ from django.db.models.constants import LOOKUP_SEP
+ from django.utils.tree import Node
++from django.db.models.expressions import Expression
+ 
+ 
+ class Q(Node):
+@@ -14,19 +15,29 @@
+         super().__init__(children=[*args, *sorted(kwargs.items())], connector=_connector, negated=_negated)
+ 
+     def _combine(self, other, conn):
+-        if not isinstance(other, Q):
+-            raise TypeError(other)
++        # self is the Q instance. other is the operand (Q or Expression).
++        if not isinstance(other, (Q, Expression)):
++            raise TypeError(
++                f"Cannot combine Q object with object of type "
++                f"{type(other).__name__}: {other}"
++            )
++
++        other_is_expression = isinstance(other, Expression)
+ 
+         # If the other Q() is empty, ignore it and just use `self`.
+-        if not other:
+-            _, args, kwargs = self.deconstruct()
+-            return type(self)(*args, **kwargs)
++        if isinstance(other, Q) and not other:
++            return self
+         # Or if this Q is empty, ignore it and just use `other`.
+         elif not self:
+-            _, args, kwargs = other.deconstruct()
+-            return type(other)(*args, **kwargs)
++            # Return other (if Q) or Q(other) (if Expression)
++            if other_is_expression:
++                obj = type(self)()
++                obj.add(other, conn)  # Add expression with the correct connector
++                return obj
++            else:  # other is a non-empty Q
++                return other
+ 
++        # Both self and other are non-empty (Q or Expression)
+         obj = type(self)()
+         obj.connector = conn
+         obj.add(self, conn)
+@@ -37,8 +48,22 @@
+     def __or__(self, other):
+         return self._combine(other, self.OR)
+ 
++    def __ror__(self, other):
++        # Handles `Expression | Q`
++        if not isinstance(other, Expression):
++            return NotImplemented
++        # Delegates to Q | Expression
++        return self._combine(other, self.OR)
++
+     def __and__(self, other):
+         return self._combine(other, self.AND)
++
++    def __rand__(self, other):
++        # Handles `Expression & Q`
++        if not isinstance(other, Expression):
++            return NotImplemented
++        # Delegates to Q & Expression
++        return self._combine(other, self.AND)
+ 
+     def __invert__(self):
+         obj = type(self)()
+
+```

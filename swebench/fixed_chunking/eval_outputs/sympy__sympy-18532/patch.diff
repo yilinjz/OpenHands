@@ -1,0 +1,36 @@
+```patch
+--- a/sympy/core/basic.py
++++ b/sympy/core/basic.py
+@@ -21,14 +21,16 @@
+ 
+         """
+         if types:
+-            types = tuple(
++            _types = tuple(
+                 [t if isinstance(t, type) else type(t) for t in types])
++            check = lambda expr: isinstance(expr, _types)
+         else:
+-            types = (Atom,)
++            # Default behavior: objects with no args
++            check = lambda expr: not expr.args
++
+         result = set()
+         for expr in preorder_traversal(self):
+-            if isinstance(expr, types):
++            if check(expr):
+                 result.add(expr)
+         return result
+ 
+--- a/sympy/matrices/common.py
++++ b/sympy/matrices/common.py
+@@ -14,9 +14,6 @@
+         {x}
+         """
+ 
+-        types = tuple(t if isinstance(t, type) else type(t) for t in types)
+-        if not types:
+-            types = (Atom,)
+         return self._eval_atoms(*types)
+ 
+     @property
+```

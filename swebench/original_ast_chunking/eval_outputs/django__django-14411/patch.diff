@@ -1,0 +1,15 @@
+```patch
+--- a/django/contrib/auth/widgets.py
++++ b/django/contrib/auth/widgets.py
+@@ -13,3 +13,9 @@
+             'value': value,
+         }
+         return mark_safe(template % context)
++
++    def id_for_label(self, id_):
++        """
++        Don't render the 'for' attribute for the label since the widget doesn't
++        render an element with an ID.
++        """
++        return None
+```

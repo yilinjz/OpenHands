@@ -1,0 +1,41 @@
+```diff
+--- a/django/dispatch/dispatcher.py
++++ b/django/dispatch/dispatcher.py
+@@ -1,7 +1,11 @@
++import logging
+ import weakref
+ from collections import defaultdict
+ 
+ from .utils import NO_RECEIVERS, ref
+ 
++
++logger = logging.getLogger('django.dispatch')
++
+ # A marker for caching
+ NO_RECEIVERS_MARKER = object()
+ 
+@@ -56,8 +60,9 @@
+ 
+         Return a list of tuple pairs [(receiver, response), ... ].
+ 
+-        If any receiver raises an error (specifically any subclass of
+-        Exception), return the error instance as the result for that receiver.
++        If any receiver raises an error (specifically any subclass of Exception),
++        the error instance is returned as the result for that receiver and
++        logged (`logger.exception()`).
+         """
+         if not self.receivers or self.sender_receivers_cache.get(sender) is NO_RECEIVERS:
+             return []
+@@ -69,6 +74,10 @@
+             try:
+                 response = receiver(signal=self, sender=sender, **named)
+             except Exception as err:
++                logger.exception(
++                    'Exception caught in signal handler %s', receiver,
++                    # extra={'signal': self, 'sender': sender, 'receiver': receiver}
++                )
+                 responses.append((receiver, err))
+             else:
+                 responses.append((receiver, response))
+
+```

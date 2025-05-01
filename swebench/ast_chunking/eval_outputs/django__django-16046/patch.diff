@@ -1,0 +1,16 @@
+```diff
+--- a/django/utils/numberformat.py
++++ b/django/utils/numberformat.py
+@@ -45,6 +45,10 @@
+     # Convert to string
+     str_number = str(number)
+
++    # Return empty string for empty inputs, avoids IndexError below.
++    if not str_number:
++        return ""
++
+     # Sign
+     sign = ""
+     if str_number[0] == "-":
+
+```

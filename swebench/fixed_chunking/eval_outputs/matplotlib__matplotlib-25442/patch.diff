@@ -1,0 +1,19 @@
+```patch
+--- a/lib/matplotlib/offsetbox.py
++++ b/lib/matplotlib/offsetbox.py
+@@ -1565,8 +1565,11 @@
+ 
+     def disconnect(self):
+         """Disconnect the callbacks."""
+-        for cid in self._cids:
+-            self.canvas.mpl_disconnect(cid)
++        # Check if ref_artist and its figure are valid *before* accessing canvas
++        if self.ref_artist is not None and self.ref_artist.figure is not None:
++            canvas = self.ref_artist.figure.canvas
++            if canvas is not None:
++                for cid in self._cids:
++                    canvas.mpl_disconnect(cid)
+         self._cids = []
+         self.got_artist = False
+         if hasattr(self, 'patch') and self.patch:
+```

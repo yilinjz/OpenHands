@@ -1,0 +1,37 @@
+```diff
+--- a/sklearn/utils/validation.py
++++ b/sklearn/utils/validation.py
+@@ -1,6 +1,7 @@
+ """Utilities for input validation"""
+ 
+ # Authors: Olivier Grisel <olivier.grisel@ensta.org>
++#          Gael Varoquaux <gael.varoquaux@normalesup.org>
+ #          Andreas Mueller <amueller@ais.uni-bonn.de>
+ #          Lars Buitinck <L.J.Buitinck@uva.nl>
+ #          Alexandre Gramfort <alexandre.gramfort@telecom-paristech.fr>
+@@ -14,7 +15,7 @@
+ import scipy.sparse as sp
+ from ..externals import six
+ 
+-from ..exceptions import NotFittedError
++from ..exceptions import NotFittedError, DataConversionWarning
+ from .fixes import _object_dtype_isnan
+ from ._joblib import Memory
+ from .deprecation import deprecated
+@@ -451,6 +452,14 @@
+         if force_all_finite:
+             _assert_all_finite(array,
+                                allow_nan=force_all_finite == 'allow-nan')
++
++    # Warn if input dtype was object and converted to numeric
++    if warn_on_dtype and dtype_orig is not None and array.dtype != dtype_orig:
++        # Check specifically for object to numeric conversion
++        if dtype_orig.kind == 'O' and np.issubdtype(array.dtype, np.number):
++            warnings.warn("Data with input dtype %s was converted to %s%s."
++                          % (dtype_orig, array.dtype, context),
++                          DataConversionWarning)
+
+     if copy and array is array_orig:
+         # The copy was handled already if ensure_2d=True
+
+```

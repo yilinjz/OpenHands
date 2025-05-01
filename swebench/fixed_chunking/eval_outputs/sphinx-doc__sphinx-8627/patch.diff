@@ -1,0 +1,144 @@
+```patch
+--- a/sphinx/util/inspect.py
++++ b/sphinx/util/inspect.py
+@@ -16,6 +16,7 @@
+ import re
+ import sys
+ import typing
++from types import ModuleType
+ from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union, cast
+ 
+ from sphinx.errors import PycodeError
+@@ -29,6 +30,10 @@
+ else:
+     from typing import _ForwardRef as ForwardRef  # type: ignore
+ 
++#: Alias for ForwardRef that works across Python versions
++ForwardRefType = Type[ForwardRef]  # type: ignore
++
++
+ # cache for getdoc()
+ # maps module name -> module object
+ doc_cache: Dict[str, Dict[str, str]] = {}
+@@ -220,6 +225,67 @@
+     return None  # not found
+
+
++def find_public_alias(obj: Any) -> Optional[str]:
++    """Search sys.modules for a public alias of the given object.
++
++    This is used to find the public name for objects defined in private
++    modules (e.g., ``_struct.Struct`` is publicly available as ``struct.Struct``).
++
++    .. versionadded:: 4.X.Y # Adjust version when merged
++    """
++    obj_module_name = getattr(obj, '__module__', None)
++
++    if not obj_module_name:
++        return None  # Cannot determine origin
++
++    # Only search if the object's module is private
++    if not obj_module_name.startswith('_'):
++        return None
++
++    found_alias = None
++    private_module_base = obj_module_name.lstrip('_')
++
++    # Sort modules to ensure deterministic results if multiple aliases exist
++    # Prefer shorter module names first, then alphabetical
++    module_names = sorted(sys.modules.keys(), key=lambda k: (len(k), k))
++
++    for modname in module_names:
++        module = sys.modules.get(modname)
++
++        # Skip private/pseudo modules, non-modules, and the object's own module
++        if (modname.startswith('_') or module is None or
++                not isinstance(module, ModuleType) or modname == obj_module_name):
++            continue
++
++        try:
++            # Iterate through module attributes using safe_getmembers for safety
++            for name, member in safe_getmembers(module):
++                if name.startswith('_'):  # Skip private attributes in the public module
++                    continue
++                try:
++                    if member is obj:
++                        # Found a potential public alias
++                        current_alias = f"{modname}.{name}"
++
++                        # Prioritize alias if module name matches the private module base name
++                        if modname == private_module_base:
++                            found_alias = current_alias
++                            # Found the best possible match for this module, break inner loop
++                            break
++
++                        # Otherwise, store the first one found as a fallback
++                        if found_alias is None:
++                            found_alias = current_alias
++
++                except Exception:
++                    # Catch comparison errors, etc.
++                    pass
++
++            # If we found the preferred alias (matching module name), stop searching modules
++            if found_alias and modname == private_module_base:
++                break
++
++        except Exception:
++            # Ignore errors iterating module contents (e.g., getattr errors via safe_getmembers)
++            pass
++
++    return found_alias
++
++
+ def getdoc(obj: Any,
+            get_try_import: Callable[[str], Any] = safe_try_import, *,
+            allow_inherited: bool = False,
+--- a/sphinx/util/typing.py
++++ b/sphinx/util/typing.py
+@@ -17,7 +17,7 @@
+ from sphinx.util import logging
+ from sphinx.util.inspect import (get_annotations, isclass, isenumclass, isforwardref,
+                                  safe_getattr)
+-from sphinx.util.inspect import get_fullname_for_module  # NOQA
++from sphinx.util.inspect import find_public_alias, get_fullname_for_module  # NOQA
+
+
+ logger = logging.getLogger(__name__)
+@@ -136,16 +136,20 @@
+             # typing module provides some special forms classes (ex. ForwardRef).
+             # It is safe to output the name directly.
+             # Note: this branch is not covered by tests. Maybe it is not used.
+-            return ':py:class:`~%s.%s`' % (hint.__module__, hint.__qualname__)
++            qualname = getattr(hint, '__qualname__', hint.__name__)
++            return ':py:class:`~%s.%s`' % (hint.__module__, qualname)
++        elif hint.__module__.startswith('_'):
++            # Check for public alias for types defined in private modules (like _struct.Struct)
++            alias = find_public_alias(hint)
++            if alias:
++                return f':py:class:`~{alias}`'
++            else:
++                # Fallback to the private name if no public alias is found
++                qualname = getattr(hint, '__qualname__', hint.__name__)
++                return ':py:class:`~%s.%s`' % (hint.__module__, qualname)
+         else:
+             # Find module alias for the type hint if possible
+             module = sys.modules.get(hint.__module__)
+-            qualname = get_fullname_for_module(hint, module)
+-            if qualname:
+-                return ':py:class:`~%s.%s`' % (hint.__module__, qualname)
+-            else:
+-                # Failed to determine the canonical name.
+-                # Give up and use __name__.
+-                return ':py:class:`~%s.%s`' % (hint.__module__, hint.__qualname__)
++            full_qualname = get_fullname_for_module(hint, module)
++            if full_qualname:
++                return ':py:class:`~%s.%s`' % (hint.__module__, full_qualname)
++            else:
++                # Failed to determine the canonical name. Give up and use __qualname__.
++                qualname = getattr(hint, '__qualname__', hint.__name__)
++                return ':py:class:`~%s.%s`' % (hint.__module__, qualname)
+     elif isinstance(hint, typing.TypeVar):
+         if hint.__module__ == 'typing':
+             return ':py:data:`~%s`' % hint.__name__
+```

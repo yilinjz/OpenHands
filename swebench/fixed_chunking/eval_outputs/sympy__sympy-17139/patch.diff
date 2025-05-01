@@ -1,0 +1,13 @@
+```patch
+--- a/sympy/simplify/fu.py
++++ b/sympy/simplify/fu.py
+@@ -501,7 +501,7 @@
+         #         return rv
+         #     return nrv
+         # this was causing problems in test_trigsimp:
+-        if (rv.exp < 0) == True:
++        if rv.exp.is_real and rv.exp < 0:
+             nrv = f1(rv.base.args[0])**rv.exp
+             if nrv != rv:
+                 return nrv # pragma: no cover
+```

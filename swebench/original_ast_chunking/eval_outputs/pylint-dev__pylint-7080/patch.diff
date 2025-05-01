@@ -1,0 +1,22 @@
+```patch
+--- a/pylint/utils/__init__.py
++++ b/pylint/utils/__init__.py
+@@ -294,7 +294,7 @@
+                 continue
+             modname = os.path.splitext(filename)[0]
+             if modname == "__init__":
+-                if _is_ignored_file_or_dir(filename, config):
++                if _is_ignored_file_or_dir(filepath, config):
+                     continue
+                 modname = is_namespace and modname or name
+                 result.append(
+@@ -303,7 +303,7 @@
+                     }
+                 )
+             # If not __init__ package, check if the file is ignored
+-            elif _is_ignored_file_or_dir(filename, config):
++            elif _is_ignored_file_or_dir(filepath, config):
+                 continue
+             # Store the module for checking
+             else:
+```

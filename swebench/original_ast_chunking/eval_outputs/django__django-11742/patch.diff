@@ -1,0 +1,53 @@
+```patch
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -1,4 +1,6 @@
+ from django.core import checks, exceptions, validators
++from django.core.exceptions import FieldDoesNotExist
++from django.db import connection, connections, router
+ from django.db.models.query_utils import DeferredAttribute, RegisterLookupMixin
+ from django.utils.translation import gettext_lazy as _
+ 
+@@ -11,6 +13,7 @@
+         return [
+             *super().check(**kwargs),
+             *self._check_max_length_attribute(**kwargs),
++            *self._check_choices_max_length(**kwargs),
+         ]
+ 
+     def _check_max_length_attribute(self, **kwargs):
+@@ -33,6 +36,31 @@
+             ]
+         else:
+             return []
++
++    def _check_choices_max_length(self, **kwargs):
++        if not self.choices or self.max_length is None:
++            return []
++
++        max_choice_length = 0
++        longest_choice = None
++        # self.flatchoices is explicitly used here to handle optgroups.
++        for value, _ in self.flatchoices:
++            # Value might be an int, bool, etc. Convert it to str first.
++            value_str = str(value)
++            value_len = len(value_str)
++            if value_len > max_choice_length:
++                max_choice_length = value_len
++                longest_choice = value_str
++
++        if max_choice_length > self.max_length:
++            return [
++                checks.Warning(
++                    f"Field '{self.name}' has max_length={self.max_length}, but the longest "
++                    f"choice's value ('{longest_choice}') has length {max_choice_length}.",
++                    hint=f"Consider increasing max_length for {self.model.__name__}.{self.name}.",
++                    obj=self,
++                    id='fields.W122',
++                )
++            ]
++        return []
+ 
+     def cast_db_type(self, connection):
+         if self.max_length is None:
+```

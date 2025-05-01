@@ -1,0 +1,70 @@
+```patch
+--- a/src/flask/config.py
++++ b/src/flask/config.py
+@@ -1,10 +1,12 @@
+ import errno
+ import json
+ import os
++import sys
+ import types
+ import typing as t
+ 
+ from . import typing as ft
++from ._compat import tomllib
+ from .helpers import get_debug_flag
+ from .json import loads as json_loads
+ from .pyfilesystem import get_find_package_path
+@@ -103,6 +105,7 @@
+         filename: str,
+         load: t.Callable[[t.IO[t.Any]], t.Mapping],
+         silent: bool = False,
++        mode: str = "r",
+     ) -> bool:
+         """Update the values in the config from a file that is loaded
+         using the ``load`` parameter. The loaded data is passed to the
+@@ -114,19 +117,29 @@
+             import json
+             app.config.from_file("config.json", load=json.load)
+ 
++            # Using https://pypi.org/project/toml/
+             import toml
+             app.config.from_file("config.toml", load=toml.load)
++
++            # Using tomllib (Python 3.11+)
++            if sys.version_info >= (3, 11):
++                import tomllib
++                app.config.from_file("config.toml", load=tomllib.load, mode="rb")
+ 
+         :param filename: The path to the data file. This can be an
+             absolute path or relative to the config root path.
+-        :param load: A callable that takes a file handle and returns a
+-            mapping of loaded data from the file.
+-        :type load: ``Callable[[Reader], Mapping]`` where ``Reader``
+-            implements a ``read`` method.
++        :param load: A callable that takes a file handle (opened in
++            the mode specified by ``mode``) and returns a mapping of
++            loaded data from the file.
++        :type load: ``Callable[[IO], Mapping]`` where ``IO`` is the
++            file handle.
+         :param silent: Ignore the file if it doesn't exist.
++        :param mode: The mode to open the file with. Defaults to ``"r"``
++            (text mode). Use ``"rb"`` (binary mode) for loaders that
++            require bytes, such as ``tomllib.load``.
+         :return: ``True`` if the file was loaded successfully.
+ 
+-        .. versionadded:: 2.0
++        .. versionadded:: 2.0 The ``load`` parameter.
++        .. versionadded:: 2.3 The ``mode`` parameter.
+         """
+         filename = os.path.join(self.root_path, filename)
+ 
+@@ -134,7 +147,7 @@
+             # Tries to load the file using `load` function. If the file
+             # does not exist, it throws an OSError. It may also raise any
+             # other error from the `load` function, such as json.JSONDecodeError.
+-            with open(filename) as f:
++            with open(filename, mode=mode) as f:
+                 obj = load(f)
+         except OSError as e:
+             if silent and e.errno in (errno.ENOENT, errno.EISDIR):
+```

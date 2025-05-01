@@ -1,0 +1,126 @@
+```patch
+--- a/django/templatetags/static.py
++++ b/django/templatetags/static.py
+@@ -1,30 +1,45 @@
+-from urllib.parse import quote, urljoin
++from urllib.parse import quote, urljoin, urlparse
+ 
+ from django.apps import apps
+ from django.conf import settings
+ from django.template.base import Library, Node, TemplateSyntaxError
+-from django.template.defaulttags import PrefixNode
+ from django.utils.html import conditional_escape
+ 
+ register = Library()
+ 
+ 
+ class StaticNode(Node):
++    """
++    Node that resolves static file paths.
++
++    If ``django.contrib.staticfiles`` is installed, it uses the configured
++    storage's ``url()`` method. Otherwise, it prepends the value of the
++    ``STATIC_URL`` setting.
++
++    If the resolved URL is path-absolute (starts with '/') and the template
++    context contains a request with a non-empty ``script_name``, the
++    ``script_name`` is prepended, unless ``script_name`` is '/'.
++    """
+     def __init__(self, varname=None, path=None):
+         if path is None:
+             raise TemplateSyntaxError(
+                 "Static template nodes must be given a path to return.")
+         self.path = path
+         self.varname = varname
+-
++
+     def url(self, context):
+         path = self.path.resolve(context)
+-        return self.handle_simple(path)
+-
+-    @classmethod
+-    def handle_simple(cls, path):
++        path = str(path)  # Ensure path is string
++
++        base_url = self.get_base_url(path)
++
++        # If the context has a request, prepend SCRIPT_NAME if appropriate.
++        request = context.get('request')
++        script_name = getattr(request, 'script_name', None)
++
++        return self.prefix_script_name(base_url, script_name)
++
++    def get_base_url(self, path):
+         if apps.is_installed('django.contrib.staticfiles'):
+             from django.contrib.staticfiles.storage import staticfiles_storage
+             return staticfiles_storage.url(path)
+@@ -32,7 +47,31 @@
+             # Use settings.STATIC_URL directly
+             static_url_setting = getattr(settings, 'STATIC_URL', None)
+             if static_url_setting is None:
+-                return urljoin(PrefixNode.handle_simple("STATIC_URL"), quote(path))
++                # Mimic urljoin's behavior with None base
++                return quote(path)
++            else:
++                # Ensure static_url ends with a slash for urljoin
++                static_url = str(static_url_setting)
++                if static_url and not static_url.endswith('/'):
++                    static_url += '/'
++                return urljoin(static_url, quote(path))
++
++    def prefix_script_name(self, base_url, script_name):
++        if script_name:
++            # urlparse helps determine if the URL is absolute or relative
++            parsed_url = urlparse(base_url)
++            # Only prepend script_name if the URL is path-absolute (starts
++            # with '/' but not '//') and has no scheme or netloc.
++            if (not parsed_url.scheme and not parsed_url.netloc and
++                    base_url.startswith('/') and not base_url.startswith('//')):
++                # Don't modify if script_name is '/'
++                if script_name != '/':
++                    # Prepend script_name, stripping its trailing slash.
++                    base_url = script_name.rstrip('/') + base_url
++            # Otherwise (URL is absolute, protocol-relative, or relative),
++            # return base_url unmodified by script_name.
++        return base_url
+ 
+     def render(self, context):
+         url = self.url(context)
+@@ -56,8 +95,8 @@
+ 
+         path = parser.compile_filter(bits[1])
+ 
+-        if len(bits) >= 2 and bits[-2] == 'as':
+-            varname = bits[3]
++        if len(bits) >= 4 and bits[-2] == 'as':
++            varname = bits[-1]
+         else:
+             varname = None
+ 
+@@ -67,17 +106,21 @@
+ @register.tag('static')
+ def do_static(parser, token):
+     """
+-    Join the given path with the STATIC_URL setting.
++    Join the given path with the STATIC_URL setting, respecting SCRIPT_NAME.
+ 
+     Usage::
+ 
+         {% static path [as varname] %}
+ 
+     Examples::
+ 
+-        {% static "myapp/css/base.css" %}
++        {% static "admin/css/base.css" %}
+         {% static variable_with_path %}
+-        {% static "myapp/css/base.css" as admin_base_css %}
++        {% static "admin/css/base.css" as admin_base_css %}
+         {% static variable_with_path as varname %}
+ 
++    If the generated URL is path-absolute (starts with '/') and a SCRIPT_NAME
++    is found in the request context, SCRIPT_NAME will be prepended.
++    Absolute URLs (starting with 'http://', 'https://', '//') or relative URLs
++    (not starting with '/') are returned unmodified by the SCRIPT_NAME logic.
+     """
+     return StaticNode.handle_token(parser, token)
+```

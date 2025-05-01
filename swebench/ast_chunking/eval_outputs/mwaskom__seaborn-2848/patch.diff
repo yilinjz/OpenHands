@@ -1,0 +1,17 @@
+```diff
+--- a/seaborn/axisgrid.py
++++ b/seaborn/axisgrid.py
+@@ -171,6 +171,11 @@
+             else:
+                 hue_order = list(hue_order)
+
++            # Filter the data frame to prevent error further down
++            # when hue_order does not include all unique values GH#2375
++            mask = data[hue].isin(hue_order)
++            data = data[mask]
++
+             # Map hue levels to colors
+             n_colors = len(hue_order)
+             palette = self._resolve_palette(palette, data, hue, n_colors)
+
+```

@@ -1,0 +1,47 @@
+```patch
+--- a/django/core/management/commands/sqlmigrate.py
++++ b/django/core/management/commands/sqlmigrate.py
+@@ -52,7 +52,7 @@
+         schema_editor = connection.schema_editor(collect_sql=True, atomic=migration.atomic)
+ 
+         # Show begin/commit statements?
+-        self.output_transaction = migration.atomic
++        self.output_transaction = migration.atomic and connection.features.can_rollback_ddl
+ 
+         # Make internal list of operations - ones that are overridden
+         # by a database-specific implementation take precedence.
+--- a/tests/migrations/test_commands.py
++++ b/tests/migrations/test_commands.py
+@@ -1,6 +1,7 @@
+ import io
+ import os
+ import sys
++from unittest.mock import patch
+ 
+ from django.apps import apps
+ from django.core.management import CommandError, call_command
+@@ -252,6 +253,23 @@
+         self.assertIn("COMMIT;", output)
+         self.assertIn("CREATE TABLE", output)  # And some SQL
+ 
++    @override_settings(MIGRATION_MODULES={'migrations': 'migrations.test_migrations'})
++    def test_sqlmigrate_atomic_no_transaction_on_incapable_db(self):
++        """
++        sqlmigrate doesn't wrap atomic migrations in a transaction if the
++        database backend doesn't support transactional DDL.
++        """
++        # Use a migration known to be atomic (the default)
++        app_label = 'migrations'
++        migration_name = '0001_initial'
++        # Mock can_rollback_ddl to False
++        with patch.object(connection.features, 'can_rollback_ddl', False):
++            out = io.StringIO()
++            call_command('sqlmigrate', app_label, migration_name, stdout=out)
++            output = out.getvalue()
++            self.assertNotIn(connection.ops.start_transaction_sql(), output)
++            self.assertNotIn("COMMIT;", output)
++            self.assertIn("CREATE TABLE", output)  # And some SQL
+ 
+ @override_settings(MIGRATION_MODULES={'migrations': 'migrations.test_migrations_non_atomic'})
+ class NonAtomicSQLMigrateTests(TestCase):
+```

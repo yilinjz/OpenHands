@@ -1,0 +1,29 @@
+```diff
+--- a/sklearn/utils/_set_output.py
++++ b/sklearn/utils/_set_output.py
+@@ -56,13 +56,19 @@
+         if columns is not None:
+             data_to_wrap.columns = columns
+         if index is not None:
+-            data_to_wrap.index = index
++            # If the index does not match the length of the data, then we
++            # assume the transformer has manipulated the index and thus we
++            # do not overwrite it.
++            if len(index) == data_to_wrap.shape[0]:
++                data_to_wrap.index = index
+         return data_to_wrap
+
+     if _is_pandas_series(data_to_wrap):
+         if index is not None:
+-            data_to_wrap.index = index
+-        # TODO: Use `columns` to name the series?
++            # If the index does not match the length of the data, then we
++            # assume the transformer has manipulated the index and thus we
++            # do not overwrite it.
++            if len(index) == data_to_wrap.shape[0]:
++                data_to_wrap.index = index
+         return data_to_wrap
+
+     # data_to_wrap is np.ndarray
+
+```

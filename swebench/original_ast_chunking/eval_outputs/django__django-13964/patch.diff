@@ -1,0 +1,27 @@
+```patch
+--- a/django/db/models/base.py
++++ b/django/db/models/base.py
+@@ -24,15 +24,15 @@
+                          "related object '%s'." % (operation_name, field.name)
+                      )
+                 # If the relationship's pk/to_field was changed, clear the
+-                # cached relationship.
+-                elif getattr(self, field.attname) is None:
++                # cached relationship and update the FK value. This is necessary
++                # because the FK value assigned on the parent instance may be
++                # incorrect if the related object's PK was changed after the
++                # assignment.
++                current_fk_val = getattr(self, field.attname)
++                related_pk_val = getattr(obj, field.target_field.attname)
++                if current_fk_val != related_pk_val:
+                     # Use pk from related object if it has been saved after
+                     # an assignment.
+-                    setattr(self, field.attname, obj.pk)
+-                # If the relationship's pk/to_field was changed, clear the
+-                # cached relationship.
+-                if getattr(obj, field.target_field.attname) != getattr(self, field.attname):
++                    setattr(self, field.attname, related_pk_val)
+                     field.delete_cached_value(self)
+ 
+      def delete(self, using=None, keep_parents=False):
+```

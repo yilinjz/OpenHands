@@ -1,0 +1,24 @@
+```patch
+--- a/django/core/management/commands/shell.py
++++ b/django/core/management/commands/shell.py
+@@ -43,14 +43,18 @@
+     def handle(self, **options):
+         # Execute the command and exit.
+         if options['command']:
+-            exec(options['command'])
++            # Pass empty dictionaries for globals and locals to mimic
++            # behavior of running a Python script.
++            exec(options['command'], {})
+             return
+ 
+         # Execute stdin if it has anything to read and exit.
+         # Not supported on Windows due to select.select() limitations.
+         if sys.platform != 'win32' and not sys.stdin.isatty() and select.select([sys.stdin], [], [], 0)[0]:
+-            exec(sys.stdin.read())
++            # Pass empty dictionaries for globals and locals to mimic
++            # behavior of running a Python script.
++            exec(sys.stdin.read(), {})
+             return
+ 
+         available_shells = [options['interface']] if options['interface'] else self.shells
+```

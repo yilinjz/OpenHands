@@ -1,0 +1,25 @@
+```patch
+--- a/lib/mpl_toolkits/mplot3d/axes3d.py
++++ b/lib/mpl_toolkits/mplot3d/axes3d.py
+@@ -261,6 +261,17 @@
+         self.mouse_init()
+         self.figure.canvas.callbacks.connect('button_press_event', self.button_press)
+ 
++    def set_visible(self, vis):
++        """
++        Set the visibility of the Axes3D.
++
++        Parameters
++        ----------
++        vis : bool
++        """
++        super().set_visible(vis)
++        for ax in [self.xaxis, self.yaxis, self.zaxis]:
++            ax.set_visible(vis)
++        self.patch.set_visible(vis)
++        self.stale = True
++
+     def _get_axis_list(self):
+         return self.xaxis, self.yaxis, self.zaxis
+ 
+```

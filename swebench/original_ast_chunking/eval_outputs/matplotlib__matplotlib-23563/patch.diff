@@ -1,0 +1,33 @@
+```patch
+--- a/lib/mpl_toolkits/mplot3d/art3d.py
++++ b/lib/mpl_toolkits/mplot3d/art3d.py
+@@ -62,10 +62,24 @@
+
+
+ def line_2d_to_3d(line, zs=0, zdir='z'):
+-    """Convert a 2D line to 3D."""
++    """Convert a `.Line2D` object to a `.Line3D` object."""
++    xs = line.get_xdata()
++    ys = line.get_ydata()
++    # Ensure zs is broadcastable *before* changing class or setting attributes.
++    # If this fails, the original Line2D remains unmodified.
++    try:
++        zs = np.broadcast_to(zs, len(xs))
++    except ValueError as e:
++        raise ValueError(
++            f"Length of zs ({np.size(zs)}) does not match length of xs "
++            f"({len(xs)})"
++        ) from e
+
++    # Prepare the 3D vertices
++    verts3d = juggle_axes(xs, ys, zs, zdir)
++
++    # Change the class and assign the vertices directly
+     line.__class__ = Line3D
+-    line.set_3d_properties(zs, zdir)
++    line._verts3d = verts3d
++    line.stale = True
+
+
+ def _path_to_3d_segment(path, zs=0, zdir='z'):
+```

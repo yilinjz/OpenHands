@@ -1,0 +1,35 @@
+```diff
+--- a/sympy/matrices/expressions/blockmatrix.py
++++ b/sympy/matrices/expressions/blockmatrix.py
+@@ -94,14 +94,23 @@
+         if (self.blockshape[1] != other.blockshape[0] or
+                 self.colblocksizes != other.rowblocksizes):
+             raise ShapeError("Block shapes incompatible for multiplication")
+-
++        
++        # Avoid circular imports
++        from sympy.matrices.expressions.matadd import MatAdd
++        from sympy.matrices.expressions.zeromatrix import ZeroMatrix
++        from sympy import S
++        
+         C = Matrix(self.blockshape[0], other.blockshape[1], lambda i, j: S.Zero)
+         for i in range(self.blockshape[0]):
+             for j in range(other.blockshape[1]):
++                block_sum = S.Zero
+                 for k in range(self.blockshape[1]):
+-                    C[i, j] = C[i, j] + self.blocks[i, k]*other.blocks[k, j]
++                    term = self.blocks[i, k] * other.blocks[k, j]
++                    block_sum = MatAdd(block_sum, term).doit() # Ensure simplification
++                
++                # If the block sum simplifies to S.Zero, replace with ZeroMatrix
++                if block_sum == S.Zero:
++                    C[i, j] = ZeroMatrix(self.rowblocksizes[i], other.colblocksizes[j])
++                else:
++                    C[i, j] = block_sum
+ 
+         return BlockMatrix(C)
+-
+-    def _blockadd(self, other):
+-        if not isinstance(other, BlockMatrix):
+
+```

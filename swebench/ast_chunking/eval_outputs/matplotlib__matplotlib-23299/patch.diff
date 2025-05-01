@@ -1,0 +1,38 @@
+```patch
+--- a/lib/matplotlib/__init__.py
++++ b/lib/matplotlib/__init__.py
+@@ -740,10 +740,14 @@
+             # backend if needed.
+             if key == "backend":
+                 # Store the backend name that the user originally requested,
+-                # before resolution (e.g. "agg", "auto").
+-                self._user_cached_backend = val
+-                # Trigger the backend switch.
+-                self.update_user(propagate=False)
++                # before resolution (e.g. "agg", "auto"). Don't switch if the
++                # backend is just being set to the resolved value of "auto".
++                from matplotlib import pyplot as plt
++                if (plt._get_backend_mod() is not None and  # A backend is loaded.
++                        val != plt._get_backend_mod().__name__):  # The new backend name differs.
++                    plt.switch_backend(val)
++                # Store the user requested name.
++                self._user_cached_backend = val
+
+     def __getitem__(self, key):
+         key = self._validate_key(key)
+@@ -780,14 +784,6 @@
+         # Update the cached backend value.
+         self._user_cached_backend = self._user.get("backend")
+
+-        # Propagate the changes to other modules.
+-        if propagate:
+-            # This is the only possible propagation at the moment.
+-            if self._user_cached_backend:
+-                # This may raise an ImportError, which is desired.
+-                from matplotlib import pyplot as plt
+-                plt.switch_backend(self._user_cached_backend)
+-
+     def __repr__(self):
+         class_name = self.__class__.__name__
+         indent = len(class_name) + 1
+```

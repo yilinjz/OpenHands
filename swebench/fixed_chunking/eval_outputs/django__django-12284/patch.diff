@@ -1,0 +1,42 @@
+```patch
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -27,16 +27,23 @@
+  
+      def _get_flatchoices(self):
+          """Flattened version of choices tuple."""
++         # Check if choices is None first for performance.
+          if self.choices is None:
++             # Don't set self._flatchoices if choices is None. Use getattr
++             # instead of hasattr because hasattr would cache the negative
++             # result preventing future assignment. Refs #20819.
++             if getattr(self, '_flatchoices', None) is None:
++                 self._flatchoices = []
++             return self._flatchoices
++         # If choices is set, force evaluation locally before caching.
++         choices = list(self.choices)
++         flat = []
++         # Check for optgroups
++         for choice, value in choices:
++             if isinstance(value, (list, tuple)):
++                 # This is an optgroup, recurse.
++                 flat.extend(value)
++             else:
++                 flat.append((choice, value))
++         self._flatchoices = flat  # Cache the result on the field instance
+              return []
+-         flat = []
+-         for choice, value in self.choices:
+-             if isinstance(value, (list, tuple)):
+-                 flat.extend(value)
+-             else:
+-                 flat.append((choice, value))
+-         return flat
+-     flatchoices = property(_get_flatchoices)
++         return self._flatchoices
++     flatchoices = property(_get_flatchoices)
+  
+      def save_form_data(self, instance, data):
+          setattr(instance, self.name, data)
+
+```

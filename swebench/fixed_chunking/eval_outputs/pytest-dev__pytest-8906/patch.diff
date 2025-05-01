@@ -1,0 +1,75 @@
+```patch
+--- a/src/_pytest/outcomes.py
++++ b/src/_pytest/outcomes.py
+@@ -1,6 +1,10 @@
+ """Outcome exceptions.
+ 
+ Pytest defines its own set of exceptions on top of Python exceptions, which are
+ used to signal specific test outcomes. These are subclasses of the `OutcomeException`
+ base class.
++
++.. autoexception:: pytest.skip.Exception
++.. autoexception:: pytest.fail.Exception
++.. autoexception:: pytest.xfail.Exception
++.. autoexception:: pytest.exit.Exception
+ """
+ import sys
+ from typing import Any
+@@ -10,6 +14,7 @@
+ from typing import Type
+ from typing import TYPE_CHECKING
+ 
++import attr
+ from _pytest.compat import final
+ from _pytest.deprecated import PENDING_PYTEST_8_API
+ from _pytest.utils import _ExceptionChainRepr
+@@ -102,6 +107,28 @@
+     raise Skipped(msg=msg, allow_module_level=allow_module_level, _use_internal_repr=True)
+ 
+ 
++@_with_exception(Skipped)
++def skip_module(msg: str = "") -> "NoReturn":
++    """Skip the rest of the module being collected.
++
++    This function should be called only during module collection (e.g. at the
++    module level). It provides a clearer way to skip the remainder of a module
++    compared to calling :func:`pytest.skip` with ``allow_module_level=True``.
++
++    This is useful when a module requires dependencies or a specific environment
++    that is not available, and importing the module or its dependencies would
++    cause errors.
++
++    :param str msg: The message to report for the skip.
++
++    .. versionadded:: X.Y.Z
++       Replace X.Y.Z with the pytest version this is released in.
++    """
++    __tracebackhide__ = True
++    # Raise Skipped directly with allow_module_level=True.
++    raise Skipped(msg=msg, allow_module_level=True)
++
++
+ @_with_exception(Failed)
+ def fail(msg: str = "", pytrace: bool = True) -> "NoReturn":
+     """Explicitly fail an executing test with the given message.
+--- a/src/_pytest/python.py
++++ b/src/_pytest/python.py
+@@ -110,12 +110,13 @@
+             if e.allow_module_level:
+                 raise
+             # If allow_module_level is False (the default for pytest.skip), raise a CollectError.
++            # Use e.msg to include the user's skip message in the error.
++            msg_arg = f"{e.msg!r}" if e.msg else ""
+             raise self.CollectError(
+-                "Using pytest.skip outside of a test is not allowed. "
+-                "To decorate a test function, use the @pytest.mark.skip "
+-                "or @pytest.mark.skipif decorators instead, and to skip a "
+-                "module use `pytestmark = pytest.mark.{skip,skipif}."
++                f"Using pytest.skip({msg_arg}) outside of a test function is not allowed.\n"
++                "To skip test functions, use the @pytest.mark.skip or @pytest.mark.skipif decorators.\n"
++                "To skip an entire module unconditionally, use `pytestmark = pytest.mark.skip(...)`.\n"
++                "To skip an entire module based on a runtime condition, use pytest.skip_module()."
+             ) from e
+         self.config.pluginmanager.consider_module(mod)
+         return mod
+```

@@ -1,0 +1,63 @@
+```patch
+--- a/sklearn/model_selection/_split.py
++++ b/sklearn/model_selection/_split.py
+@@ -16,6 +16,7 @@
+ from ..utils.validation import _num_samples, check_array, _deprecate_positional_args  # noqa
+ from ..utils.multiclass import type_of_target
+ from ..utils import indexable, check_random_state
++from ..base import BaseEstimator
+
+
+ @six.add_metaclass(ABCMeta)
+@@ -336,7 +337,7 @@
+ ###############################################################################
+ # Repeated splitters
+
+-class _RepeatedSplits(metaclass=ABCMeta):
++class _RepeatedSplits(BaseEstimator, metaclass=ABCMeta):
+     """Repeated splits for an arbitrary randomized CV splitter.
+ 
+     Repeats splits for cross-validators n times with different randomization
+@@ -379,6 +380,10 @@
+         self.n_repeats = n_repeats
+         self.random_state = random_state
+         self.cvargs = cvargs
++        # Store cvargs as attributes for BaseEstimator compatibility
++        # (used by get_params, necessary for __repr__)
++        for key, value in cvargs.items():
++            setattr(self, key, value)
+ 
+     def split(self, X, y=None, groups=None):
+         """Generates indices to split data into training and test set.
+@@ -411,6 +416,28 @@
+             for train_index, test_index in cv.split(X, y, groups):
+                 yield train_index, test_index
+ 
++    def get_n_splits(self, X=None, y=None, groups=None):
++        """Returns the number of splitting iterations in the cross-validator
++
++        Parameters
++        ----------
++        X : object
++            Always ignored, exists for compatibility.
++        y : object
++            Always ignored, exists for compatibility.
++        groups : object
++            Always ignored, exists for compatibility.
++
++        Returns
++        -------
++        n_splits : int
++            Returns the number of splitting iterations in the cross-validator.
++        """
++        inner_cv = self.cv(**self.cvargs)
++        return self.n_repeats * inner_cv.get_n_splits(X, y, groups)
++
++    def __len__(self):
++        """Returns the number of splitting iterations in the cross-validator"""
++        return self.get_n_splits()
++
+ 
+ class RepeatedKFold(_RepeatedSplits):
+     """Repeated K-Fold cross validator.
+```

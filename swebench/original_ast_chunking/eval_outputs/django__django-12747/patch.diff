@@ -1,0 +1,24 @@
+```patch
+--- a/django/db/models/deletion.py
++++ b/django/db/models/deletion.py
+@@ -14,7 +14,7 @@
+                 with transaction.mark_for_rollback_on_error():
+                     count = sql.DeleteQuery(model).delete_batch([instance.pk], self.using)
+                 setattr(instance, model._meta.pk.attname, None)
+-                return count, {model._meta.label: count}
++                return count, {model._meta.label: count} if count > 0 else {}
+ 
+         with transaction.atomic(using=self.using, savepoint=False):
+             # send pre_delete signals
+@@ -28,7 +28,8 @@
+             # fast deletes
+             for qs in self.fast_deletes:
+                 count = qs._raw_delete(using=self.using)
+-                deleted_counter[qs.model._meta.label] += count
++                if count > 0:
++                    deleted_counter[qs.model._meta.label] += count
+ 
+             # update fields
+             for model, instances_for_fieldvalues in self.field_updates.items():
+@@ -47,7 +48,8 @@
+                 

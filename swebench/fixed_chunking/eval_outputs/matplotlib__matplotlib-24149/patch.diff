@@ -1,0 +1,23 @@
+```patch
+--- a/lib/matplotlib/axes/_axes.py
++++ b/lib/matplotlib/axes/_axes.py
+@@ -2179,11 +2179,12 @@
+             # removes the units from unit packages like `pint` that
+             # wrap numpy arrays.
+             try:
+-                x0 = cbook._safe_first_finite(x0)
+-            except (TypeError, IndexError, KeyError):
++                _x0_finite = cbook._safe_first_finite(x0)
++                # Check the finite element for units and apply to dx
++                if hasattr(_x0_finite, 'unit'):
++                    dx = dx * _x0_finite.unit
++            except (TypeError, IndexError, KeyError, StopIteration):
++                # If x0 is empty, has no finite values, or doesn't support
++                # indexing/iteration, we cannot determine its units this way.
+                 pass
+-            if hasattr(x0, 'unit'):
+-                dx = dx * x0.unit
+             return dx
+         except (TypeError, ValueError, AttributeError, units.ConversionError):
+             # If not, then perhaps x0 is numeric and dx is timedelta?
+```

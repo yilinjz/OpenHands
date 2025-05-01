@@ -1,0 +1,17 @@
+```diff
+--- a/django/db/models/sql/query.py
++++ b/django/db/models/sql/query.py
+@@ -1280,7 +1280,10 @@
+                             continue
+                         # We are ordering by the primary key, so we use the
+                         # primary key alias of the main table.
+-                    order_by.append(('%s.%s' % (self.quote_name_unless_alias(self.base_table), pk_col), descending))
++                    order_by.append((
++                        '%s.%s' % (self.quote_name_unless_alias(self.base_table), pk_col),
++                        descending or name.startswith('-'),
++                    ))
+                     else:
+                         # Ordering by a field from another model requires joining
+                         # that model. Extra tables are added only if they aren't
+
+```

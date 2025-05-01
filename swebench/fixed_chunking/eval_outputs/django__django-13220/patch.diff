@@ -1,0 +1,63 @@
+```patch
+--- a/django/core/exceptions.py
++++ b/django/core/exceptions.py
+@@ -1,5 +1,7 @@
+ from django.utils.translation import gettext_lazy as _
+ 
++from collections import Counter
++
+ NON_FIELD_ERRORS = '__all__'
+ 
+ 
+@@ -49,3 +51,41 @@
+                 yield field, list(ValidationError(errors))
+         else:
+             # Yield individual messages for list-based errors
+-            # or single-message errors.
++            for error in self.error_list:
++                # Could be a plain string or ValidationError instance.
++                if isinstance(error, ValidationError):
++                    message = error.message
++                else:
++                    message = error
++                yield message
++
++    def __eq__(self, other):
++        if not isinstance(other, ValidationError):
++            return NotImplemented
++
++        self_is_dict = hasattr(self, 'error_dict')
++        other_is_dict = hasattr(other, 'error_dict')
++
++        if self_is_dict != other_is_dict:
++            return False
++
++        if self_is_dict:
++            if set(self.error_dict.keys()) != set(other.error_dict.keys()):
++                return False
++            for key in self.error_dict:
++                # Compare lists of errors for each key order-independently
++                try:
++                    if Counter(self.error_dict[key]) != Counter(other.error_dict[key]):
++                        return False
++                except TypeError:  # Fallback if errors are not hashable
++                    return sorted(self.error_dict[key], key=repr) == sorted(other.error_dict[key], key=repr)
++            return True
++        else:
++            # Compare list-based errors order-independently
++            try:
++                return Counter(self.error_list) == Counter(other.error_list)
++            except TypeError:  # Fallback if errors are not hashable
++                return sorted(self.error_list, key=repr) == sorted(other.error_list, key=repr)
++
++    def __hash__(self):
++        # Only hash instances representing a single error message.
++        if hasattr(self, 'error_list') and len(self.error_list) == 1 and self.error_list[0] is self:
++            # Ensure message is resolved if it's lazy.
++            # Convert params dict to a hashable form (frozenset of items).
++            params = frozenset(self.params.items()) if self.params else None
++            return hash((str(self.message), self.code, params))
++        else:
++            # Container ValidationErrors (list or dict based) are mutable and not hashable.
++            raise TypeError("ValidationError instances containing other errors cannot be hashed")
+```

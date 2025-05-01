@@ -1,0 +1,65 @@
+```patch
+--- a/sympy/functions/elementary/integers.py
++++ b/sympy/functions/elementary/integers.py
+@@ -100,7 +100,7 @@
+             # This is identical to p.base % q. See issue 8649.
+             # We should try to make this work with negative exponents
+             # as well, but there are some subtleties.
+-            # See issue #11139.
++            # See issue #11139 and #11126.
+             if p.base == q:
+                 # Check if q is an integer, if not, return unevaluated instance
+                 # See issue #11126
+@@ -116,11 +116,11 @@
+                 if p.base in q.args:
+                     return S.Zero
+         # Handle cases like Mod(x**2, x) -> 0
+-        if isinstance(p, Pow) and p.base == q and p.exp.is_integer and p.exp > 1:
++        if isinstance(p, Pow) and p.base == q and q.is_integer and p.exp.is_integer and p.exp > 1:
+              return S.Zero
+         # Handle cases like Mod(x*y, x) -> 0
+         # Need to check that q is integer for this, see issue #11126
+-        if p.is_Mul and q in p.args:
++        if p.is_Mul and q.is_integer and q in p.args:
+              return S.Zero
+ 
+         # Check for quick exit if q is 1 or -1
+--- a/sympy/functions/elementary/tests/test_integers.py
++++ b/sympy/functions/elementary/tests/test_integers.py
+@@ -1,6 +1,6 @@
+ from sympy import (Symbol, Integer, Rational, Mod, floor, ceiling, nan, oo,
+                    zoo, pi, sqrt, symbols, S, Float, Pow, Mul, Max, Min, re,
+-                   im, I, E, GoldenRatio, EulerGamma, Catalan, cos, sin)
++                   im, I, E, GoldenRatio, EulerGamma, Catalan, cos, sin, exp)
+ from sympy.core.expr import unchanged
+ from sympy.functions.elementary.integers import RoundFunction
+ from sympy.utilities.pytest import raises
+@@ -115,6 +115,27 @@
+     assert Mod(x*y, x) == Mod(x*y, x)
+     assert Mod(x*y, y) == Mod(x*y, y)
+ 
++    # issue 11126
++    assert Mod(x**2, x) != 0 # Should remain unevaluated
++    assert Mod(x**2, x).subs(x, 1.5) == 0.75
++    assert Mod(x**2, x).subs(x, 2) == 0
++
++    n = Symbol('n', integer=True)
++    assert Mod(n**2, n) == 0
++    assert Mod(n*x, n) == 0
++
++    # Test specific non-integer values directly
++    assert Mod(S(1.5)**2, S(1.5)) == 0.75
++    assert Mod(Rational(3, 2)**2, Rational(3, 2)) == Rational(3, 4)
++
++    # Test negative exponent case (should not simplify)
++    assert Mod(x**-2, x) != 0
++    assert Mod(x**-2, x).subs(x, 1.5) == Mod(1/2.25, 1.5) # Approx Mod(0.444, 1.5) = 0.444
++    assert Mod(S(1.5)**-2, S(1.5)) == S(4)/9
++
++    # Test zero exponent case
++    assert Mod(x**0, x) == Mod(1, x)
++    assert Mod(S(1.5)**0, S(1.5)) == 1
+ 
+ def test_issue_10669():
+     x = Symbol('x')
+```

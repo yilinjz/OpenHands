@@ -1,0 +1,21 @@
+```diff
+--- a/lib/mpl_toolkits/mplot3d/art3d.py
++++ b/lib/mpl_toolkits/mplot3d/art3d.py
+@@ -63,8 +63,14 @@
+
+ def line_2d_to_3d(line, zs=0, zdir='z'):
+     """Convert a 2D line to 3D."""
++    xs, ys = line.get_data()
+     line.__class__ = Line3D
++    # Ensure verts3d is initialized before calling set_3d_properties.
++    # Otherwise, if set_3d_properties fails (e.g., due to incompatible
++    # inputs), the object can be left in an invalid state (Line3D instance
++    # without _verts3d attribute). Initialize with existing 2D data and Z=0.
++    zs_init = np.zeros_like(xs)
++    line._verts3d = juggle_axes(xs, ys, zs_init, zdir)
++    # Set actual 3D properties using the provided zs. This may error
++    # or overwrite _verts3d, but the attribute is guaranteed to exist.
+     line.set_3d_properties(zs, zdir)
+
+
+```

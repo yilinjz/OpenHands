@@ -1,0 +1,21 @@
+```patch
+--- a/xarray/core/variable.py
++++ b/xarray/core/variable.py
+@@ -131,11 +131,11 @@
+ 
+     if isinstance(data, np.ndarray):
+         return data
+-    if isinstance(data, DataArray):
++    if isinstance(data, Variable):
+         # extract underlying data
+-        data = data.values
+-    if isinstance(data, Variable):
+-        data = data.data
++        data = data._data
++    elif isinstance(data, DataArray):
++        # extract underlying data
++        data = data.variable._data
+     if isinstance(data, (dask_array_type, sparse_array_type)):
+         return data
+     if isinstance(data, pd.Index):
+```

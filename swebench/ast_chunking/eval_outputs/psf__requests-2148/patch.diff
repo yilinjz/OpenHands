@@ -1,0 +1,34 @@
+```patch
+--- a/requests/models.py
++++ b/requests/models.py
+@@ -615,6 +615,9 @@
+                 result = None
+                 try:
+                     result = self.raw.read(decode_content=True)
++                except (ProtocolError, DecodeError, ReadTimeoutError, socket.error) as e:
++                    raise ConnectionError(e)
++
+                 except AttributeError:
+                     # If the raw object doesn't have a read() method, indicate
+                     # that the body has been consumed. This is consistent with
+@@ -641,7 +644,9 @@
+                     # This is the location of the error raised by the server,
+                     # not the location of the error inside Requests.
+                     self.close()
+-                    raise e
++                    raise e
++                # Catch connection-related errors from self.raw.stream
++                except (ProtocolError, DecodeError, ReadTimeoutError, socket.error) as e:
++                    raise ConnectionError(e)
+                 except AttributeError:
+                     # Standard file-like object.
+                     while True:
+@@ -649,6 +654,9 @@
+                             chunk = self.raw.read(chunk_size)
++                        except (ProtocolError, DecodeError, ReadTimeoutError, socket.error) as e:
++                            raise ConnectionError(e)
++
+                         if not chunk:
+                             break
+                         # Don't need to check encoding because we didn't decode the stream
+```

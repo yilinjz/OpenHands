@@ -1,0 +1,71 @@
+```patch
+--- a/sympy/physics/units/unitsystem.py
++++ b/sympy/physics/units/unitsystem.py
+@@ -1,12 +1,17 @@
+ from typing import Dict as tDict, Optional, Set as tSet, Tuple as tTuple, Union as tUnion
+ 
+-from sympy import Expr, S, Add, Mul, Pow, Function, Derivative
++from sympy import Expr, S, Add, Mul, Pow, Function, Derivative, Abs
+ from sympy.core.sympify import sympify
+ from sympy.physics.units.dimensions import Dimension, DimensionSystem
+ from sympy.physics.units.quantities import Quantity
+ from sympy.utilities.exceptions import SymPyDeprecationWarning
+ from sympy.utilities.iterables import sift
+ from sympy.utilities.typing import Set as tSet
++
++# Imports needed for Function handling in _collect_factor_and_dimension
++from sympy.functions.elementary.transcendental import (
++    Log, Exp, HyperbolicFunction) # Add others like LambertW?
++from sympy.functions.elementary.trigonometric import TrigonometricFunction
+ 
+ 
+ class UnitSystem:
+@@ -147,11 +152,36 @@
+                 dim /= idim**count
+             return factor, dim
+         elif isinstance(expr, Function):
+-            fds = [self._collect_factor_and_dimension(
+-                arg) for arg in expr.args]
+-            return (expr.func(*(f[0] for f in fds)),
+-                    *(d[1] for d in fds))
++            # Process arguments first
++            arg_factors = []
++            arg_dims = []
++            for arg in expr.args:
++                factor, dim = self._collect_factor_and_dimension(arg)
++                arg_factors.append(factor)
++                arg_dims.append(dim)
++
++            # Apply dimension rules based on function type
++            # Functions requiring dimensionless arguments (e.g., exp, sin, cos, log):
++            # Add other relevant classes like inverse trig/hyperbolic, etc. if necessary
++            if isinstance(expr, (Exp, Log, TrigonometricFunction, HyperbolicFunction)):
++                # Assuming unary functions for now, extend if needed.
++                if len(expr.args) != 1:
++                    # TODO: Handle multi-argument functions like log(x, b)?
++                    # For now, raise error or assume all args must be dimensionless?
++                    # Let's assume all args must be dimensionless for now.
++                    pass # Fall through to check all args below
++
++                for i, arg_dim in enumerate(arg_dims):
++                    if not self.get_dimension_system().is_dimensionless(arg_dim):
++                        raise ValueError(
++                            f"Argument {i} of function '{expr.func.__name__}' must be dimensionless, "
++                            f"but argument '{expr.args[i]}' has dimension {arg_dim}")
++                # Result is dimensionless
++                result_factor = expr.func(*arg_factors)
++                result_dim = Dimension(1)
++                return result_factor, result_dim
++            elif isinstance(expr, Abs):
++                if len(expr.args) != 1:
++                    raise ValueError("Abs takes exactly one argument")
++                # Result has the same dimension as the argument
++                return Abs(arg_factors[0]), arg_dims[0]
++            # Add handlers for other specific functions here (e.g., sqrt is handled by Pow)
++            else:
++                # Default for unknown functions: raise an error as behavior is undefined.
++                raise TypeError(f"Cannot determine dimension rules for Function '{expr.func.__name__}'.")
+         elif isinstance(expr, Dimension):
+             return S.One, expr
+         else:
+```

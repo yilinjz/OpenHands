@@ -1,0 +1,19 @@
+```diff
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -49,8 +49,12 @@
+             return str(value)
+ 
+     def formfield(self, **kwargs):
++        # Resolve path if it's callable.
++        path = self.path
++        if callable(path):
++            path = path()
+         return super().formfield(**{
+-            'path': self.path,
++            'path': path,
+             'match': self.match,
+             'recursive': self.recursive,
+             'form_class': forms.FilePathField,
+
+```

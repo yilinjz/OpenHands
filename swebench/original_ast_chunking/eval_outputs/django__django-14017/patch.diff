@@ -1,0 +1,73 @@
+```patch
+--- a/django/db/models/query_utils.py
++++ b/django/db/models/query_utils.py
+@@ -14,19 +14,32 @@
+         super().__init__(children=[*args, *sorted(kwargs.items())], connector=_connector, negated=_negated)
+ 
+     def _combine(self, other, conn):
+-        if not isinstance(other, Q):
+-            raise TypeError(other)
++        # Allow combining Q objects with conditional Expressions.
++        other_is_q = isinstance(other, Q)
++        if not other_is_q and not getattr(other, 'conditional', False):
++            raise TypeError(
++                'Cannot combine Q objects with instances of %s.' %
++                type(other).__name__
++            )
+ 
+-        # If the other Q() is empty, ignore it and just use `self`.
+-        if not other:
+-            _, args, kwargs = self.deconstruct()
+-            return type(self)(*args, **kwargs)
+-        # Or if this Q is empty, ignore it and just use `other`.
++        # If the other side is an empty Q, return self.
++        if other_is_q and not other:
++            # Return a clone of self.
++            obj = type(self)()
++            obj.connector = self.connector
++            obj.children = list(self.children)
++            obj.negated = self.negated
++            return obj
++        # If self is an empty Q, return other (cloned if Q, wrapped in Q if Expression).
+         elif not self:
+-            _, args, kwargs = other.deconstruct()
+-            return type(other)(*args, **kwargs)
++            if other_is_q:
++                # Return a clone of other.
++                obj = type(other)()
++                obj.connector = other.connector
++                obj.children = list(other.children)
++                obj.negated = other.negated
++                return obj
++            else:
++                # 'other' is an Expression, wrap it in a Q.
++                return type(self)(other)
+
++        # Neither side is empty. Combine them.
+         obj = type(self)()
+         obj.connector = conn
+         obj.add(self, conn)
+@@ -38,6 +51,22 @@
+ 
+     def __and__(self, other):
+         return self._combine(other, self.AND)
++
++    def __rand__(self, other):
++        """Handle conditional_expression & Q(...)"""
++        # Allow expressions to be combined with Q objects. Expressions are
++        # passed to the right-hand side argument, self.
++        if not getattr(other, 'conditional', False):
++            return NotImplemented
++        # Combine 'other' (expression) with 'self' (Q object) using AND.
++        return type(self)(other)._combine(self, self.AND)
++
++    def __ror__(self, other):
++        """Handle conditional_expression | Q(...)"""
++        if not getattr(other, 'conditional', False):
++            return NotImplemented
++        # Combine 'other' (expression) with 'self' (Q object) using OR.
++        return type(self)(other)._combine(self, self.OR)
+
+     def __invert__(self):
+         obj = type(self)()
+```

@@ -1,0 +1,90 @@
+```patch
+--- a/django/contrib/admin/checks.py
++++ b/django/contrib/admin/checks.py
+@@ -1,3 +1,8 @@
++from django.db.models.fields.related_descriptors import (
++    ManyToManyDescriptor,
++    ReverseManyToOneDescriptor,
++    ReverseOneToOneDescriptor,
++)
+ from django.forms.models import BaseModelFormSet
+ from django.template import TemplateDoesNotExist, engines
+ from django.template.loader import find_template
+@@ -256,10 +261,10 @@
+         errors = []
+         list_display = obj.list_display
+         for index, item in enumerate(list_display):
+-            errors.extend(self._check_list_display_item(obj, model, item))
++            errors.extend(self._check_list_display_item(obj, model, item, index))
+         return errors
+ 
+-    def _check_list_display_item(self, obj, model, item, field_name_prefix=""):
++    def _check_list_display_item(self, obj, model, item, index, field_name_prefix=""):
+         if not isinstance(item, str):
+             # It is some sort of callable, so pass.
+             # TODO: Add options to check display functions.
+@@ -281,19 +286,37 @@
+                 )
+             ]
+         except FieldDoesNotExist:
+-            if not (
+-                hasattr(obj, item)
+-                or getattr(getattr(model, item, None), "fget", None)
+-                or getattr(model, item, None) is not None
+-            ):
++            if hasattr(obj, item):
++                # It's an attribute or method described on the ModelAdmin.
++                attr = getattr(obj, item)
++            elif getattr(getattr(model, item, None), "fget", None):
++                # It's a property defined on the model.
++                attr = getattr(model, item)
++            else:
++                attr = getattr(model, item, None)
++
++            # NEW: Check for reverse relations explicitly. They are attributes on the
++            # model but are not fields and cannot be used in list_display.
++            if isinstance(
++                attr,
++                (
++                    ManyToManyDescriptor,
++                    ReverseManyToOneDescriptor,
++                    ReverseOneToOneDescriptor,
++                ),
++            ):
++                return [
++                    checks.Error(
++                        f"'{type(obj).__name__}.list_display[{index}]', '{item}' is a "
++                        f"reverse relation and cannot be used in list_display.",
++                        hint=(
++                            f"Use a method on '{type(obj).__name__}' to display related "
++                            f"objects."
++                        ),
++                        obj=obj.__class__,
++                        id="admin.E108",
++                    )
++                ]
++            elif attr is None:
+                 # Neither field nor an attribute defined on ModelAdmin or model.
+                 return [
+                     checks.Error(
+-                        f"'{field_name_prefix}{item}' refers to a field or attribute "
+-                        f"that cannot be found on {model._meta.object_name}.",
+-                        obj=obj.__class__,
+-                        id="admin.E108",
+-                    )
+-                ]
+-            else:
+-                attr = getattr(obj, item, None) or getattr(model, item, None)
++                        f"'{type(obj).__name__}.list_display[{index}]' refers to '{item}', "
++                        f"which is not a callable, an attribute of '{type(obj).__name__}', "
++                        f"or an attribute or field on '{model._meta.model_name}'.",
++                        obj=obj.__class__,
++                        id="admin.E108",
++                    )
++                ]
++            # Otherwise, 'attr' is currently allowed.
++            # attr is a callable or property defined on the ModelAdmin or the model.
+ 
+         # Check attributes defined on the model or ModelAdmin.
+         if attr:
+```

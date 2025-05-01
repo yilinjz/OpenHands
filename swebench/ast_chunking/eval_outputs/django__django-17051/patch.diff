@@ -1,0 +1,69 @@
+```diff
+--- a/django/db/models/sql/compiler.py
++++ b/django/db/models/sql/compiler.py
+@@ -188,6 +188,7 @@
+         qn = self.quote_name_unless_alias
+         opts = self.query.get_meta()
+         result = ["INSERT INTO %s" % qn(opts.db_table)]
++        returning_sql = ""
+         returning_fields = self.query.returning_fields
+ 
+         if self.returning_fields and self.connection.features.can_return_columns_from_insert:
+@@ -202,10 +203,7 @@
+                     field.get_placeholder(value, self, self.connection)
+                     for field in self.returning_fields
+                 )
+-            result.append(
+-                self.connection.ops.return_insert_columns_sql(self.returning_fields)
+-            )
+-
++            returning_sql = self.connection.ops.return_insert_columns_sql(self.returning_fields)
+         has_fields = bool(fields)
+         if has_fields:
+             field_names = [f.column for f in fields]
+@@ -231,26 +229,26 @@
+             opts.db_table,
+         )
+ 
+-        can_bulk = (
+-            not self.returning_params and self.connection.features.has_bulk_insert
+-        )
+-
+         if has_fields:
++            can_bulk = (
++                not self.returning_params and self.connection.features.has_bulk_insert
++            )
+             if can_bulk:
+                 result.append(self.connection.ops.bulk_insert_sql(fields, placeholder_rows))
+                 if on_conflict_suffix_sql:
+                     result.append(on_conflict_suffix_sql)
++                if returning_sql:
++                    result.append(returning_sql)
+                 return [(" ".join(result), tuple(p for ps in param_rows for p in ps))]
+             else:
+-                if on_conflict_suffix_sql:
+-                    result.append(on_conflict_suffix_sql)
+                 return [
+                     (
+                         " ".join(
+-                            result + ["VALUES (%s)" % ", ".join(p)]
++                            result + ["VALUES (%s)" % ", ".join(p)] +
++                            ([on_conflict_suffix_sql] if on_conflict_suffix_sql else []) +
++                            ([returning_sql] if returning_sql else [])
+                         ),
+-                        vals,
++                        vals
+                     )
+                     for p, vals in zip(placeholder_rows, param_rows)
+                 ]
+@@ -258,6 +256,8 @@
+             # No fields specified. Use default values.
+             result.append(self.connection.ops.insert_default_sql(opts.db_table))
+             if on_conflict_suffix_sql:
++                # ON CONFLICT is invalid when inserting the default row.
+                 raise ValueError("ON CONFLICT clause cannot be used with default values.")
++            if returning_sql:
++                result.append(returning_sql)
+             return [(" ".join(result), ())]
+
+```

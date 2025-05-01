@@ -1,0 +1,27 @@
+```patch
+--- a/lib/matplotlib/__init__.py
++++ b/lib/matplotlib/__init__.py
+@@ -618,12 +618,17 @@
+         return self
+ 
+     def __exit__(self, exc_type, exc_value, traceback):
+-        # Need to clear the figure manager created during context,
+-        # otherwise it will persist with the wrong backend. See #11141
+-        # Don't modify Gcf if an exception has occurred, as it may break
+-        # test cleanup.
++        # Figures created within the context may be stale if the context
++        # changed the backend. Destroy them unless the context only triggered
++        # the initial backend resolution (i.e. the backend was unset/auto
++        # before the context). See #11141, #23338.
++        # Do not destroy figures if an exception occurred, as this may break
++        # test cleanup logic.
+         if exc_type is None:
+-            _pylab_helpers.Gcf.destroy_all()
++            backend_before = self._orig._get_backend_or_none()
++            backend_after_ctx = rcParams._get_backend_or_none()
++            if backend_after_ctx != backend_before and backend_before is not None:
++                _pylab_helpers.Gcf.destroy_all()
+ 
+         # Restore the original rcparams values.
+         # This does not call the set() method, but directly updates the
+```

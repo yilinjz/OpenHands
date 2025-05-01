@@ -1,0 +1,126 @@
+```diff
+--- a/xarray/core/formatting.py
++++ b/xarray/core/formatting.py
+@@ -118,11 +118,19 @@
+     return f"{first_col} {dims_str:<{dims_width}} {dtype_str}{preview_str}"
+ 
+ 
+-def summarize_coord(name: Hashable, var: Variable, col_width: int) -> str:
++def summarize_coord(name: Hashable, var: Variable, is_index: bool, col_width: int) -> str:
+     """Summarize a single coordinate variable."""
+-    is_index = isinstance(var._indexes, dict) and list(var._indexes.keys()) == [name]
++    marker = "*" if is_index else " "
++    units = var.attrs.get("units")
++    if units is not None:
++        name_str = f"{name}, in {units}"
++    else:
++        name_str = f"{name}"
++
++    first_col = f"{marker}{name_str:<{col_width - 1}}"
++
+     dims_str = f"({', '.join(map(str, var.dims))})" if var.dims else ""
+-    first_col = f"{'*' if is_index else ' '}{name:<{col_width - 1}}"
++
+     return _summarize_var_or_coord(first_col, var, dims_str, col_width)
+ 
+ 
+@@ -130,8 +138,14 @@
+     """Summarize a single data variable."""
+     dims_str = f"({', '.join(map(str, var.dims))})"
+     # first col has a single space offset
+-    first_col = f" {name:<{col_width - 1}}"
++    units = var.attrs.get("units")
++    if units is not None:
++        name_str = f"{name}, in {units}"
++    else:
++        name_str = f"{name}"
++
++    first_col = f" {name_str:<{col_width - 1}}"
+     return _summarize_var_or_coord(first_col, var, dims_str, col_width)
+ 
+ 
+@@ -164,16 +178,28 @@
+     max_rows: int,
+ ):
+     """Summarize coordinates in a Dataset or DataArray."""
++    if not coords:
++        return []
++
++    is_index = {k: k in indexes for k in coords}
++
++    coord_names_with_units = []
++    for k, v in coords.items():
++        units = v.attrs.get("units")
++        coord_str = f"{k}, in {units}" if units is not None else f"{k}"
++        coord_names_with_units.append(f"{'*' if is_index[k] else ' '}{coord_str}")
++
++    col_width = max(col_width, max(len(s) for s in coord_names_with_units))
++
+     summary = ["Coordinates:"]
+-    if coords:
+-        is_index = {k: k in indexes for k in coords}
+-        coord_lines = [
+-            summarize_coord(k, v, col_width) for k, v in coords.items() if k in is_index
+-        ] + [
+-            summarize_coord(k, v, col_width) for k, v in coords.items() if k not in is_index
+-        ]
+-        summary += _maybe_truncate(coord_lines, max_rows)
+-    return "\n".join(summary)
++    coord_lines = [
++        summarize_coord(k, v, is_index[k], col_width)
++        for k, v in coords.items()
++        if k in is_index
++    ] + [
++        summarize_coord(k, v, is_index[k], col_width) for k, v in coords.items() if k not in is_index
++    ]
++    return summary + _maybe_truncate(coord_lines, max_rows)
+ 
+ 
+ def summarize_vars(
+@@ -183,11 +209,19 @@
+     max_rows: int,
+ ):
+     """Summarize data variables in a Dataset."""
++    if not variables:
++        return []
++
++    var_names_with_units = []
++    for k, v in variables.items():
++        units = v.attrs.get("units")
++        var_str = f"{k}, in {units}" if units is not None else f"{k}"
++        var_names_with_units.append(f" {var_str}")  # Add space prefix
++
++    col_width = max(col_width, max(len(s) for s in var_names_with_units))
++
+     summary = ["Data variables:"]
+-    if variables:
+-        var_lines = [summarize_datavar(k, v, col_width) for k, v in variables.items()]
+-        summary += _maybe_truncate(var_lines, max_rows)
+-    return "\n".join(summary)
++    var_lines = [summarize_datavar(k, v, col_width) for k, v in variables.items()]
++    return summary + _maybe_truncate(var_lines, max_rows)
+ 
+ 
+ def summarize_attrs(attrs: Mapping, max_rows: int | None = None) -> list[str]:
+@@ -211,16 +245,16 @@
+     summary = ["<xarray.Dataset>"]
+ 
+     col_width = _calculate_col_width(ds.dims)
+-    dims_start = pretty_print("Dimensions:", col_width)
++    dims_start = pretty_print("Dimensions:", col_width + 1)  # +1 for asterisk/space
+     summary.append(f"{dims_start}({dim_summary})")
+ 
+     summary.extend(
+-        summarize_coords(ds.coords, ds.indexes, col_width, OPTIONS["display_max_rows"])
++        summarize_coords(ds.coords, ds.indexes, col_width + 1, OPTIONS["display_max_rows"])
+     )
+ 
+     summary.extend(
+         summarize_vars(
+-            ds.data_vars, ds.indexes, col_width, OPTIONS["display_max_rows"]
++            ds.data_vars, ds.indexes, col_width + 1, OPTIONS["display_max_rows"]
+         )
+     )
+ 
+
+```

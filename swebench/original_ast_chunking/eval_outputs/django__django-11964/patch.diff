@@ -1,0 +1,28 @@
+```patch
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -1,5 +1,6 @@
+ import copy
+ import datetime
++import enum
+ import warnings
+ from decimal import Decimal
+ from functools import partial
+@@ -1000,7 +1001,12 @@
+             return self
+         return instance.__dict__[self.attname]
+
+-    def __set__(self, instance, value):
+-        instance.__dict__[self.attname] = value
++    def __set__(self, instance, value):
++        # If the field has choices, and an enum member was assigned, store
++        # the underlying value directly in the instance dict to prevent
++        # inconsistencies between just-assigned and retrieved values.
++        if self.choices and isinstance(value, enum.Enum):
++            instance.__dict__[self.attname] = value.value
++        else:
++            instance.__dict__[self.attname] = value
+
+     def _check_choices(self):
+
+```

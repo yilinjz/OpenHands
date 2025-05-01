@@ -1,0 +1,26 @@
+```patch
+--- a/django/template/defaultfilters.py
++++ b/django/template/defaultfilters.py
+@@ -413,16 +413,12 @@
+ 
+         Argument: The separator to use.
+         """
+-        try:
+-            # Assume arg is a SafeData instance. If not, conditional_escape will be
+-            # called on the result below.
+-            data = mark_safe(str(arg))
+-        except (AttributeError, TypeError):
+-            # The mark_safe call is needed because the separator is used
+-            # before the later conditional_escape.
+-            data = mark_safe(conditional_escape(str(arg)))
++        sep = str(arg)
++        if autoescape:
++            sep = conditional_escape(sep)
++        # The separator is always safe after conditional escaping (if necessary),
++        # because it will be used in the final join operation.
++        data = mark_safe(sep)
+ 
+         try:
+             value = [force_str(v) for v in value]
+
+```

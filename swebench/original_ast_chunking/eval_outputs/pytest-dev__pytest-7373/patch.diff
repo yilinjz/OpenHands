@@ -1,0 +1,74 @@
+```patch
+--- a/src/_pytest/mark/evaluate.py
++++ b/src/_pytest/mark/evaluate.py
+@@ -14,28 +14,6 @@
+ from _pytest.nodes import Item
+ from _pytest.store import StoreKey
+ 
+-
+-evalcache_key = StoreKey[Dict[str, Any]]()
+-
+-
+-def cached_eval(config: Config, expr: str, d: Dict[str, object]) -> Any:
+-    default = {}  # type: Dict[str, object]
+-    evalcache = config._store.setdefault(evalcache_key, default)
+-    try:
+-        return evalcache[expr]
+-    except KeyError:
+-        import _pytest._code
+-
+-        exprcode = _pytest._code.compile(expr, mode="eval")
+-        evalcache[expr] = x = eval(exprcode, d)
+-        return x
+-
+-
+ class MarkEvaluator:
+     """Provides lazy evaluation of mark expressions in the context of a given item.
+
+@@ -78,15 +56,29 @@
+         else:
+             # Fallback to globals from the calling frame.
+             # Used by test_mark.py::test_mark_eval_namespace
+-            # XXX: This seems fishy, but removing it breaks the test.
++            # XXX: This seems fishy, but removing it breaks the test. Maybe
++            # the test should be changed?
+             frame = traceback.extract_stack(limit=3)[0]
+             d = {"__file__": frame.filename}
++            # Avoid importing pytest in the globals, if the expression
++            # is something like "pytest.mark".
++            # Note: We could avoid importing pytest in the first place,
++            # but it's here because the test assumes it exists.
++            if "pytest" in expr:
++                import pytest
++
++                d["pytest"] = pytest
++
++        try:
+             import _pytest._code
+
+-        if self.config is not None:
+-            return cached_eval(self.config, expr, d)
+-        else:
+-            # Fallback to directly eval:
++            # The compilation is relatively fast, so it's not worth caching.
++            exprcode = _pytest._code.compile(expr, mode="eval")
++            return eval(exprcode, d)
++        except TEST_OUTCOME:
++            # Don't wrap special pytest exceptions.
++            raise
++        except Exception as exc:
+             # Keep the original exception type if it's not a common one.
+             # See https://github.com/pytest-dev/pytest/issues/3642
+             if isinstance(exc, (SyntaxError, NameError, TypeError, ZeroDivisionError)):
+@@ -94,10 +86,6 @@
+             else:
+                 exc_type = Exception
+
+-            try:
+-                return eval(expr, d)
+-            except TEST_OUTCOME:
+-                raise
+             raise exc_type(
+                 "error evaluating mark expression {expr!r}: {exc}".format(
+                     expr=expr, exc=exc
+```

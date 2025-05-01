@@ -1,0 +1,16 @@
+```diff
+--- a/sphinx/ext/viewcode.py
++++ b/sphinx/ext/viewcode.py
+@@ -120,6 +120,10 @@
+ 
+ def collect_pages(app: Sphinx) -> Generator[Tuple[str, Dict[str, Any], str], None, None]:
+     env = app.builder.env
++    # Prevent generation for epub if disabled
++    if app.builder.name.startswith("epub") and not env.config.viewcode_enable_epub:
++        return
++
+     if not hasattr(env, '_viewcode_modules'):
+         return
+     highlighter = app.builder.highlighter  # type: ignore
+
+```

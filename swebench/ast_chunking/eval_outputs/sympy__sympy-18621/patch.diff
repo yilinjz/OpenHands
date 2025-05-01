@@ -1,0 +1,26 @@
+```patch
+--- a/sympy/matrices/expressions/blockmatrix.py
++++ b/sympy/matrices/expressions/blockmatrix.py
+@@ -240,10 +240,19 @@
+         col_block_idx = self.col_block_indices[j]
+         # Extract element from relevant block
+         block = self.blocks[row_block_idx, col_block_idx]
++
+         # Offset into the block
+         row_offset = self.row_block_offset(i)
+         col_offset = self.col_block_offset(j)
+-        return block._entry(row_offset, col_offset)
++
++        from sympy.matrices.matrices import MatrixBase
++        from sympy import S
++
++        if isinstance(block, MatrixBase):
++            return block[row_offset, col_offset]
++        elif isinstance(block, MatrixExpr):
++            return block._entry(row_offset, col_offset)
++        else: # Scalar block
++            return block if row_offset == 0 and col_offset == 0 else S.Zero
+
+     def _eval_transpose(self):
+         # Flip all blocks
+```

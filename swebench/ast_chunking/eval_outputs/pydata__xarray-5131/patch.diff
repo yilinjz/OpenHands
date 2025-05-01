@@ -1,0 +1,13 @@
+```patch
+--- a/xarray/core/groupby.py
++++ b/xarray/core/groupby.py
+@@ -400,7 +400,7 @@
+             # TODO: add dimensions to this repr?
+ 
+         def __repr__(self) -> str:
+-            return "{}, grouped over {!r} \n{!r} groups with labels {}".format(
++            return "{}, grouped over {!r}\n{!r} groups with labels {}".format(
+                 self.__class__.__name__,
+                 self._unique_coord.name,
+                 self._unique_coord.size,
+```

@@ -1,0 +1,51 @@
+2025-05-01 19:58:59,921 - INFO - Creating container for mwaskom__seaborn-3010...
+2025-05-01 19:58:59,972 - INFO - Container for mwaskom__seaborn-3010 created: 2742ac1434522c7ecf488773f658f4c2e2c9ca852a2303b1841a78300bb3f850
+2025-05-01 19:59:01,191 - INFO - Container for mwaskom__seaborn-3010 started: 2742ac1434522c7ecf488773f658f4c2e2c9ca852a2303b1841a78300bb3f850
+2025-05-01 19:59:01,191 - INFO - Intermediate patch for mwaskom__seaborn-3010 written to logs/run_evaluation/20250501_195119/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/mwaskom__seaborn-3010/patch.diff, now applying to container...
+2025-05-01 19:59:01,853 - INFO - Failed to apply patch to container: git apply --verbose
+2025-05-01 19:59:02,117 - INFO - Failed to apply patch to container: git apply --verbose --reject
+2025-05-01 19:59:02,439 - INFO - >>>>> Applied Patch:
+patching file seaborn/_stats/regression.py
+Hunk #1 succeeded at 22 with fuzz 3.
+
+2025-05-01 19:59:02,905 - INFO - Git diff before:
+diff --git a/seaborn/_stats/regression.py b/seaborn/_stats/regression.py
+index 7b7ddc8d..db6c2203 100644
+--- a/seaborn/_stats/regression.py
++++ b/seaborn/_stats/regression.py
+@@ -22,6 +22,10 @@ class PolyFit(Stat):
+     def _fit_predict(self, data):
+ 
+         x = data["x"]
++
++        # Drop rows with missing data
++        data = data.dropna(subset=["x", "y"])
++
+         y = data["y"]
+         if x.nunique() <= self.order:
+             # TODO warn?
+2025-05-01 19:59:02,905 - INFO - Eval script for mwaskom__seaborn-3010 written to logs/run_evaluation/20250501_195119/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/mwaskom__seaborn-3010/eval.sh; copying to container...
+2025-05-01 19:59:11,282 - INFO - Test runtime: 8.20 seconds
+2025-05-01 19:59:11,283 - INFO - Test output for mwaskom__seaborn-3010 written to logs/run_evaluation/20250501_195119/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/mwaskom__seaborn-3010/test_output.txt
+2025-05-01 19:59:11,356 - INFO - Git diff after:
+diff --git a/seaborn/_stats/regression.py b/seaborn/_stats/regression.py
+index 7b7ddc8d..db6c2203 100644
+--- a/seaborn/_stats/regression.py
++++ b/seaborn/_stats/regression.py
+@@ -22,6 +22,10 @@ class PolyFit(Stat):
+     def _fit_predict(self, data):
+ 
+         x = data["x"]
++
++        # Drop rows with missing data
++        data = data.dropna(subset=["x", "y"])
++
+         y = data["y"]
+         if x.nunique() <= self.order:
+             # TODO warn?
+2025-05-01 19:59:11,356 - INFO - Grading answer for mwaskom__seaborn-3010...
+2025-05-01 19:59:11,357 - INFO - report: {'mwaskom__seaborn-3010': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['tests/_stats/test_regression.py::TestPolyFit::test_missing_data']}, 'PASS_TO_PASS': {'success': ['tests/_stats/test_regression.py::TestPolyFit::test_no_grouper', 'tests/_stats/test_regression.py::TestPolyFit::test_one_grouper'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for mwaskom__seaborn-3010: resolved: False
+2025-05-01 19:59:11,357 - INFO - Attempting to stop container sweb.eval.mwaskom__seaborn-3010.20250501_195119...
+2025-05-01 19:59:27,052 - INFO - Attempting to remove container sweb.eval.mwaskom__seaborn-3010.20250501_195119...
+2025-05-01 19:59:27,079 - INFO - Container sweb.eval.mwaskom__seaborn-3010.20250501_195119 removed.

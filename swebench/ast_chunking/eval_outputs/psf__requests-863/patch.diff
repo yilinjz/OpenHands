@@ -1,0 +1,23 @@
+```patch
+--- a/requests/models.py
++++ b/requests/models.py
+@@ -98,8 +98,14 @@
+             hooks = {} if hooks is None else hooks
+
+             self.hooks = dict()
+-            for (k, v) in list(hooks.items()):
+-                self.register_hook(event=k, hook=v)
++            # Register hooks from the passed dict.
++            for event, hook in hooks.items():
++                if callable(hook):
++                    # Passed a single callable.
++                    self.register_hook(event=event, hook=hook)
++                elif hasattr(hook, '__iter__') and not isinstance(hook, (str, bytes)):
++                    # Passed an iterable of callables.
++                    for h in hook:
++                        self.register_hook(event=event, hook=h)
+
+             self.method = method
+             self.url = url
+
+```

@@ -1,0 +1,36 @@
+```diff
+--- a/sphinx/builders/manpage.py
++++ b/sphinx/builders/manpage.py
+@@ -10,7 +10,7 @@
+     :license: BSD, see LICENSE for details.
+ """
+ 
+-from os import path
++import os
+ from typing import Any, Dict, List, Set, Tuple, Union
+ 
+ from docutils.frontend import OptionParser
+@@ -24,7 +24,7 @@
+ from sphinx.util import logging
+ from sphinx.util import progress_message
+ from sphinx.util.console import darkgreen  # type: ignore
+-from sphinx.util.nodes import inline_all_toctrees
++from sphinx.util.nodes import inline_all_toctrees
+ from sphinx.util.osutil import make_filename_from_project
+ from sphinx.writers.manpage import ManualPageWriter, ManualPageTranslator
+ 
+@@ -51,9 +51,11 @@
+             docsettings.section = section
+ 
+             targetname = '%s.%s' % (name, section)
++            sectiondir = os.path.join(self.outdir, 'man%s' % section)
++            os.makedirs(sectiondir, exist_ok=True)
+             logger.info(darkgreen(targetname) + ' { ', nonl=True)
+             destination = FileOutput(
+-                destination_path=path.join(self.outdir, targetname),
++                destination_path=os.path.join(sectiondir, targetname),
+                 encoding='utf-8')
+ 
+             tree = self.env.get_doctree(docname)
+
+```

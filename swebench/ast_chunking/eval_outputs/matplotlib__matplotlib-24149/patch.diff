@@ -1,0 +1,23 @@
+```diff
+--- a/lib/matplotlib/axes/_axes.py
++++ b/lib/matplotlib/axes/_axes.py
+@@ -2179,11 +2179,12 @@
+             # removes the units from unit packages like `pint` that
+             # wrap numpy arrays.
+             try:
+-                x0 = cbook._safe_first_finite(x0)
+-            except (TypeError, IndexError, KeyError):
+-                pass
+-            if x0 is None:  # All nan/inf?
++                # Find the first finite value in x0 to compute scaling.
++                x0_finite = cbook._safe_first_finite(x0)
++            except (TypeError, IndexError, KeyError, StopIteration):
++                # No finite value found, or other error accessing x0.
++                x0_finite = None
++            if x0_finite is None:  # All non-finite or other error?
+                 return dx  # Nothing to scale relative to.
+-            dx = dx * (convert(x0 + 1) - convert(x0))
++            dx = dx * (convert(x0_finite + 1) - convert(x0_finite))
+         return dx
+
+```

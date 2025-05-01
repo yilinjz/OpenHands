@@ -1,0 +1,33 @@
+```patch
+--- a/sklearn/utils/multiclass.py
++++ b/sklearn/utils/multiclass.py
+@@ -37,14 +37,26 @@
+         raise ValueError("No argument has been passed.")
+     # Check that we don't mix label format
+ 
++    # Keep track of original types for error reporting
+     ys_types = set(type_of_target(x) for x in ys)
++    original_ys_types = ys_types.copy()
++
++    # Handle the case where nullable pandas dtypes might be classified as 'unknown'.
++    # We want to allow mixing 'unknown' with 'binary' or 'multiclass', assuming
++    # the 'unknown' type is compatible.
++    if "unknown" in ys_types:
++        ys_types.remove("unknown")
++
++    # Allow mixing binary and multiclass labels, treating as multiclass
+     if ys_types == {"binary", "multiclass"}:
+         ys_types = {"multiclass"}
+ 
+-    if len(ys_types) > 1:
+-        raise ValueError("Mix type of y not allowed, got types %s" % ys_types)
++    # If, after removing 'unknown', we are left with no types or mixed types, raise error.
++    if len(ys_types) == 0:
++        # Only 'unknown' types were found
++        raise ValueError("Mix type of y not allowed, got types %s" % original_ys_types)
++    elif len(ys_types) > 1:
++        raise ValueError("Mix type of y not allowed, got types %s" % original_ys_types)
+ 
+     label_type = ys_types.pop()
+ 
+```

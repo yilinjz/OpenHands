@@ -1,0 +1,47 @@
+```diff
+--- a/django/db/models/sql/query.py
++++ b/django/db/models/sql/query.py
+@@ -1500,25 +1500,28 @@
+                 continue
+ 
+             if final_alias and final_field.is_relation:
++                # Check if the ordering is on the relation field itself (e.g.
++                # 'author') or on the foreign key column (e.g. 'author_id').
++                lookup_name = names[-1]
+                 # Ordering by related field name orders by the remote model's
+                 # ordering. Only do this if the lookup targeted the relation
+                 # name, not the fk attribute name (e.g. 'author' not 'author_id').
+-                if not path[-1].m2m:
++                if lookup_name == final_field.name and not path[-1].m2m:
+                     # Add ordering by the related model's meta ordering.
+                     # Ensure that the remote model's ordering is applied.
+                     related_ordering = final_field.related_model._meta.ordering
+                     if related_ordering:
+                         for order in related_ordering:
+                             self.add_ordering(
+-                                order, final_alias, False,
+-                                related_field_ordering=True,
+-                                descending=descending,
++                                order, final_alias, False, related_field_ordering=True,
++                                # Reverse ordering if the original field was descending.
++                                descending=descending != order.startswith('-'),
+                             )
+                         continue
+                     else:
+                         # Order by the related model's PK if there's no default ordering.
+                         pk_ordering = final_field.related_model._meta.pk.name
++                        # Apply original direction to PK ordering.
+                         if descending:
+                             pk_ordering = '-' + pk_ordering
+                         self.add_ordering(
+@@ -1526,6 +1529,8 @@
+                             related_field_ordering=True,
+                         )
+                         continue
++                # If lookup_name != final_field.name (e.g. 'author_id'),
++                # or if it's an M2M, fall through to order by the column.
+ 
+             if not getattr(final_field, 'contains_aggregate', False):
+                 # Use the default column for ordering if it's not an aggregate.
+
+```

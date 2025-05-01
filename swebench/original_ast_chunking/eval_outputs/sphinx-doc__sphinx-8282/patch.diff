@@ -1,0 +1,106 @@
+```patch
+--- a/sphinx/ext/autodoc/__init__.py
++++ b/sphinx/ext/autodoc/__init__.py
+@@ -1008,6 +1008,15 @@
+                 # If there are multiple signatures, separate them with a newline
+                 sigs.append(sig)
+
++            # determine annotation visibility for overloads based on config
++            sig_kwargs = kwargs.copy()
++            if self.env.config.autodoc_typehints in ('none', 'description'):
++                show_annotation = False
++                show_return_annotation = False
++            else:  # 'signature'
++                show_annotation = True
++                show_return_annotation = True
++
+             overloads = self.get_overloaded_signatures()
+             if overloads:
+                 # Use signatures for overloaded methods instead of the implementation method.
+@@ -1023,8 +1032,9 @@
+                                                                self.env.config.autodoc_type_aliases)
+                     except TypeError as exc:
+                         logger.warning(__("Failed to evaluate signature for %s: %s"), self.fullname, exc)
+-                        continue
+-                    sigs.append(stringify_signature(overload, **kwargs))
++                        # fallback to non-evaluated signature
++                        evaluated_overload = overload
++                    sigs.append(stringify_signature(evaluated_overload, show_annotation=show_annotation, show_return_annotation=show_return_annotation, **sig_kwargs))
+
+             if not sigs:
+                 # only happens when there are no args and no return annotation
+@@ -1174,6 +1184,15 @@
+                 # If there are multiple signatures, separate them with a newline
+                 sigs.append(sig)
+
++            # determine annotation visibility for overloads based on config
++            sig_kwargs = kwargs.copy()
++            if self.env.config.autodoc_typehints in ('none', 'description'):
++                show_annotation = False
++                show_return_annotation = False
++            else:  # 'signature'
++                show_annotation = True
++                show_return_annotation = True
++
+             overloads = self.get_overloaded_signatures()
+             if overloads:
+                 # Use signatures for overloaded methods instead of the implementation method.
+@@ -1195,8 +1214,18 @@
+                                                                self.env.config.autodoc_type_aliases)
+                     except TypeError as exc:
+                         logger.warning(__("Failed to evaluate signature for %s: %s"), self.fullname, exc)
+-                        continue
+-                    sigs.append(stringify_signature(overload, **kwargs))
++                        # fallback to non-evaluated signature
++                        evaluated_overload = overload
++
++                    # Remove 'self' or 'cls' parameter for display
++                    parameters = list(evaluated_overload.parameters.values())
++                    if parameters:
++                        if self.objtype == 'method' and parameters[0].name == 'self':
++                            evaluated_overload = evaluated_overload.replace(parameters=parameters[1:])
++                        elif self.objtype == 'classmethod' and parameters[0].name == 'cls':
++                            evaluated_overload = evaluated_overload.replace(parameters=parameters[1:])
++
++                    sigs.append(stringify_signature(evaluated_overload, show_annotation=show_annotation, show_return_annotation=show_return_annotation, **sig_kwargs))
+
+             if not sigs:
+                 # only happens when there are no args and no return annotation
+@@ -1363,6 +1392,15 @@
+         sig = super().format_signature()
+         sigs = []
+
++        # determine annotation visibility for overloads based on config
++        sig_kwargs = kwargs.copy()
++        if self.env.config.autodoc_typehints in ('none', 'description'):
++            show_annotation = False
++            show_return_annotation = False
++        else:  # 'signature'
++            show_annotation = True
++            show_return_annotation = True
++
+         overloads = self.get_overloaded_signatures()
+         if overloads:
+             # Use signatures for overloaded methods instead of the implementation method.
+@@ -1375,13 +1413,14 @@
+                                               self.env.config.autodoc_type_aliases)
+             except TypeError as exc:
+                 logger.warning(__("Failed to evaluate signature for %s: %s"), self.fullname, exc)
+-                continue
++                # fallback to non-evaluated signature
++                evaluated_overload = overload
+
+-            parameters = list(overload.parameters.values())
+-            overload = overload.replace(parameters=parameters[1:],
+-                                         return_annotation=overload.return_annotation)
+-            sigs.append(stringify_signature(overload, **kwargs))
++            # Remove 'self' from __init__ signature
++            parameters = list(evaluated_overload.parameters.values())
++            evaluated_overload = evaluated_overload.replace(parameters=parameters[1:])
+
++            sigs.append(stringify_signature(evaluated_overload, show_annotation=show_annotation, show_return_annotation=show_return_annotation, **sig_kwargs))
++
+         if sigs:
+             # Use signatures for overloaded methods instead of the implementation method.
+             return '\n'.join(sigs)
+```

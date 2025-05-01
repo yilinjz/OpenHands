@@ -1,0 +1,116 @@
+```patch
+--- a/sklearn/feature_selection/mutual_info_.py
++++ b/sklearn/feature_selection/mutual_info_.py
+@@ -50,7 +50,8 @@
+     X, y = check_X_y(X, y, accept_sparse='csc', y_numeric=not discrete_target)
+     n_samples, n_features = X.shape
+ 
+-    if discrete_features == 'auto':
++    # Check if discrete_features is the string 'auto'.
++    if isinstance(discrete_features, str) and discrete_features == 'auto':
+         discrete_features = issparse(X)
+ 
+     if isinstance(discrete_features, bool):
+--- a/sklearn/feature_selection/tests/test_mutual_info.py
++++ b/sklearn/feature_selection/tests/test_mutual_info.py
+@@ -1,10 +1,13 @@
+ import numpy as np
++from scipy.sparse import csr_matrix
+ from scipy.stats import pearsonr
+ 
+ from sklearn.feature_selection import mutual_info_regression
+ from sklearn.feature_selection import mutual_info_classif
+ from sklearn.feature_selection._mutual_info import (_compute_mi_cc,
+                                                     _compute_mi_cd, _compute_mi)
++
++from sklearn.utils._testing import assert_array_almost_equal, assert_raises
+
+
+ def test_compute_mi_cc():
+@@ -104,3 +107,76 @@
+     # Check that the result is consistent regardless of the number of jobs
+     mi = mutual_info_regression(X, y, random_state=0)
+     assert_array_almost_equal(mi, mi_expected)
++
++
++def test_mi_discrete_features_options():
++    # Test different ways to specify discrete features for both classification
++    # and regression tasks. Check for FutureWarning related to comparison.
++    # Based on test_mutual_info_regression and test_mutual_info_classif.
++    rng = np.random.RandomState(0)
++    # Classification data
++    X_c = rng.rand(100, 3)
++    y_c = (X_c[:, 0] > 0.5).astype(int)
++    X_c_sp = csr_matrix(X_c)
++    # Regression data
++    X_r = rng.rand(100, 3)
++    y_r = X_r[:, 0] + rng.rand(100) * 0.001
++    X_r_sp = csr_matrix(X_r)
++
++    n_features = X_c.shape[1]
++    msg = "Sparse matrix `X` can't have continuous features."
++
++    # --- mutual_info_classif ---
++    mi_auto_dense = mutual_info_classif(X_c, y_c, discrete_features='auto',
++                                        random_state=0)
++    mi_auto_sparse = mutual_info_classif(X_c_sp, y_c, discrete_features='auto',
++                                         random_state=0)
++
++    # boolean True (sparse should be same as 'auto')
++    mi_true = mutual_info_classif(X_c_sp, y_c, discrete_features=True,
++                                  random_state=0)
++    assert_array_almost_equal(mi_auto_sparse, mi_true)
++    mi_true_dense = mutual_info_classif(X_c, y_c, discrete_features=True,
++                                        random_state=0)
++    assert mi_true_dense.shape == (n_features,)
++
++    # boolean False (dense should be same as 'auto')
++    mi_false = mutual_info_classif(X_c, y_c, discrete_features=False,
++                                   random_state=0)
++    assert_array_almost_equal(mi_auto_dense, mi_false)
++    # boolean False for sparse (should raise error)
++    assert_raises(ValueError, mutual_info_classif, X_c_sp, y_c,
++                  discrete_features=False, random_state=0)
++
++    # boolean mask
++    mask = np.array([True, False, True])
++    mi_mask_dense = mutual_info_classif(X_c, y_c, discrete_features=mask,
++                                        random_state=0)
++    assert mi_mask_dense.shape == (n_features,)
++    # boolean mask with sparse (error if any feature is continuous)
++    mask_all_true = np.array([True, True, True])
++    mi_mask_sparse_ok = mutual_info_classif(X_c_sp, y_c,
++                                            discrete_features=mask_all_true,
++                                            random_state=0)
++    assert_array_almost_equal(mi_mask_sparse_ok, mi_auto_sparse)
++    assert_raises(ValueError, mutual_info_classif, X_c_sp, y_c,
++                  discrete_features=mask, random_state=0)
++
++    # integer indices
++    indices = np.array([0, 2])
++    mi_indices_dense = mutual_info_classif(X_c, y_c, discrete_features=indices,
++                                           random_state=0)
++    assert_array_almost_equal(mi_mask_dense, mi_indices_dense)
++    # integer indices with sparse (error if implies continuous features)
++    indices_all = np.array([0, 1, 2])
++    mi_indices_sparse_ok = mutual_info_classif(X_c_sp, y_c,
++                                               discrete_features=indices_all,
++                                               random_state=0)
++    assert_array_almost_equal(mi_indices_sparse_ok, mi_auto_sparse)
++    assert_raises(ValueError, mutual_info_classif, X_c_sp, y_c,
++                  discrete_features=indices, random_state=0)
++
++    # --- mutual_info_regression (smoke tests, logic is the same) ---
++    mutual_info_regression(X_r, y_r, discrete_features='auto', random_state=0)
++    mutual_info_regression(X_r_sp, y_r, discrete_features='auto', random_state=0)
++    mutual_info_regression(X_r_sp, y_r, discrete_features=True, random_state=0)
++    mutual_info_regression(X_r, y_r, discrete_features=False, random_state=0)
++    assert_raises(ValueError, mutual_info_regression, X_r_sp, y_r,
++                  discrete_features=False, random_state=0)
++    mutual_info_regression(X_r, y_r, discrete_features=mask, random_state=0)
++    assert_raises(ValueError, mutual_info_regression, X_r_sp, y_r,
++                  discrete_features=mask, random_state=0)
++    mutual_info_regression(X_r, y_r, discrete_features=indices, random_state=0)
++    assert_raises(ValueError, mutual_info_regression, X_r_sp, y_r,
++                  discrete_features=indices, random_state=0)
+```

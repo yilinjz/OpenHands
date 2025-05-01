@@ -1,0 +1,28 @@
+```patch
+--- a/sympy/printing/latex.py
++++ b/sympy/printing/latex.py
+@@ -30,6 +30,10 @@
+         else:
+             return r"%s^\dagger" % self._print(mat)
+ 
++    def _print_Trace(self, expr):
++        # Using \mathrm{Tr}, consistent with common practice.
++        return r"\mathrm{Tr}\left(%s\right)" % self._print(expr.arg)
++
+     def _print_MatAdd(self, expr):
+         terms = [self._print(t) for t in expr.args]
+         l = []
+@@ -45,6 +49,12 @@
+             sign = ""
+         return sign + ' '.join(l)
+ 
++    def _print_MatPow(self, expr):
++        from sympy.printing.precedence import PRECEDENCE
++        base = self.parenthesize(expr.base, PRECEDENCE['Pow'], strict=False)
++        exp = self._print(expr.exp)
++        return "%s^{%s}" % (base, exp)
++
+     def _print_MatMul(self, expr):
+         from sympy import Add, MatAdd, HadamardProduct, MatMul, Mul
+ 
+```

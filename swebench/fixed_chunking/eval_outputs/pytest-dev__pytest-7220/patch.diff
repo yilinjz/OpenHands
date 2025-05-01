@@ -1,0 +1,30 @@
+```patch
+--- a/src/_pytest/_code/code.py
++++ b/src/_pytest/_code/code.py
+@@ -1016,20 +1016,10 @@
+ 
+     def _get_trimmed_path(self, path: str) -> str:
+         """Try to shorten path"""
+-        # Paths are generally expected to be absolute here, except for
+-        # summary paths which are expected to be relative to CWD.
+-        # Let's try to normalize the path using the CWD.
+-        try:
+-            np = os.path.normpath(os.path.abspath(path))
+-        except OSError:
+-            np = path
+-        # Let's try to make it relative to CWD.
+-        try:
+-            rp = os.path.relpath(np)
+-            if len(rp) < len(np):
+-                return rp
+-            else:
+-                return path  # Return original if relpath is not shorter
+-        except ValueError:  # e.g. different drives
+-            return path  # Return original path
++        # The path passed in should already be appropriately formatted,
++        # usually relative to config.rootdir, by ExceptionInfo.getrepr().
++        # Don't attempt to make it relative to the current working directory
++        # here, as CWD might have been changed by a fixture/test, which
++        # would break path resolution for editors and users. See #6476.
++        return path
+```

@@ -1,0 +1,41 @@
+```diff
+--- a/lib/matplotlib/style/core.py
++++ b/lib/matplotlib/style/core.py
+@@ -126,6 +126,30 @@
+         else:
+             _log.warning('Could not find Library file %s/%s.%s',
+                          path, name, STYLE_EXTENSION)
++
++    # Add aliases for backward compatibility with old seaborn names
++    # Styles may exist in the library paths under their old names; if so,
++    # don't overwrite them with the v0_8 aliases.
++    seaborn_aliases = {
++        'seaborn-bright': 'seaborn-v0_8-bright',
++        'seaborn-colorblind': 'seaborn-v0_8-colorblind',
++        'seaborn-dark': 'seaborn-v0_8-dark',
++        'seaborn-darkgrid': 'seaborn-v0_8-darkgrid',
++        'seaborn-dark-palette': 'seaborn-v0_8-dark-palette',
++        'seaborn-deep': 'seaborn-v0_8-deep',
++        'seaborn-muted': 'seaborn-v0_8-muted',
++        'seaborn-notebook': 'seaborn-v0_8-notebook',
++        'seaborn-paper': 'seaborn-v0_8-paper',
++        'seaborn-pastel': 'seaborn-v0_8-pastel',
++        'seaborn-poster': 'seaborn-v0_8-poster',
++        'seaborn-talk': 'seaborn-v0_8-talk',
++        'seaborn-ticks': 'seaborn-v0_8-ticks',
++        'seaborn-white': 'seaborn-v0_8-white',
++        'seaborn-whitegrid': 'seaborn-v0_8-whitegrid',
++    }
++    for old, new in seaborn_aliases.items():
++        if new in library and old not in library:
++            library[old] = library[new]
++            _api.warn_deprecated(
++                "3.6", name=f"The seaborn style '{old}'",
++                alternative=f"'{new}'", obj_type="style",
++                addendum="If you are using seaborn directly, pass its styles "
++                         "directly to Seaborn's plotting functions.")
++
+     return sorted(library)
+
+
+```

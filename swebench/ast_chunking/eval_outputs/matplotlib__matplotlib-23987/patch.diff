@@ -1,0 +1,24 @@
+```patch
+--- a/lib/matplotlib/figure.py
++++ b/lib/matplotlib/figure.py
+@@ -2967,8 +2967,7 @@
+         """
+         Adjust the subplot layout parameters. [...]
+         """
+-        if (self._layout_engine is not None and
+-                not self._layout_engine.adjust_compatible):
++        if self.constrained_layout:
+             warnings.warn("This figure was using a layout engine that is "
+                           "incompatible with subplots_adjust and/or "
+                           "tight_layout; not calling subplots_adjust.")
+@@ -3040,8 +3039,7 @@
+         """
+         Adjust subplot parameters for a tight layout. [...]
+         """
+-        if (self._layout_engine is not None and
+-                not self._layout_engine.adjust_compatible):
++        if self.constrained_layout:
+             # constrained_layout is incompatible with tight_layout.
+             # It makes sense to just not call tight_layout if using
+             # constrained_layout. This will be called if the user does
+```

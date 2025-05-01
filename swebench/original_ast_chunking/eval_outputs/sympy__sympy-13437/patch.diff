@@ -1,0 +1,24 @@
+```patch
+--- a/sympy/functions/combinatorial/numbers.py
++++ b/sympy/functions/combinatorial/numbers.py
+@@ -1,6 +1,7 @@
+ from __future__ import print_function, division
+ 
+ from sympy.core import Add, Dummy, Integer, Mul, Symbol
++from sympy.core.singleton import S
+ from sympy.core.cache import cacheit
+ from sympy.core.compatibility import as_int, range
+ from sympy.core.function import Function, expand_mul
+@@ -326,6 +327,11 @@
+             return S.One
+         if n.is_negative or n.is_integer is False:
+             raise ValueError("bell numbers are defined only for non-negative integers")
++
++    def _eval_limit(self, z, z0, dir):
++        n = self.args[0]
++        if z == n and z0 is S.Infinity:
++            return S.Infinity
+ 
+     def _eval_rewrite_as_Sum(self, n):
+         if not n.is_nonnegative or not n.is_integer:
+```

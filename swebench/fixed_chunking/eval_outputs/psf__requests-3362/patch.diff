@@ -1,0 +1,30 @@
+```patch
+--- a/requests/utils.py
++++ b/requests/utils.py
+@@ -38,18 +38,20 @@
+ def stream_decode_response_unicode(iterator, r):
+     """Stream decodes a iterator."""
+ 
+-    if r.encoding is None:
++    encoding = r.encoding
++
++    if encoding is None:
++        # Fallback to apparent encoding if no encoding is specified.
++        encoding = r.apparent_encoding
++
++    # If no encoding could be determined (explicitly or apparent), yield the original bytes.
++    if encoding is None:
+         for item in iterator:
+             yield item
+         return
+ 
+-    decoder = codecs.getincrementaldecoder(r.encoding)(errors='replace')
++    decoder = codecs.getincrementaldecoder(encoding)(errors='replace')
+     for chunk in iterator:
+         rv = decoder.decode(chunk)
+         if rv:
+             yield rv
+     rv = decoder.decode(b'', final=True)
+     if rv:
+         yield rv
+```

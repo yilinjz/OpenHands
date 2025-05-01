@@ -1,0 +1,68 @@
+2025-04-30 20:06:50,491 - INFO - Creating container for django__django-13925...
+2025-04-30 20:06:50,520 - INFO - Container for django__django-13925 created: 880235f0ee014c014d2769adba3beee4f16c07bc4744b78e90c0f7457b76089d
+2025-04-30 20:06:50,824 - INFO - Container for django__django-13925 started: 880235f0ee014c014d2769adba3beee4f16c07bc4744b78e90c0f7457b76089d
+2025-04-30 20:06:50,824 - INFO - Intermediate patch for django__django-13925 written to logs/run_evaluation/20250430_200121/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/django__django-13925/patch.diff, now applying to container...
+2025-04-30 20:06:50,949 - INFO - >>>>> Applied Patch:
+Checking patch django/db/models/fields/__init__.py...
+Hunk #1 succeeded at 2488 (offset 2448 lines).
+Applied patch django/db/models/fields/__init__.py cleanly.
+
+2025-04-30 20:06:52,351 - INFO - Git diff before:
+diff --git a/django/db/models/fields/__init__.py b/django/db/models/fields/__init__.py
+index 0f53d9c30b..7359fdbf42 100644
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -2488,12 +2488,14 @@ class AutoFieldMixin:
+         return value
+ 
+     def contribute_to_class(self, cls, name, **kwargs):
+-        assert not cls._meta.auto_field, (
+-            "Model %s can't have more than one auto-generated field."
+-            % cls._meta.label
+-        )
++        # getattr() is used to handle fields that are not created by ModelBase
++        # (e.g. manually defined AutoFields).
++        auto_created = getattr(self, 'auto_created', False)
+         super().contribute_to_class(cls, name, **kwargs)
+-        cls._meta.auto_field = self
++        if auto_created:
++            if cls._meta.auto_field:
++                raise ValueError("Model %s can't have more than one auto-generated field." % cls._meta.label)
++            cls._meta.auto_field = self
+ 
+     def formfield(self, **kwargs):
+         return None
+2025-04-30 20:06:52,351 - INFO - Eval script for django__django-13925 written to logs/run_evaluation/20250430_200121/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/django__django-13925/eval.sh; copying to container...
+2025-04-30 20:06:57,973 - INFO - Test runtime: 5.56 seconds
+2025-04-30 20:06:57,973 - INFO - Test output for django__django-13925 written to logs/run_evaluation/20250430_200121/swebench-lite_ast-chunking_BGE-base_gemini-2.5-pro_generations_swebench-lite/django__django-13925/test_output.txt
+2025-04-30 20:06:58,049 - INFO - Git diff after:
+diff --git a/django/db/models/fields/__init__.py b/django/db/models/fields/__init__.py
+index 0f53d9c30b..7359fdbf42 100644
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -2488,12 +2488,14 @@ class AutoFieldMixin:
+         return value
+ 
+     def contribute_to_class(self, cls, name, **kwargs):
+-        assert not cls._meta.auto_field, (
+-            "Model %s can't have more than one auto-generated field."
+-            % cls._meta.label
+-        )
++        # getattr() is used to handle fields that are not created by ModelBase
++        # (e.g. manually defined AutoFields).
++        auto_created = getattr(self, 'auto_created', False)
+         super().contribute_to_class(cls, name, **kwargs)
+-        cls._meta.auto_field = self
++        if auto_created:
++            if cls._meta.auto_field:
++                raise ValueError("Model %s can't have more than one auto-generated field." % cls._meta.label)
++            cls._meta.auto_field = self
+ 
+     def formfield(self, **kwargs):
+         return None
+2025-04-30 20:06:58,049 - INFO - Grading answer for django__django-13925...
+2025-04-30 20:06:58,051 - INFO - report: {'django__django-13925': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_auto_created_inherited_pk (check_framework.test_model_checks.ModelDefaultAutoFieldTests)', 'test_explicit_inherited_pk (check_framework.test_model_checks.ModelDefaultAutoFieldTests)']}, 'PASS_TO_PASS': {'success': ['test_app_default_auto_field (check_framework.test_model_checks.ModelDefaultAutoFieldTests)', 'test_auto_created_inherited_parent_link (check_framework.test_model_checks.ModelDefaultAutoFieldTests)', 'test_auto_created_pk (check_framework.test_model_checks.ModelDefaultAutoFieldTests)', 'test_default_auto_field_setting (check_framework.test_model_checks.ModelDefaultAutoFieldTests)', 'test_explicit_inherited_parent_link (check_framework.test_model_checks.ModelDefaultAutoFieldTests)', 'test_explicit_pk (check_framework.test_model_checks.ModelDefaultAutoFieldTests)', 'test_collision_abstract_model (check_framework.test_model_checks.IndexNameTests)', 'test_collision_across_apps (check_framework.test_model_checks.IndexNameTests)', 'test_collision_in_different_models (check_framework.test_model_checks.IndexNameTests)', 'test_collision_in_same_model (check_framework.test_model_checks.IndexNameTests)', 'test_no_collision_abstract_model_interpolation (check_framework.test_model_checks.IndexNameTests)', 'test_no_collision_across_apps_interpolation (check_framework.test_model_checks.IndexNameTests)', 'test_collision_abstract_model (check_framework.test_model_checks.ConstraintNameTests)', 'test_collision_across_apps (check_framework.test_model_checks.ConstraintNameTests)', 'test_collision_in_different_models (check_framework.test_model_checks.ConstraintNameTests)', 'test_collision_in_same_model (check_framework.test_model_checks.ConstraintNameTests)', 'test_no_collision_abstract_model_interpolation (check_framework.test_model_checks.ConstraintNameTests)', 'test_no_collision_across_apps_interpolation (check_framework.test_model_checks.ConstraintNameTests)', 'test_collision_across_apps (check_framework.test_model_checks.DuplicateDBTableTests)', 'test_collision_across_apps_database_routers_installed (check_framework.test_model_checks.DuplicateDBTableTests)', 'test_collision_in_same_app (check_framework.test_model_checks.DuplicateDBTableTests)', 'test_collision_in_same_app_database_routers_installed (check_framework.test_model_checks.DuplicateDBTableTests)', 'test_no_collision_for_proxy_models (check_framework.test_model_checks.DuplicateDBTableTests)', 'test_no_collision_for_unmanaged_models (check_framework.test_model_checks.DuplicateDBTableTests)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-13925: resolved: False
+2025-04-30 20:06:58,052 - INFO - Attempting to stop container sweb.eval.django__django-13925.20250430_200121...
+2025-04-30 20:07:13,277 - INFO - Attempting to remove container sweb.eval.django__django-13925.20250430_200121...
+2025-04-30 20:07:13,310 - INFO - Container sweb.eval.django__django-13925.20250430_200121 removed.

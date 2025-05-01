@@ -1,0 +1,18 @@
+```patch
+--- a/sympy/functions/elementary/hyperbolic.py
++++ b/sympy/functions/elementary/hyperbolic.py
+@@ -587,9 +587,9 @@
+             # Check if m is a multiple of I*pi
+             if m:
+                 # If k is integer, coth(m) = zoo. Then coth(x+m)=coth(x)
+                 # If k is half-integer, coth(m) = 0. Then coth(x+m)=tanh(x)
+-                if cotm is S.ComplexInfinity: # XXX cotm is not defined
++                cothm = coth(m)
++                if cothm is S.ComplexInfinity: # k is integer
+                     return coth(x)
+-                else: # cotm == 0
++                elif cothm == 0: # k is half-integer
+                     return tanh(x)
+
+         if arg.func == atanh:
+```

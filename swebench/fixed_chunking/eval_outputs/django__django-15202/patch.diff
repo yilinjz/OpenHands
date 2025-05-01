@@ -1,0 +1,28 @@
+```patch
+--- a/django/core/validators.py
++++ b/django/core/validators.py
+@@ -129,13 +129,16 @@
+                     self.schemes = schemes
+ 
+             def __call__(self, value):
++                # Ensure the value is a string.
+                 value = str(value)
+-                # Check first if the scheme is valid
+-                scheme = value.split('://')[0].lower()
+-                if scheme not in self.schemes:
+-                    raise ValidationError(self.message, code='invalid_scheme', params={'value': value})
++                try:
++                    # Check first if the scheme is valid
++                    scheme = value.split('://')[0].lower()
++                    if scheme not in self.schemes:
++                        raise ValidationError(self.message, code='invalid_scheme', params={'value': value})
+
+-                # Then check if the URL is valid using the regex.
+-                super().__call__(value)
++                    # Then check if the URL is valid using the regex.
++                    super().__call__(value)
++                except ValueError:
++                    # Catch ValueErrors from urlsplit() raised from regex validation
++                    # or scheme splitting.
++                    raise ValidationError(self.message, code='invalid', params={'value': value})
+```

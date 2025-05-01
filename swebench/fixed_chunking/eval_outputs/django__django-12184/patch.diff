@@ -1,0 +1,24 @@
+```patch
+--- a/django/urls/resolvers.py
++++ b/django/urls/resolvers.py
+@@ -236,10 +236,16 @@
+         # captured values.
+         for k, v in captured_kwargs.items():
+             if v is None:
+-                # If the view parameter has a default value, don't override it
+-                # with None.
+-                if k not in self.func.view_initkwargs and k not in view_args:
++                # If the view parameter has a default value, don't override it.
++                has_default = k in self.func.view_initkwargs
++                if not has_default:
++                    try:
++                        inspect.signature(self.func).parameters[k].default
++                    except (KeyError, ValueError):
++                        pass  # No parameter or no default.
++                    else:
++                        has_default = True
++                if not has_default:
+                     kwargs[k] = v
+             else:
+                 kwargs[k] = v
+```

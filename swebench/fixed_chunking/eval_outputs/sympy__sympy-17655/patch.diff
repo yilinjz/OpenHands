@@ -1,0 +1,95 @@
+```patch
+--- a/sympy/geometry/point.py
++++ b/sympy/geometry/point.py
+@@ -21,6 +21,7 @@
+ 
+ from sympy.core import S, sympify, Expr
+ from sympy.core.compatibility import is_sequence
++from sympy.core.mul import Mul
+ from sympy.core.containers import Tuple
+ from sympy.simplify import nsimplify, simplify
+ from sympy.geometry.exceptions import GeometryError
+@@ -215,11 +216,30 @@
+ 
+         """
+         try:
+-            s, o = Point._normalize_dimension(self, Point(other, evaluate=False))
++            pt_to_add = other
++            if isinstance(other, Mul):
++                # Handle cases like Point + scalar*Point
++                # where `other` is Mul(scalar, Point)
++                is_scalar_point_mul = False
++                if len(other.args) == 2:
++                    args = list(other.args)
++                    if isinstance(args[0], Point) and not isinstance(args[1], Point):
++                        is_scalar_point_mul = True
++                        pt = args[0]
++                        scalar = args[1]
++                    elif isinstance(args[1], Point) and not isinstance(args[0], Point):
++                        is_scalar_point_mul = True
++                        pt = args[1]
++                        scalar = args[0]
++
++                if is_scalar_point_mul:
++                    try:
++                        # Evaluate scalar * Point
++                        pt_to_add = pt * scalar
++                    except Exception:
++                        pass # Fall back to original behavior
++            s, o = Point._normalize_dimension(self, Point(pt_to_add, evaluate=False))
+         except TypeError:
+-            raise GeometryError("Don't know how to add {} and a Point object".format(other))
+-
+-        coords = [simplify(a + b) for a, b in zip(s, o)]
+-        return Point(coords, evaluate=False)
++            # Use original `other` in error message for clarity
++            raise GeometryError("Don't know how to add {} and a Point object".format(other))
+
++        coords = [simplify(a + b) for a, b in zip(s, o)]
++        return Point(coords, evaluate=False)
+
+     def __contains__(self, item):
+         return item in self.args
+@@ -264,11 +284,30 @@
+ 
+     def __sub__(self, other):
+         """Subtract other from self."""
++        # Note: This logic mirrors __add__ to handle Point - scalar*Point
+         try:
+-            s, o = Point._normalize_dimension(self, Point(other, evaluate=False))
++            pt_to_sub = other
++            if isinstance(other, Mul):
++                # Handle cases like Point - scalar*Point
++                # where `other` is Mul(scalar, Point)
++                is_scalar_point_mul = False
++                if len(other.args) == 2:
++                    args = list(other.args)
++                    if isinstance(args[0], Point) and not isinstance(args[1], Point):
++                        is_scalar_point_mul = True
++                        pt = args[0]
++                        scalar = args[1]
++                    elif isinstance(args[1], Point) and not isinstance(args[0], Point):
++                        is_scalar_point_mul = True
++                        pt = args[1]
++                        scalar = args[0]
++
++                if is_scalar_point_mul:
++                    try:
++                        pt_to_sub = pt * scalar
++                    except Exception:
++                        pass
++            s, o = Point._normalize_dimension(self, Point(pt_to_sub, evaluate=False))
+         except TypeError:
+-            raise GeometryError("Don't know how to subtract {} from a Point object".format(other))
+-
+-        coords = [simplify(a - b) for a, b in zip(s, o)]
+-        return Point(coords, evaluate=False)
++            # Use original `other` in error message for clarity
++            raise GeometryError("Don't know how to subtract {} from a Point object".format(other))
+
++        coords = [simplify(a - b) for a, b in zip(s, o)]
++        return Point(coords, evaluate=False)
+
+     def __truediv__(self, divisor):
+         """Divide point's coordinates by a factor."""
+```

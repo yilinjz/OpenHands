@@ -1,0 +1,16 @@
+```patch
+--- a/sympy/codegen/routines.py
++++ b/sympy/codegen/routines.py
+@@ -66,6 +66,10 @@
+         output_symbols = set()
+         known_symbols = set()
+
++        # Add all symbols from argument_sequence to known_symbols
++        for arg in argument_sequence:
++            known_symbols.add(arg.name if isinstance(arg, (InputArgument, OutputArgument, InOutArgument)) else arg)
++
+         # Create Argument instances
+         for arg in argument_sequence:
+             if isinstance(arg, OutputArgument):
+
+```
